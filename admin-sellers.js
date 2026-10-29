@@ -1,9 +1,4 @@
 
-/* =========================================================
-   ZUNE PREMIUM ADMIN
-   admin-sellers.js — SEHEMU YA 1/4
-   Seller Management Configuration
-   ========================================================= */
 
 (function () {
   "use strict";
