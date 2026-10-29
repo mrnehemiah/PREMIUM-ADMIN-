@@ -1,40 +1,57 @@
+
 "use strict";
 
-const ZUNE_SUPABASE_URL = "https://rpkogiieegqgxqbzwxwo.supabase.co";
+/* =========================================================
+   ZUNE PREMIUM ADMIN
+   SEHEMU YA 1/5
+   Supabase, helpers, login, session na navigation
+========================================================= */
+
+const ZUNE_SUPABASE_URL =
+  "https://rpkogiieegqgxqbzwxwo.supabase.co";
+
 const ZUNE_SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_2TEqZv-NBM9n5knU46ngqA_wqO3V1uf";
 
 let zuneSupabase = null;
 let zuneAdminSession = null;
 let zuneAdminProfile = null;
-let zuneCurrentSection = "overview";
+let zuneCurrentSection = "overviewSection";
 let zuneAdminBusy = false;
+let zuneInitialized = false;
 
 const ZUNE = {
-  money: new Intl.NumberFormat("en-TZ", {
-    style: "currency",
-    currency: "TZS",
-    maximumFractionDigits: 0
-  }),
+  currency: "TZS",
+  pageSize: 10,
 
-  number: new Intl.NumberFormat("en-TZ"),
+  number(value) {
+    return new Intl.NumberFormat("en-TZ").format(
+      Number(value) || 0
+    );
+  },
+
+  money(value) {
+    return new Intl.NumberFormat("en-TZ", {
+      style: "currency",
+      currency: this.currency,
+      maximumFractionDigits: 0
+    }).format(Number(value) || 0);
+  },
 
   date(value) {
     if (!value) return "—";
+
     const date = new Date(value);
+
     if (Number.isNaN(date.getTime())) return "—";
 
-    return date.toLocaleString("en-GB", {
+    return date.toLocaleString("sw-TZ", {
       day: "2-digit",
       month: "short",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit"
     });
-  },
-
-  money(value) {
-    return ZUNE.money.format(Number(value) || 0);
   },
 
   escape(value) {
@@ -47,64 +64,99 @@ const ZUNE = {
     })[char]);
   },
 
-  element(selector) {
-    return document.querySelector(selector);
+  el(selector, parent = document) {
+    return parent.querySelector(selector);
   },
 
-  all(selector) {
-    return [...document.querySelectorAll(selector)];
+  all(selector, parent = document) {
+    return [...parent.querySelectorAll(selector)];
   },
 
-  message(target, text, type = "info") {
+  setText(selector, value) {
+    const element = this.el(selector);
+    if (element) element.textContent = value ?? "—";
+  },
+
+  message(target, message, type = "info") {
     const element = typeof target === "string"
-      ? document.querySelector(target)
+      ? this.el(target)
       : target;
 
     if (!element) return;
 
-    element.textContent = text;
-    element.dataset.type = type;
+    element.textContent = message;
+    element.className = `message ${type}`;
     element.hidden = false;
+    element.classList.remove("hidden");
+    element.setAttribute("role", "status");
   },
 
   clearMessage(target) {
     const element = typeof target === "string"
-      ? document.querySelector(target)
+      ? this.el(target)
       : target;
 
     if (!element) return;
 
     element.textContent = "";
     element.hidden = true;
+    element.classList.add("hidden");
   },
 
   toast(message, type = "info") {
-    let toast = document.querySelector("#adminToast");
+    const container =
+      this.el("#adminToastContainer") ||
+      this.el("#adminToast");
 
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.id = "adminToast";
-      toast.className = "admin-toast";
-      toast.setAttribute("role", "status");
-      document.body.appendChild(toast);
+    if (container && container.id === "adminToastContainer") {
+      const toast = document.createElement("div");
+      toast.className = `toast ${type}`;
+
+      const icon = document.createElement("i");
+      icon.className = type === "error"
+        ? "fa-solid fa-circle-exclamation"
+        : type === "success"
+          ? "fa-solid fa-circle-check"
+          : "fa-solid fa-circle-info";
+
+      const text = document.createElement("p");
+      text.textContent = message;
+
+      toast.append(icon, text);
+      container.appendChild(toast);
+
+      window.setTimeout(() => toast.remove(), 4500);
+      return;
     }
 
-    toast.textContent = message;
-    toast.dataset.type = type;
-    toast.classList.add("show");
+    let fallback = this.el("#zuneAdminToastFallback");
 
-    window.clearTimeout(toast._hideTimer);
-    toast._hideTimer = window.setTimeout(() => {
-      toast.classList.remove("show");
-    }, 3500);
+    if (!fallback) {
+      fallback = document.createElement("div");
+      fallback.id = "zuneAdminToastFallback";
+      fallback.style.cssText =
+        "position:fixed;bottom:18px;right:18px;z-index:9999;" +
+        "background:#173f32;color:white;padding:14px 18px;" +
+        "border-radius:10px;max-width:90vw;box-shadow:0 5px 25px #0002";
+      document.body.appendChild(fallback);
+    }
+
+    fallback.textContent = message;
+    fallback.style.background =
+      type === "error" ? "#b42332" : "#173f32";
+
+    window.clearTimeout(fallback._timer);
+    fallback._timer = window.setTimeout(() => {
+      fallback.remove();
+    }, 4000);
   },
 
-  async query(table, operation) {
+  async query(table, buildQuery) {
     if (!zuneSupabase) {
-      throw new Error("Supabase haijaunganishwa.");
+      throw new Error("Muunganisho wa Supabase haujaanzishwa.");
     }
 
-    const result = await operation(zuneSupabase.from(table));
+    const result = await buildQuery(zuneSupabase.from(table));
 
     if (result.error) {
       console.error(`ZUNE Admin / ${table}:`, result.error);
@@ -112,41 +164,128 @@ const ZUNE = {
     }
 
     return result.data;
+  },
+
+  errorMessage(error) {
+    const message = String(error?.message || "");
+
+    if (/Invalid login credentials/i.test(message)) {
+      return "Email au password si sahihi.";
+    }
+
+    if (/Email not confirmed/i.test(message)) {
+      return "Thibitisha email yako kabla ya kuingia.";
+    }
+
+    if (/Failed to fetch|NetworkError/i.test(message)) {
+      return "Mtandao haujapatikana. Kagua internet kisha ujaribu tena.";
+    }
+
+    if (/row-level security|permission denied|not allowed/i.test(message)) {
+      return "Huna ruhusa ya kufanya kitendo hiki. Kagua sera za usalama za Supabase.";
+    }
+
+    return message || "Hitilafu imetokea. Jaribu tena.";
   }
 };
+
+
+/* =========================================================
+   KUANZISHA SUPABASE
+========================================================= */
+
+function zuneConnectSupabase() {
+  if (zuneSupabase) return zuneSupabase;
+
+  if (!window.supabase?.createClient) {
+    throw new Error(
+      "Supabase SDK haijapakiwa. Kagua script ya Supabase kwenye admin.html."
+    );
+  }
+
+  zuneSupabase = window.supabase.createClient(
+    ZUNE_SUPABASE_URL,
+    ZUNE_SUPABASE_PUBLISHABLE_KEY,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    }
+  );
+
+  return zuneSupabase;
+}
+
+
+/* =========================================================
+   KUONYESHA LOGIN AU DASHBOARD
+========================================================= */
+
+function zuneShowLogin() {
+  const login = ZUNE.el("#adminLoginScreen");
+  const dashboard = ZUNE.el("#adminDashboard");
+
+  if (login) {
+    login.hidden = false;
+    login.classList.remove("hidden");
+  }
+
+  if (dashboard) {
+    dashboard.hidden = true;
+    dashboard.classList.add("hidden");
+  }
+}
+
+function zuneShowDashboard() {
+  const login = ZUNE.el("#adminLoginScreen");
+  const dashboard = ZUNE.el("#adminDashboard");
+
+  if (login) {
+    login.hidden = true;
+    login.classList.add("hidden");
+  }
+
+  if (dashboard) {
+    dashboard.hidden = false;
+    dashboard.classList.remove("hidden");
+  }
+}
 
 function zuneSetBusy(isBusy) {
   zuneAdminBusy = isBusy;
 
-  ZUNE.all(
-    "#adminLoginForm button[type='submit'], #adminLogout, #adminReloadPage"
-  ).forEach(button => {
+  const button = ZUNE.el("#adminLoginButton");
+
+  if (button) {
     button.disabled = isBusy;
-  });
+    button.setAttribute("aria-busy", String(isBusy));
+
+    const label = ZUNE.el("span", button);
+
+    if (label) {
+      label.textContent = isBusy
+        ? "Inathibitisha..."
+        : "Ingia kwenye Admin";
+    }
+  }
+
+  const refreshButton = ZUNE.el("#adminRefreshButton");
+  if (refreshButton) refreshButton.disabled = isBusy;
 }
 
-function zuneShowLogin() {
-  const loginPanel = ZUNE.element("#adminLoginPanel");
-  const dashboard = ZUNE.element("#adminDashboard");
 
-  if (loginPanel) loginPanel.hidden = false;
-  if (dashboard) dashboard.hidden = true;
-}
-
-function zuneShowDashboard() {
-  const loginPanel = ZUNE.element("#adminLoginPanel");
-  const dashboard = ZUNE.element("#adminDashboard");
-
-  if (loginPanel) loginPanel.hidden = true;
-  if (dashboard) dashboard.hidden = false;
-}
+/* =========================================================
+   KUTHIBITISHA RUHUSA ZA ADMIN
+========================================================= */
 
 async function zuneVerifyAdmin(session) {
   if (!session?.user?.id) {
-    throw new Error("Tafadhali ingia kwa akaunti ya admin.");
+    throw new Error("Hakuna session halali. Tafadhali ingia tena.");
   }
 
-  const { data, error } = await zuneSupabase
+  const { data: profile, error } = await zuneSupabase
     .from("profiles")
     .select("id, full_name, phone_number, role, is_verified, created_at")
     .eq("id", session.user.id)
@@ -154,189 +293,59 @@ async function zuneVerifyAdmin(session) {
 
   if (error) throw error;
 
-  if (!data || data.role !== "admin") {
+  if (!profile || profile.role !== "admin") {
     await zuneSupabase.auth.signOut();
-    throw new Error("Akaunti hii haina ruhusa ya kutumia Admin Dashboard.");
-  }
-
-  zuneAdminSession = session;
-  zuneAdminProfile = data;
-
-  return data;
-}
-
-function zuneUpdateAdminIdentity() {
-  const profile = zuneAdminProfile;
-  const email = zuneAdminSession?.user?.email || "";
-  const displayName =
-    profile?.full_name ||
-    email ||
-    "ZUNE Admin";
-
-  const nameTargets = [
-    "#adminName",
-    "#adminUserName",
-    "#sidebarAdminName",
-    "[data-admin-name]"
-  ];
-
-  const emailTargets = [
-    "#adminEmail",
-    "#adminUserEmail",
-    "[data-admin-email]"
-  ];
-
-  nameTargets.forEach(selector => {
-    ZUNE.all(selector).forEach(element => {
-      element.textContent = displayName;
-    });
-  });
-
-  emailTargets.forEach(selector => {
-    ZUNE.all(selector).forEach(element => {
-      element.textContent = email;
-    });
-  });
-}
-
-function zuneOpenSection(sectionName) {
-  const requested = String(sectionName || "overview");
-  const section = document.getElementById(requested);
-
-  if (!section) {
-    ZUNE.toast("Sehemu uliyochagua haijapatikana.", "error");
-    return;
-  }
-
-  zuneCurrentSection = requested;
-
-  ZUNE.all("[data-section]").forEach(element => {
-    const active = element.dataset.section === requested;
-    element.classList.toggle("active", active);
-
-    if (element.matches("button, a")) {
-      element.setAttribute("aria-current", active ? "page" : "false");
-    }
-  });
-
-  ZUNE.all("[data-admin-view], .admin-section, .dashboard-section")
-    .forEach(element => {
-      const matches =
-        element.id === requested ||
-        element.dataset.adminView === requested;
-
-      if (element.id || element.dataset.adminView) {
-        element.hidden = !matches;
-        element.classList.toggle("active", matches);
-      }
-    });
-
-  const title = ZUNE.element("#adminPageTitle");
-  if (title) {
-    const activeLink = ZUNE.element(
-      `[data-section="${CSS.escape(requested)}"]`
-    );
-
-    title.textContent =
-      activeLink?.dataset.title ||
-      activeLink?.textContent?.trim() ||
-      "ZUNE Admin";
-  }
-
-  ZUNE.element("#adminSidebar")?.classList.remove("open");
-  ZUNE.element("#sidebarBackdrop")?.classList.remove("show");
-
-  if (requested === "overview") zuneLoadOverview();
-  if (requested === "analytics") zuneLoadAnalytics();
-  if (requested === "applications") zuneLoadApplications();
-  if (requested === "products") zuneLoadProducts();
-  if (requested === "orders") zuneLoadOrders();
-  if (requested === "users") zuneLoadUsers();
-  if (requested === "announcements") zuneLoadAnnouncements();
-  if (requested === "notifications") zuneLoadNotifications();
-  if (requested === "verification") zuneLoadVerification();
-}
-
-function zuneBindNavigation() {
-  ZUNE.all("[data-section]").forEach(element => {
-    element.addEventListener("click", event => {
-      event.preventDefault();
-      zuneOpenSection(element.dataset.section);
-    });
-  });
-
-  ZUNE.element("#adminReloadPage")?.addEventListener("click", async () => {
-    await zuneRefreshCurrentSection();
-  });
-
-  ZUNE.element("#adminLogout")?.addEventListener("click", async () => {
-    if (zuneAdminBusy) return;
-
-    const { error } = await zuneSupabase.auth.signOut();
-
-    if (error) {
-      console.error(error);
-      ZUNE.toast("Imeshindikana kutoka. Jaribu tena.", "error");
-      return;
-    }
 
     zuneAdminSession = null;
     zuneAdminProfile = null;
-    zuneShowLogin();
-  });
 
-  ZUNE.element("#adminMenuToggle")?.addEventListener("click", () => {
-    ZUNE.element("#adminSidebar")?.classList.toggle("open");
-    ZUNE.element("#sidebarBackdrop")?.classList.toggle("show");
-  });
-
-  ZUNE.element("#sidebarBackdrop")?.addEventListener("click", () => {
-    ZUNE.element("#adminSidebar")?.classList.remove("open");
-    ZUNE.element("#sidebarBackdrop")?.classList.remove("show");
-  });
-}
-
-async function zuneRefreshCurrentSection() {
-  if (!zuneAdminSession) return;
-
-  try {
-    await zuneVerifyAdmin(zuneAdminSession);
-
-    switch (zuneCurrentSection) {
-      case "analytics":
-        await zuneLoadAnalytics();
-        break;
-      case "applications":
-        await zuneLoadApplications();
-        break;
-      case "products":
-        await zuneLoadProducts();
-        break;
-      case "orders":
-        await zuneLoadOrders();
-        break;
-      case "users":
-        await zuneLoadUsers();
-        break;
-      case "announcements":
-        await zuneLoadAnnouncements();
-        break;
-      case "notifications":
-        await zuneLoadNotifications();
-        break;
-      case "verification":
-        await zuneLoadVerification();
-        break;
-      default:
-        await zuneLoadOverview();
-    }
-
-    ZUNE.toast("Taarifa zimekaguliwa upya.", "success");
-  } catch (error) {
-    console.error(error);
-    ZUNE.toast("Imeshindikana kusasisha taarifa.", "error");
+    throw new Error(
+      "Akaunti hii haina ruhusa ya kutumia ZUNE Admin Dashboard."
+    );
   }
+
+  zuneAdminSession = session;
+  zuneAdminProfile = profile;
+
+  return profile;
 }
+
+
+/* =========================================================
+   TAARIFA ZA ADMIN ALIYEINGIA
+========================================================= */
+
+function zuneUpdateAdminIdentity() {
+  const name =
+    zuneAdminProfile?.full_name ||
+    zuneAdminSession?.user?.email ||
+    "ZUNE Admin";
+
+  const email = zuneAdminSession?.user?.email || "—";
+  const avatar = name.trim().charAt(0).toUpperCase() || "A";
+
+  [
+    "#sidebarAdminName",
+    "#settingsAdminName"
+  ].forEach(selector => ZUNE.setText(selector, name));
+
+  [
+    "#settingsAdminEmail"
+  ].forEach(selector => ZUNE.setText(selector, email));
+
+  [
+    "#sidebarAdminAvatar",
+    "#settingsAdminAvatar"
+  ].forEach(selector => ZUNE.setText(selector, avatar));
+
+  ZUNE.setText("#settingsAdminRole", zuneAdminProfile?.role || "admin");
+  ZUNE.setText("#settingsSessionStatus", "Imeunganishwa");
+}
+
+
+/* =========================================================
+   LOGIN KUPITIA SUPABASE AUTH
+========================================================= */
 
 async function zuneAdminLogin(event) {
   event.preventDefault();
@@ -344,23 +353,15 @@ async function zuneAdminLogin(event) {
   if (zuneAdminBusy) return;
 
   const form = event.currentTarget;
-  const email = form.querySelector(
-    "[name='email'], #adminEmailInput, #loginEmail"
-  )?.value?.trim();
+  const email = ZUNE.el("[name='email']", form)?.value?.trim();
+  const password = ZUNE.el("[name='password']", form)?.value;
 
-  const password = form.querySelector(
-    "[name='password'], #adminPasswordInput, #loginPassword"
-  )?.value;
-
-  const messageTarget =
-    ZUNE.element("#loginMessage") ||
-    ZUNE.element("#adminLoginMessage");
-
-  ZUNE.clearMessage(messageTarget);
+  const message = ZUNE.el("#loginMessage");
+  ZUNE.clearMessage(message);
 
   if (!email || !password) {
     ZUNE.message(
-      messageTarget,
+      message,
       "Weka email na password yako.",
       "error"
     );
@@ -370,26 +371,33 @@ async function zuneAdminLogin(event) {
   zuneSetBusy(true);
 
   try {
-    const { data, error } = await zuneSupabase.auth.signInWithPassword({
-      email,
-      password
-    });
+    const { data, error } =
+      await zuneSupabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
     if (error) throw error;
 
     await zuneVerifyAdmin(data.session);
+
     zuneShowDashboard();
     zuneUpdateAdminIdentity();
-    zuneOpenSection("overview");
 
-    ZUNE.toast("Karibu kwenye ZUNE Admin Dashboard.", "success");
+    zuneOpenSection("overviewSection");
+
+    form.reset();
+
+    ZUNE.toast(
+      "Umeingia kwenye ZUNE Premium Admin.",
+      "success"
+    );
   } catch (error) {
-    console.error("ZUNE admin login:", error);
+    console.error("ZUNE Admin login:", error);
 
     ZUNE.message(
-      messageTarget,
-      error.message ||
-        "Imeshindikana kuingia. Hakikisha taarifa zako ni sahihi.",
+      message,
+      ZUNE.errorMessage(error),
       "error"
     );
 
@@ -399,92 +407,764 @@ async function zuneAdminLogin(event) {
   }
 }
 
-async function zuneLoadOverview() {
-  const messageTarget = ZUNE.element("#adminGlobalMessage");
-  ZUNE.clearMessage(messageTarget);
+
+/* =========================================================
+   KUTOKA KWENYE AKAUNTI
+========================================================= */
+
+async function zuneAdminLogout() {
+  if (zuneAdminBusy || !zuneSupabase) return;
+
+  const confirmed = window.confirm(
+    "Una uhakika unataka kutoka kwenye Admin Dashboard?"
+  );
+
+  if (!confirmed) return;
+
+  zuneSetBusy(true);
 
   try {
-    const [products, orders, profiles, applications] = await Promise.all([
-      ZUNE.query("products", query =>
-        query.select("id, price, stock_quantity, created_at")
+    const { error } = await zuneSupabase.auth.signOut();
+
+    if (error) throw error;
+
+    zuneAdminSession = null;
+    zuneAdminProfile = null;
+
+    zuneShowLogin();
+
+    ZUNE.clearMessage("#loginMessage");
+    ZUNE.toast("Umetoka kwenye akaunti.", "success");
+  } catch (error) {
+    console.error("Admin logout:", error);
+    ZUNE.toast(ZUNE.errorMessage(error), "error");
+  } finally {
+    zuneSetBusy(false);
+  }
+}
+
+
+/* =========================================================
+   NAVIGATION YA DASHBOARD
+========================================================= */
+
+const ZUNE_SECTIONS = {
+  overviewSection: {
+    title: "Muhtasari",
+    subtitle: "Muhtasari wa shughuli za ZUNE Marketplace"
+  },
+  analyticsSection: {
+    title: "Takwimu na Ripoti",
+    subtitle: "Takwimu za biashara kutoka Supabase"
+  },
+  applicationsSection: {
+    title: "Maombi ya Wauzaji",
+    subtitle: "Kagua na simamia maombi ya wauzaji"
+  },
+  productsSection: {
+    title: "Bidhaa",
+    subtitle: "Angalia bidhaa zilizowekwa kwenye soko"
+  },
+  ordersSection: {
+    title: "Oda na Malipo",
+    subtitle: "Fuatilia oda na hali zake"
+  },
+  usersSection: {
+    title: "Watumiaji",
+    subtitle: "Simamia akaunti za ZUNE"
+  },
+  announcementsSection: {
+    title: "Matangazo ya Admin",
+    subtitle: "Tengeneza na simamia matangazo"
+  },
+  notificationsSection: {
+    title: "Notifications",
+    subtitle: "Taarifa za mfumo"
+  },
+  verificationSection: {
+    title: "Uhakiki wa Akaunti",
+    subtitle: "Simamia hali ya uhakiki"
+  },
+  settingsSection: {
+    title: "Mipangilio",
+    subtitle: "Mapendeleo na usalama wa akaunti"
+  }
+};
+
+function zuneOpenSection(sectionName) {
+  const section = ZUNE_SECTIONS[sectionName];
+
+  if (!section) {
+    ZUNE.toast("Sehemu uliyochagua haipo.", "error");
+    return;
+  }
+
+  zuneCurrentSection = sectionName;
+
+  ZUNE.all(".page-section").forEach(element => {
+    const active = element.id === sectionName;
+
+    element.hidden = !active;
+    element.classList.toggle("active", active);
+  });
+
+  ZUNE.all("[data-section]").forEach(button => {
+    const active = button.dataset.section === sectionName;
+
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-current", active ? "page" : "false");
+  });
+
+  ZUNE.setText("#currentPageTitle", section.title);
+  ZUNE.setText("#currentPageSubtitle", section.subtitle);
+
+  ZUNE.el("#adminSidebar")?.classList.remove("open");
+  ZUNE.el("#sidebarBackdrop")?.classList.remove("visible");
+
+  if (sectionName === "overviewSection") {
+    zuneLoadOverview();
+  }
+
+  if (sectionName === "analyticsSection") {
+    zuneLoadAnalytics();
+  }
+
+  if (sectionName === "applicationsSection") {
+    zuneLoadApplications();
+  }
+
+  if (sectionName === "productsSection") {
+    zuneLoadProducts();
+  }
+
+  if (sectionName === "ordersSection") {
+    zuneLoadOrders();
+  }
+
+  if (sectionName === "usersSection") {
+    zuneLoadUsers();
+  }
+
+  if (sectionName === "announcementsSection") {
+    zuneLoadAnnouncements();
+  }
+
+  if (sectionName === "notificationsSection") {
+    zuneLoadNotifications();
+  }
+
+  if (sectionName === "verificationSection") {
+    zuneLoadVerification();
+  }
+}
+
+
+/* =========================================================
+   KUFUNGA/KUFUNGUA SIDEBAR KWENYE SIMU
+========================================================= */
+
+function zuneBindNavigation() {
+  ZUNE.all("[data-section]").forEach(button => {
+    if (button.dataset.zuneBound === "true") return;
+
+    button.dataset.zuneBound = "true";
+
+    button.addEventListener("click", () => {
+      zuneOpenSection(button.dataset.section);
+    });
+  });
+
+  ZUNE.el("#adminMenuToggle")?.addEventListener("click", () => {
+    ZUNE.el("#adminSidebar")?.classList.toggle("open");
+    ZUNE.el("#sidebarBackdrop")?.classList.toggle("visible");
+  });
+
+  ZUNE.el("#sidebarBackdrop")?.addEventListener("click", () => {
+    ZUNE.el("#adminSidebar")?.classList.remove("open");
+    ZUNE.el("#sidebarBackdrop")?.classList.remove("visible");
+  });
+
+  ZUNE.el("#adminLogoutButton")?.addEventListener(
+    "click",
+    zuneAdminLogout
+  );
+
+  ZUNE.el("#settingsLogoutButton")?.addEventListener(
+    "click",
+    zuneAdminLogout
+  );
+
+  ZUNE.el("#adminRefreshButton")?.addEventListener(
+    "click",
+    zuneRefreshCurrentSection
+  );
+}
+
+/* =========================================================
+   ZUNE PREMIUM ADMIN
+   SEHEMU YA 2/5
+   Dashboard overview, analytics na takwimu
+========================================================= */
+
+
+/* =========================================================
+   HELPERS ZA DATA
+========================================================= */
+
+async function zuneCountRows(table, configure) {
+  let query = zuneSupabase
+    .from(table)
+    .select("*", { count: "exact", head: true });
+
+  if (typeof configure === "function") {
+    query = configure(query);
+  }
+
+  const { count, error } = await query;
+
+  if (error) throw error;
+
+  return count || 0;
+}
+
+async function zuneFetchRows(
+  table,
+  columns = "*",
+  configure = null
+) {
+  let query = zuneSupabase.from(table).select(columns);
+
+  if (typeof configure === "function") {
+    query = configure(query);
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+
+  return data || [];
+}
+
+async function zuneSafeCount(table, configure) {
+  try {
+    return await zuneCountRows(table, configure);
+  } catch (error) {
+    console.error(`Kuhesabu ${table} kumeshindikana:`, error);
+    return null;
+  }
+}
+
+function zuneSetStat(selector, value) {
+  const element = ZUNE.el(selector);
+  if (!element) return;
+
+  element.textContent =
+    value === null || value === undefined
+      ? "—"
+      : ZUNE.number(value);
+}
+
+function zuneSetMoneyStat(selector, value) {
+  const element = ZUNE.el(selector);
+  if (!element) return;
+
+  element.textContent =
+    value === null || value === undefined
+      ? "—"
+      : ZUNE.money(value);
+}
+
+function zuneSetLoading(selector, text = "Inapakia...") {
+  const element = ZUNE.el(selector);
+  if (element) element.textContent = text;
+}
+
+function zuneRequireAdmin() {
+  if (!zuneAdminSession?.user?.id || !zuneAdminProfile) {
+    throw new Error(
+      "Session ya admin haipo. Tafadhali ingia tena."
+    );
+  }
+
+  if (zuneAdminProfile.role !== "admin") {
+    throw new Error("Huna ruhusa ya kutumia dashboard hii.");
+  }
+}
+
+
+/* =========================================================
+   KUPAKIA TAKWIMU ZA DASHBOARD
+========================================================= */
+
+async function zuneLoadOverview() {
+  if (!zuneSupabase || !zuneAdminSession) return;
+
+  try {
+    zuneRequireAdmin();
+
+    const statSelectors = [
+      "#statTotalSales",
+      "#statTotalOrders",
+      "#statTotalSellers",
+      "#statTotalCustomers",
+      "#pendingAppsCount"
+    ];
+
+    statSelectors.forEach(selector => {
+      zuneSetLoading(selector);
+    });
+
+    const results = await Promise.all([
+      zuneSafeCount("orders"),
+      zuneSafeCount("products"),
+      zuneSafeCount("profiles", query =>
+        query.eq("role", "vendor")
       ),
-      ZUNE.query("orders", query =>
-        query.select("id, total_price, commission_fee, status, created_at")
+      zuneSafeCount("profiles", query =>
+        query.eq("role", "buyer")
       ),
-      ZUNE.query("profiles", query =>
-        query.select("id, role, created_at")
-      ),
-      ZUNE.query("seller_applications", query =>
-        query.select("id, status, created_at")
+      zuneSafeCount("seller_applications", query =>
+        query.eq("status", "pending")
       )
     ]);
 
-    const completedOrders = orders.filter(
-      order => order.status === "completed"
-    );
+    const [
+      totalOrders,
+      totalProducts,
+      totalSellers,
+      totalCustomers,
+      pendingApplications
+    ] = results;
 
-    const totalSales = completedOrders.reduce(
-      (sum, order) => sum + (Number(order.total_price) || 0),
-      0
-    );
+    zuneSetStat("#statTotalOrders", totalOrders);
+    zuneSetStat("#statTotalProducts", totalProducts);
+    zuneSetStat("#statTotalSellers", totalSellers);
+    zuneSetStat("#statTotalCustomers", totalCustomers);
+    zuneSetStat("#pendingAppsCount", pendingApplications);
 
-    const pendingApplications = applications.filter(
-      application => application.status === "pending"
-    ).length;
+    const salesResult = await zuneFetchRows(
+      "orders",
+      "total_price,status"
+    ).catch(error => {
+      console.error("Kusoma mauzo kumeshindikana:", error);
+      return null;
+    });
 
-    zuneSetText("#statTotalSales", ZUNE.money(totalSales));
-    zuneSetText("#statTotalOrders", ZUNE.number.format(orders.length));
-    zuneSetText(
-      "#statTotalSellers",
-      ZUNE.number.format(profiles.filter(profile => profile.role === "vendor").length)
-    );
-    zuneSetText(
-      "#statTotalCustomers",
-      ZUNE.number.format(profiles.filter(profile => profile.role === "buyer").length)
-    );
-    zuneSetText("#pendingAppsCount", ZUNE.number.format(pendingApplications));
+    if (salesResult) {
+      const completedSales = salesResult
+        .filter(order => order.status === "completed")
+        .reduce(
+          (total, order) =>
+            total + (Number(order.total_price) || 0),
+          0
+        );
 
-    zuneSetText(
-      "#statTotalProducts",
-      ZUNE.number.format(products.length)
-    );
-
-    zuneSetText(
-      "#statPendingOrders",
-      ZUNE.number.format(
-        orders.filter(order => order.status === "pending").length
-      )
-    );
-
-    zuneSetText(
-      "#statCompletedOrders",
-      ZUNE.number.format(completedOrders.length)
-    );
-
-    zuneRenderRecentOrders(orders);
-    zuneRenderOverviewProducts(products);
-
-    const lastUpdated = ZUNE.element("#adminLastUpdated");
-    if (lastUpdated) {
-      lastUpdated.textContent = `Imesasishwa: ${ZUNE.date(new Date())}`;
+      zuneSetMoneyStat("#statTotalSales", completedSales);
+    } else {
+      zuneSetMoneyStat("#statTotalSales", null);
     }
-  } catch (error) {
-    console.error("ZUNE overview:", error);
 
-    ZUNE.message(
-      messageTarget,
-      "Baadhi ya takwimu hazijapatikana. Kagua ruhusa za Supabase na majina ya columns.",
+    zuneSetStat("#statTotalProducts", totalProducts);
+
+    const statusElement = ZUNE.el("#adminDataStatus");
+
+    if (statusElement) {
+      const failed = results.some(value => value === null);
+
+      statusElement.textContent = failed
+        ? "Baadhi ya takwimu hazikupatikana. Kagua ruhusa za Supabase."
+        : "Takwimu zimepakiwa kutoka Supabase.";
+
+      statusElement.classList.toggle("error", failed);
+    }
+
+    await zuneLoadRecentOrders();
+    await zuneLoadRecentApplications();
+
+  } catch (error) {
+    console.error("ZUNE overview error:", error);
+
+    ZUNE.toast(
+      ZUNE.errorMessage(error),
       "error"
     );
   }
 }
 
-function zuneSetText(selector, value) {
-  const element = ZUNE.element(selector);
-  if (element) element.textContent = value ?? "—";
+
+/* =========================================================
+   ODA ZA KARIBUNI KWENYE DASHBOARD
+========================================================= */
+
+async function zuneLoadRecentOrders() {
+  const container =
+    ZUNE.el("#recentOrdersTableBody") ||
+    ZUNE.el("#recentOrdersBody");
+
+  if (!container || !zuneAdminSession) return;
+
+  container.replaceChildren();
+
+  try {
+    const orders = await zuneFetchRows(
+      "orders",
+      "id,buyer_id,product_id,quantity,total_price,status,created_at",
+      query => query
+        .order("created_at", { ascending: false })
+        .limit(5)
+    );
+
+    if (!orders.length) {
+      zuneRenderEmptyRow(
+        container,
+        5,
+        "Hakuna oda zilizopatikana."
+      );
+      return;
+    }
+
+    orders.forEach(order => {
+      const row = document.createElement("tr");
+
+      const values = [
+        String(order.id).slice(0, 8),
+        order.product_id
+          ? String(order.product_id).slice(0, 8)
+          : "—",
+        ZUNE.money(order.total_price),
+        order.status || "—",
+        ZUNE.date(order.created_at)
+      ];
+
+      values.forEach(value => {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        row.appendChild(cell);
+      });
+
+      container.appendChild(row);
+    });
+
+  } catch (error) {
+    console.error("Recent orders error:", error);
+
+    zuneRenderEmptyRow(
+      container,
+      5,
+      "Imeshindwa kupakia oda."
+    );
+  }
 }
 
-function zuneStatusLabel(status) {
+
+/* =========================================================
+   MAOMBI YA W A U Z A J I YA KARIBUNI
+========================================================= */
+
+async function zuneLoadRecentApplications() {
+  const container =
+    ZUNE.el("#recentApplicationsTableBody") ||
+    ZUNE.el("#recentApplicationsBody");
+
+  if (!container || !zuneAdminSession) return;
+
+  container.replaceChildren();
+
+  try {
+    const applications = await zuneFetchRows(
+      "seller_applications",
+      "id,store_name,owner_name,country,status,created_at",
+      query => query
+        .order("created_at", { ascending: false })
+        .limit(5)
+    );
+
+    if (!applications.length) {
+      zuneRenderEmptyRow(
+        container,
+        5,
+        "Hakuna maombi ya wauzaji."
+      );
+      return;
+    }
+
+    applications.forEach(application => {
+      const row = document.createElement("tr");
+
+      [
+        application.store_name || "—",
+        application.owner_name || "—",
+        application.country || "—",
+        application.status || "pending",
+        ZUNE.date(application.created_at)
+      ].forEach(value => {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        row.appendChild(cell);
+      });
+
+      container.appendChild(row);
+    });
+
+  } catch (error) {
+    console.error("Recent applications error:", error);
+
+    zuneRenderEmptyRow(
+      container,
+      5,
+      "Imeshindwa kupakia maombi."
+    );
+  }
+}
+
+
+/* =========================================================
+   KUONYESHA ROW TUPU
+========================================================= */
+
+function zuneRenderEmptyRow(container, columnCount, message) {
+  if (!container) return;
+
+  const row = document.createElement("tr");
+  const cell = document.createElement("td");
+
+  cell.colSpan = columnCount;
+  cell.textContent = message;
+  cell.className = "empty-state";
+
+  row.appendChild(cell);
+  container.appendChild(row);
+}
+
+
+/* =========================================================
+   ANALYTICS NA RIPOTI
+========================================================= */
+
+async function zuneLoadAnalytics() {
+  if (!zuneSupabase || !zuneAdminSession) return;
+
+  try {
+    zuneRequireAdmin();
+
+    const orders = await zuneFetchRows(
+      "orders",
+      "total_price,status,created_at"
+    );
+
+    const productsCount = await zuneSafeCount("products");
+    const usersCount = await zuneSafeCount("profiles");
+
+    const completedOrders = orders.filter(
+      order => order.status === "completed"
+    );
+
+    const pendingOrders = orders.filter(
+      order => order.status === "pending"
+    );
+
+    const cancelledOrders = orders.filter(
+      order => order.status === "cancelled"
+    );
+
+    const completedRevenue = completedOrders.reduce(
+      (total, order) =>
+        total + (Number(order.total_price) || 0),
+      0
+    );
+
+    ZUNE.setText(
+      "#analyticsTotalRevenue",
+      ZUNE.money(completedRevenue)
+    );
+
+    zuneSetStat("#analyticsTotalOrders", orders.length);
+    zuneSetStat("#analyticsCompletedOrders", completedOrders.length);
+    zuneSetStat("#analyticsPendingOrders", pendingOrders.length);
+    zuneSetStat("#analyticsCancelledOrders", cancelledOrders.length);
+    zuneSetStat("#analyticsTotalProducts", productsCount);
+    zuneSetStat("#analyticsTotalUsers", usersCount);
+
+    zuneRenderSalesByMonth(orders);
+
+  } catch (error) {
+    console.error("Analytics error:", error);
+
+    ZUNE.toast(
+      "Imeshindwa kupakia takwimu. Kagua ruhusa za Supabase.",
+      "error"
+    );
+  }
+}
+
+
+/* =========================================================
+   MAUZO KWA MWEZI
+========================================================= */
+
+function zuneRenderSalesByMonth(orders) {
+  const container = ZUNE.el("#salesByMonth");
+
+  if (!container) return;
+
+  container.replaceChildren();
+
+  const months = new Map();
+
+  orders
+    .filter(order => order.status === "completed")
+    .forEach(order => {
+      const date = new Date(order.created_at);
+
+      if (Number.isNaN(date.getTime())) return;
+
+      const key = [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0")
+      ].join("-");
+
+      months.set(
+        key,
+        (months.get(key) || 0) +
+          (Number(order.total_price) || 0)
+      );
+    });
+
+  const entries = [...months.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-6);
+
+  if (!entries.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "Hakuna data ya mauzo iliyokamilika bado.";
+    container.appendChild(empty);
+    return;
+  }
+
+  entries.forEach(([month, amount]) => {
+    const item = document.createElement("div");
+    item.className = "sales-month-item";
+
+    const label = document.createElement("span");
+    label.textContent = month;
+
+    const value = document.createElement("strong");
+    value.textContent = ZUNE.money(amount);
+
+    item.append(label, value);
+    container.appendChild(item);
+  });
+}
+
+
+/* =========================================================
+   KUBORESHA SEHEMU ILIYO WAZI
+========================================================= */
+
+async function zuneRefreshCurrentSection() {
+  if (!zuneAdminSession) {
+    ZUNE.toast("Tafadhali ingia tena.", "error");
+    return;
+  }
+
+  ZUNE.toast("Inasasisha data...", "info");
+
+  switch (zuneCurrentSection) {
+    case "overviewSection":
+      await zuneLoadOverview();
+      break;
+
+    case "analyticsSection":
+      await zuneLoadAnalytics();
+      break;
+
+    case "applicationsSection":
+      await zuneLoadApplications();
+      break;
+
+    case "productsSection":
+      await zuneLoadProducts();
+      break;
+
+    case "ordersSection":
+      await zuneLoadOrders();
+      break;
+
+    case "usersSection":
+      await zuneLoadUsers();
+      break;
+
+    case "announcementsSection":
+      await zuneLoadAnnouncements();
+      break;
+
+    case "notificationsSection":
+      await zuneLoadNotifications();
+      break;
+
+    case "verificationSection":
+      await zuneLoadVerification();
+      break;
+
+    default:
+      ZUNE.toast("Sehemu hii haina data ya kusasisha.", "info");
+  }
+}
+
+/* =========================================================
+   ZUNE PREMIUM ADMIN
+   SEHEMU YA 3/5
+   Sellers, Products, Orders na Users
+========================================================= */
+
+
+/* =========================================================
+   HELPERS ZA KUJENGA JEDWALI
+========================================================= */
+
+function zuneBuildCell(value) {
+  const cell = document.createElement("td");
+  cell.textContent = value === null || value === undefined
+    ? "—"
+    : String(value);
+  return cell;
+}
+
+function zuneBuildActionButton(label, action, id, variant = "") {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = label;
+  button.dataset.action = action;
+  button.dataset.id = String(id);
+  button.className = `admin-action-button ${variant}`.trim();
+  return button;
+}
+
+function zuneGetTableBody(...selectors) {
+  for (const selector of selectors) {
+    const element = ZUNE.el(selector);
+    if (element) return element;
+  }
+  return null;
+}
+
+function zuneRenderTableMessage(container, columns, message) {
+  if (!container) return;
+
+  container.replaceChildren();
+
+  const row = document.createElement("tr");
+  const cell = document.createElement("td");
+
+  cell.colSpan = columns;
+  cell.textContent = message;
+  cell.className = "empty-state";
+
+  row.appendChild(cell);
+  container.appendChild(row);
+}
+
+function zuneFormatStatus(status) {
   const labels = {
     pending: "Inasubiri",
     confirmed: "Imethibitishwa",
@@ -493,1242 +1173,1075 @@ function zuneStatusLabel(status) {
     approved: "Imeidhinishwa",
     rejected: "Imekataliwa",
     active: "Hai",
-    inactive: "Haipo hewani"
+    inactive: "Haifanyi kazi"
   };
 
-  return labels[status] || status || "—";
+  return labels[String(status || "").toLowerCase()] ||
+    status ||
+    "—";
 }
 
-function zuneRenderRecentOrders(orders) {
-  const container =
-    ZUNE.element("#recentOrdersTableBody") ||
-    ZUNE.element("#recentOrdersBody");
+function zuneEnsureAdminActionAllowed() {
+  zuneRequireAdmin();
 
-  if (!container) return;
-
-  const recentOrders = [...orders]
-    .sort((a, b) =>
-      new Date(b.created_at || 0) - new Date(a.created_at || 0)
-    )
-    .slice(0, 8);
-
-  if (!recentOrders.length) {
-    container.innerHTML =
-      '<tr><td colspan="6">Hakuna oda zilizopatikana.</td></tr>';
-    return;
-  }
-
-  container.innerHTML = recentOrders.map(order => `
-    <tr>
-      <td>${ZUNE.escape(String(order.id).slice(0, 8))}</td>
-      <td>${ZUNE.escape(ZUNE.money(order.total_price))}</td>
-      <td>${ZUNE.escape(ZUNE.statusLabel
-        ? ZUNE.statusLabel(order.status)
-        : zuneStatusLabel(order.status))}</td>
-      <td>${ZUNE.escape(ZUNE.date(order.created_at))}</td>
-    </tr>
-  `).join("");
-}
-
-function zuneRenderOverviewProducts(products) {
-  const container =
-    ZUNE.element("#overviewProductsBody") ||
-    ZUNE.element("#recentProductsBody");
-
-  if (!container) return;
-
-  const latest = [...products]
-    .sort((a, b) =>
-      new Date(b.created_at || 0) - new Date(a.created_at || 0)
-    )
-    .slice(0, 6);
-
-  if (!latest.length) {
-    container.innerHTML =
-      '<tr><td colspan="5">Hakuna bidhaa zilizopatikana.</td></tr>';
-    return;
-  }
-
-  container.innerHTML = latest.map(product => `
-    <tr>
-      <td>${ZUNE.escape(String(product.id).slice(0, 8))}</td>
-      <td>${ZUNE.escape(ZUNE.money(product.price))}</td>
-      <td>${ZUNE.escape(product.stock_quantity ?? 0)}</td>
-      <td>${ZUNE.escape(ZUNE.date(product.created_at))}</td>
-    </tr>
-  `).join("");
-}
-ZUNE.money.format = new Intl.NumberFormat("en-TZ", {
-  style: "currency",
-  currency: "TZS",
-  maximumFractionDigits: 0
-}).format.bind(new Intl.NumberFormat("en-TZ", {
-  style: "currency",
-  currency: "TZS",
-  maximumFractionDigits: 0
-}));
-
-ZUNE.statusLabel = zuneStatusLabel;
-
-async function zuneLoadAnalytics() {
-  try {
-    const [orders, products, profiles] = await Promise.all([
-      ZUNE.query("orders", query =>
-        query.select("id, total_price, commission_fee, status, created_at")
-      ),
-      ZUNE.query("products", query =>
-        query.select("id, price, created_at")
-      ),
-      ZUNE.query("profiles", query =>
-        query.select("id, role, created_at")
-      )
-    ]);
-
-    const completed = orders.filter(order => order.status === "completed");
-    const revenue = completed.reduce(
-      (sum, order) => sum + (Number(order.total_price) || 0),
-      0
-    );
-
-    zuneSetText("#analyticsTotalSales", ZUNE.money(revenue));
-    zuneSetText("#analyticsTotalOrders", ZUNE.number.format(orders.length));
-    zuneSetText("#analyticsTotalProducts", ZUNE.number.format(products.length));
-    zuneSetText("#analyticsTotalUsers", ZUNE.number.format(profiles.length));
-
-    zuneRenderMonthlySales(orders);
-    zuneRenderRoleStats(profiles);
-  } catch (error) {
-    console.error("Analytics:", error);
-    ZUNE.toast(
-      "Takwimu hazijapatikana. Hakikisha ruhusa za kusoma data zipo.",
-      "error"
-    );
+  if (!zuneSupabase || !zuneAdminSession) {
+    throw new Error("Session ya admin haipo.");
   }
 }
 
-function zuneRenderMonthlySales(orders) {
-  const container =
-    ZUNE.element("#monthlySalesChart") ||
-    ZUNE.element("#adminSalesChart");
 
-  if (!container) return;
-
-  const months = [];
-  const now = new Date();
-
-  for (let i = 5; i >= 0; i--) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    months.push({
-      key: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`,
-      label: date.toLocaleDateString("sw-TZ", { month: "short" }),
-      total: 0
-    });
-  }
-
-  orders
-    .filter(order => order.status === "completed")
-    .forEach(order => {
-      const date = new Date(order.created_at);
-      if (Number.isNaN(date.getTime())) return;
-
-      const key =
-        `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-
-      const month = months.find(item => item.key === key);
-      if (month) month.total += Number(order.total_price) || 0;
-    });
-
-  const max = Math.max(...months.map(month => month.total), 1);
-
-  container.innerHTML = `
-    <div class="zune-chart-bars">
-      ${months.map(month => `
-        <div class="zune-chart-column">
-          <span class="zune-chart-value">${ZUNE.escape(
-            ZUNE.money(month.total)
-          )}</span>
-          <div class="zune-chart-track">
-            <div class="zune-chart-bar"
-                 style="height:${Math.max(4, month.total / max * 100)}%"
-                 title="${ZUNE.escape(ZUNE.money(month.total))}"></div>
-          </div>
-          <span class="zune-chart-label">${ZUNE.escape(month.label)}</span>
-        </div>
-      `).join("")}
-    </div>
-  `;
-}
-
-function zuneRenderRoleStats(profiles) {
-  const container = ZUNE.element("#userRoleStats");
-  if (!container) return;
-
-  const roles = [
-    { role: "buyer", label: "Wateja" },
-    { role: "vendor", label: "Wauzaji" },
-    { role: "admin", label: "Admins" }
-  ];
-
-  container.innerHTML = roles.map(item => {
-    const count = profiles.filter(profile => profile.role === item.role).length;
-
-    return `
-      <div class="zune-role-stat">
-        <span>${ZUNE.escape(item.label)}</span>
-        <strong>${ZUNE.number.format(count)}</strong>
-      </div>
-    `;
-  }).join("");
-}
+/* =========================================================
+   1. MAOMBI YA WAUZAJI
+========================================================= */
 
 async function zuneLoadApplications() {
-  const body =
-    ZUNE.element("#applicationsTableBody") ||
-    ZUNE.element("#sellerApplicationsBody");
+  const body = zuneGetTableBody(
+    "#applicationsTableBody",
+    "#sellerApplicationsTableBody",
+    "#applicationsTable tbody"
+  );
 
-  if (!body) return;
+  if (!body || !zuneAdminSession) return;
 
-  body.innerHTML = '<tr><td colspan="7">Inapakia maombi...</td></tr>';
+  body.replaceChildren();
 
   try {
-    const applications = await ZUNE.query("seller_applications", query =>
-      query.select(
-        "id, store_name, business_name, owner_name, phone, email, country, category, region, district, address, status, created_at"
-      ).order("created_at", { ascending: false })
+    zuneRequireAdmin();
+
+    const applications = await zuneFetchRows(
+      "seller_applications",
+      "id,store_name,owner_name,phone,country,region,district,status,created_at",
+      query => query.order("created_at", { ascending: false })
     );
 
-    zuneSetText(
-      "#pendingAppsCount",
-      ZUNE.number.format(
-        applications.filter(application => application.status === "pending").length
-      )
-    );
+    if (!applications.length) {
+      zuneRenderTableMessage(
+        body,
+        7,
+        "Hakuna maombi ya wauzaji yaliyopatikana."
+      );
+      return;
+    }
 
-    zuneRenderApplications(applications);
-    zuneBindApplicationFilters(applications);
-  } catch (error) {
-    console.error("Seller applications:", error);
-    body.innerHTML =
-      '<tr><td colspan="7">Imeshindikana kupakia maombi. Kagua columns na RLS policies.</td></tr>';
-  }
-}
+    applications.forEach(application => {
+      const row = document.createElement("tr");
 
-function zuneRenderApplications(applications) {
-  const body =
-    ZUNE.element("#applicationsTableBody") ||
-    ZUNE.element("#sellerApplicationsBody");
+      [
+        application.store_name,
+        application.owner_name,
+        application.phone,
+        application.country,
+        application.region,
+        zuneFormatStatus(application.status),
+        ZUNE.date(application.created_at)
+      ].forEach(value => row.appendChild(zuneBuildCell(value)));
 
-  if (!body) return;
+      const actionCell = document.createElement("td");
 
-  if (!applications.length) {
-    body.innerHTML =
-      '<tr><td colspan="7">Hakuna maombi ya wauzaji kwa sasa.</td></tr>';
-    return;
-  }
-
-  body.innerHTML = applications.map(application => {
-    const storeName = application.store_name || application.business_name || "—";
-    const status = String(application.status || "pending").toLowerCase();
-
-    return `
-      <tr data-application-id="${ZUNE.escape(application.id)}"
-          data-application-status="${ZUNE.escape(status)}">
-        <td>${ZUNE.escape(String(application.id).slice(0, 8))}</td>
-        <td>
-          <strong>${ZUNE.escape(storeName)}</strong>
-          <small>${ZUNE.escape(application.category || "")}</small>
-        </td>
-        <td>${ZUNE.escape(application.owner_name || "—")}</td>
-        <td>${ZUNE.escape(application.phone || "—")}</td>
-        <td>${ZUNE.escape(
-          [application.region, application.district, application.country]
-            .filter(Boolean).join(", ") || "—"
-        )}</td>
-        <td><span class="status-badge status-${ZUNE.escape(status)}">${
-          ZUNE.escape(zuneStatusLabel(status))
-        }</span></td>
-        <td>
-          <button type="button" data-app-action="view"
-                  data-id="${ZUNE.escape(application.id)}">Angalia</button>
-          ${status === "pending" ? `
-            <button type="button" data-app-action="approve"
-                    data-id="${ZUNE.escape(application.id)}">Idhinisha</button>
-            <button type="button" data-app-action="reject"
-                    data-id="${ZUNE.escape(application.id)}">Kataa</button>
-          ` : ""}
-        </td>
-      </tr>
-    `;
-  }).join("");
-
-  body.querySelectorAll("[data-app-action]").forEach(button => {
-    button.addEventListener("click", async () => {
-      const id = button.dataset.id;
-      const action = button.dataset.appAction;
-      const application = applications.find(item => String(item.id) === String(id));
-
-      if (action === "view") {
-        zuneShowApplicationDetails(application);
-      } else if (action === "approve") {
-        await zuneSetApplicationStatus(id, "approved");
-      } else if (action === "reject") {
-        await zuneSetApplicationStatus(id, "rejected");
+      if (application.status === "pending") {
+        actionCell.append(
+          zuneBuildActionButton(
+            "Idhinisha",
+            "approve-application",
+            application.id,
+            "success"
+          ),
+          zuneBuildActionButton(
+            "Kataa",
+            "reject-application",
+            application.id,
+            "danger"
+          )
+        );
+      } else {
+        actionCell.textContent = "Hakuna hatua";
       }
+
+      row.appendChild(actionCell);
+      body.appendChild(row);
     });
-  });
-}
 
-function zuneBindApplicationFilters(applications) {
-  const filter =
-    ZUNE.element("#applicationStatusFilter") ||
-    ZUNE.element("#sellerApplicationFilter");
-
-  if (!filter || filter.dataset.bound === "true") return;
-
-  filter.dataset.bound = "true";
-  filter.addEventListener("change", () => {
-    const value = filter.value;
-    const filtered = value === "all"
-      ? applications
-      : applications.filter(item => item.status === value);
-
-    zuneRenderApplications(filtered);
-  });
-}
-
-async function zuneSetApplicationStatus(id, status) {
-  if (!["approved", "rejected"].includes(status)) return;
-
-  const actionLabel = status === "approved" ? "kuidhinisha" : "kukataa";
-
-  if (!window.confirm(`Una uhakika unataka ${actionLabel} ombi hili?`)) {
-    return;
-  }
-
-  try {
-    const { error } = await zuneSupabase
-      .from("seller_applications")
-      .update({ status })
-      .eq("id", id)
-      .eq("status", "pending")
-      .select("id");
-
-    if (error) throw error;
-
-    ZUNE.toast(
-      status === "approved"
-        ? "Ombi limeidhinishwa."
-        : "Ombi limekataliwa.",
-      "success"
-    );
-
-    await zuneLoadApplications();
   } catch (error) {
-    console.error("Application status update:", error);
-    ZUNE.toast(
-      "Imeshindikana kubadilisha hali. Kagua RLS policy ya admin.",
-      "error"
+    console.error("Load seller applications:", error);
+
+    zuneRenderTableMessage(
+      body,
+      8,
+      ZUNE.errorMessage(error)
     );
   }
 }
 
-function zuneShowApplicationDetails(application) {
-  if (!application) return;
 
-  const details = [
-    `Duka: ${application.store_name || application.business_name || "—"}`,
-    `Mmiliki: ${application.owner_name || "—"}`,
-    `Simu: ${application.phone || "—"}`,
-    `Email: ${application.email || "—"}`,
-    `Nchi: ${application.country || "—"}`,
-    `Aina ya biashara: ${application.category || "—"}`,
-    `Mkoa: ${application.region || "—"}`,
-    `Wilaya: ${application.district || "—"}`,
-    `Anwani: ${application.address || "—"}`,
-    `Hali: ${zuneStatusLabel(application.status)}`,
-    `Tarehe: ${ZUNE.date(application.created_at)}`
-  ].join("\n");
+async function zuneUpdateApplicationStatus(id, status) {
+  zuneEnsureAdminActionAllowed();
 
-  const modal = ZUNE.element("#adminModal");
-  const content = ZUNE.element("#adminModalContent");
-  const title = ZUNE.element("#adminModalTitle");
-
-  if (!modal || !content) {
-    window.alert(details);
-    return;
+  if (!["approved", "rejected"].includes(status)) {
+    throw new Error("Hali ya ombi si sahihi.");
   }
 
-  if (title) title.textContent = "Maelezo ya Ombi la Muuzaji";
+  const confirmed = window.confirm(
+    status === "approved"
+      ? "Una uhakika unataka kuidhinisha ombi hili?"
+      : "Una uhakika unataka kukataa ombi hili?"
+  );
 
-  content.innerHTML = `
-    <pre class="admin-detail-text">${ZUNE.escape(details)}</pre>
-  `;
+  if (!confirmed) return;
 
-  modal.hidden = false;
-  modal.classList.add("open");
+  const { data, error } = await zuneSupabase
+    .from("seller_applications")
+    .update({ status })
+    .eq("id", id)
+    .eq("status", "pending")
+    .select("id,status")
+    .maybeSingle();
+
+  if (error) throw error;
+
+  if (!data) {
+    throw new Error(
+      "Ombi halijabadilishwa. Linaweza kuwa limeshughulikiwa tayari au huna ruhusa."
+    );
+  }
+
+  ZUNE.toast(
+    status === "approved"
+      ? "Ombi limeidhinishwa."
+      : "Ombi limekataliwa.",
+    "success"
+  );
+
+  await zuneLoadApplications();
+  await zuneLoadOverview();
 }
+
+
+/* =========================================================
+   2. BIDHAA
+========================================================= */
 
 async function zuneLoadProducts() {
-  const body =
-    ZUNE.element("#productsTableBody") ||
-    ZUNE.element("#adminProductsBody");
+  const body = zuneGetTableBody(
+    "#productsTableBody",
+    "#adminProductsTableBody",
+    "#productsTable tbody"
+  );
 
-  if (!body) return;
+  if (!body || !zuneAdminSession) return;
 
-  body.innerHTML = '<tr><td colspan="6">Inapakia bidhaa...</td></tr>';
+  body.replaceChildren();
 
   try {
-    const products = await ZUNE.query("products", query =>
-      query.select(
-        "id, vendor_id, title, description, price, stock_quantity, image_url, created_at"
-      ).order("created_at", { ascending: false })
+    zuneRequireAdmin();
+
+    const products = await zuneFetchRows(
+      "products",
+      "id,title,description,price,stock_quantity,vendor_id,created_at",
+      query => query.order("created_at", { ascending: false })
     );
 
-    zuneSetText("#productsCount", ZUNE.number.format(products.length));
-    zuneRenderProducts(products);
-  } catch (error) {
-    console.error("Products:", error);
-    body.innerHTML =
-      '<tr><td colspan="6">Imeshindikana kupakia bidhaa. Kagua columns na RLS policies.</td></tr>';
-  }
-}
+    if (!products.length) {
+      zuneRenderTableMessage(
+        body,
+        6,
+        "Hakuna bidhaa zilizopatikana."
+      );
+      return;
+    }
 
-function zuneRenderProducts(products) {
-  const body =
-    ZUNE.element("#productsTableBody") ||
-    ZUNE.element("#adminProductsBody");
+    products.forEach(product => {
+      const row = document.createElement("tr");
 
-  if (!body) return;
+      [
+        product.title,
+        ZUNE.money(product.price),
+        ZUNE.number(product.stock_quantity),
+        product.vendor_id
+          ? String(product.vendor_id).slice(0, 8)
+          : "—",
+        ZUNE.date(product.created_at)
+      ].forEach(value => row.appendChild(zuneBuildCell(value)));
 
-  if (!products.length) {
-    body.innerHTML =
-      '<tr><td colspan="6">Hakuna bidhaa zilizowekwa.</td></tr>';
-    return;
-  }
+      const actions = document.createElement("td");
 
-  body.innerHTML = products.map(product => `
-    <tr data-product-id="${ZUNE.escape(product.id)}">
-      <td>${ZUNE.escape(String(product.id).slice(0, 8))}</td>
-      <td>
-        <strong>${ZUNE.escape(product.title || "Bidhaa bila jina")}</strong>
-        <small>${ZUNE.escape(product.description || "")}</small>
-      </td>
-      <td>${ZUNE.escape(ZUNE.money(product.price))}</td>
-      <td>${ZUNE.escape(product.stock_quantity ?? 0)}</td>
-      <td>${ZUNE.escape(ZUNE.date(product.created_at))}</td>
-      <td>
-        <button type="button" data-product-action="view"
-                data-id="${ZUNE.escape(product.id)}">Angalia</button>
-        <button type="button" data-product-action="delete"
-                data-id="${ZUNE.escape(product.id)}">Futa</button>
-      </td>
-    </tr>
-  `).join("");
-
-  body.querySelectorAll("[data-product-action]").forEach(button => {
-    button.addEventListener("click", async () => {
-      const product = products.find(
-        item => String(item.id) === String(button.dataset.id)
+      actions.appendChild(
+        zuneBuildActionButton(
+          "Tazama",
+          "view-product",
+          product.id
+        )
       );
 
-      if (button.dataset.productAction === "view") {
-        zuneShowProductDetails(product);
-      }
-
-      if (button.dataset.productAction === "delete") {
-        await zuneDeleteProduct(button.dataset.id);
-      }
+      row.appendChild(actions);
+      body.appendChild(row);
     });
-  });
+
+  } catch (error) {
+    console.error("Load products:", error);
+
+    zuneRenderTableMessage(
+      body,
+      6,
+      ZUNE.errorMessage(error)
+    );
+  }
 }
 
-function zuneShowProductDetails(product) {
-  if (!product) return;
+
+async function zuneViewProduct(id) {
+  zuneEnsureAdminActionAllowed();
+
+  const { data, error } = await zuneSupabase
+    .from("products")
+    .select("id,title,description,price,stock_quantity,vendor_id,created_at")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  if (!data) {
+    throw new Error("Bidhaa haijapatikana.");
+  }
 
   const details = [
-    `Jina: ${product.title || "—"}`,
-    `Bei: ${ZUNE.money(product.price)}`,
-    `Stock: ${product.stock_quantity ?? 0}`,
-    `Vendor ID: ${product.vendor_id || "—"}`,
-    `Maelezo: ${product.description || "—"}`,
-    `Tarehe: ${ZUNE.date(product.created_at)}`
-  ].join("\n");
+    `Jina: ${data.title || "—"}`,
+    `Bei: ${ZUNE.money(data.price)}`,
+    `Stock: ${ZUNE.number(data.stock_quantity)}`,
+    `Vendor ID: ${data.vendor_id || "—"}`,
+    `Maelezo: ${data.description || "Hakuna maelezo."}`
+  ].join("\n\n");
 
   window.alert(details);
 }
 
-async function zuneDeleteProduct(id) {
-  if (!window.confirm(
-    "Una uhakika unataka kufuta bidhaa hii? Kitendo hiki hakiwezi kurejeshwa kwa urahisi."
-  )) return;
 
-  try {
-    const { error } = await zuneSupabase
-      .from("products")
-      .delete()
-      .eq("id", id)
-      .select("id");
-
-    if (error) throw error;
-
-    ZUNE.toast("Ombi la kufuta bidhaa limekamilika.", "success");
-    await zuneLoadProducts();
-  } catch (error) {
-    console.error("Delete product:", error);
-    ZUNE.toast(
-      "Imeshindikana kufuta bidhaa. Hakikisha admin ana ruhusa kwenye RLS.",
-      "error"
-    );
-  }
-}
+/* =========================================================
+   3. ODA
+========================================================= */
 
 async function zuneLoadOrders() {
-  const body =
-    ZUNE.element("#ordersTableBody") ||
-    ZUNE.element("#adminOrdersBody");
+  const body = zuneGetTableBody(
+    "#ordersTableBody",
+    "#adminOrdersTableBody",
+    "#ordersTable tbody"
+  );
 
-  if (!body) return;
+  if (!body || !zuneAdminSession) return;
 
-  body.innerHTML = '<tr><td colspan="7">Inapakia oda...</td></tr>';
-
-  try {
-    const orders = await ZUNE.query("orders", query =>
-      query.select(
-        "id, buyer_id, product_id, quantity, total_price, commission_fee, status, created_at"
-      ).order("created_at", { ascending: false })
-    );
-
-    zuneSetText("#ordersCount", ZUNE.number.format(orders.length));
-    zuneRenderOrders(orders);
-  } catch (error) {
-    console.error("Orders:", error);
-    body.innerHTML =
-      '<tr><td colspan="7">Imeshindikana kupakia oda. Kagua columns na RLS policies.</td></tr>';
-  }
-}
-
-function zuneRenderOrders(orders) {
-  const body =
-    ZUNE.element("#ordersTableBody") ||
-    ZUNE.element("#adminOrdersBody");
-
-  if (!body) return;
-
-  if (!orders.length) {
-    body.innerHTML = '<tr><td colspan="7">Hakuna oda zilizopatikana.</td></tr>';
-    return;
-  }
-
-  body.innerHTML = orders.map(order => `
-    <tr data-order-id="${ZUNE.escape(order.id)}">
-      <td>${ZUNE.escape(String(order.id).slice(0, 8))}</td>
-      <td>${ZUNE.escape(String(order.buyer_id || "—").slice(0, 8))}</td>
-      <td>${ZUNE.escape(String(order.product_id || "—").slice(0, 8))}</td>
-      <td>${ZUNE.escape(order.quantity ?? 0)}</td>
-      <td>${ZUNE.escape(ZUNE.money(order.total_price))}</td>
-      <td><span class="status-badge status-${ZUNE.escape(order.status)}">${
-        ZUNE.escape(zuneStatusLabel(order.status))
-      }</span></td>
-      <td>
-        <select data-order-status="${ZUNE.escape(order.id)}"
-                aria-label="Badili hali ya oda">
-          ${["pending", "confirmed", "completed", "cancelled"].map(status => `
-            <option value="${status}" ${order.status === status ? "selected" : ""}>
-              ${ZUNE.escape(zuneStatusLabel(status))}
-            </option>
-          `).join("")}
-        </select>
-        <button type="button" data-order-save="${ZUNE.escape(order.id)}">
-          Hifadhi
-        </button>
-      </td>
-    </tr>
-  `).join("");
-
-  body.querySelectorAll("[data-order-save]").forEach(button => {
-    button.addEventListener("click", async () => {
-      const id = button.dataset.orderSave;
-      const select = body.querySelector(`[data-order-status="${CSS.escape(id)}"]`);
-
-      if (select) await zuneUpdateOrderStatus(id, select.value);
-    });
-  });
-}
-
-async function zuneUpdateOrderStatus(id, status) {
-  if (!["pending", "confirmed", "completed", "cancelled"].includes(status)) {
-    ZUNE.toast("Hali ya oda haikubaliki.", "error");
-    return;
-  }
-
-  if (!window.confirm(`Unataka kuweka oda hii kuwa "${zuneStatusLabel(status)}"?`)) {
-    return;
-  }
+  body.replaceChildren();
 
   try {
-    const { error } = await zuneSupabase
-      .from("orders")
-      .update({ status })
-      .eq("id", id)
-      .select("id");
+    zuneRequireAdmin();
 
-    if (error) throw error;
-
-    ZUNE.toast("Hali ya oda imesasishwa.", "success");
-    await zuneLoadOrders();
-  } catch (error) {
-    console.error("Order status:", error);
-    ZUNE.toast(
-      "Imeshindikana kubadili hali ya oda. Kagua RLS policy.",
-      "error"
-    );
-  }
-}
-async function zuneLoadUsers() {
-  const body =
-    ZUNE.element("#usersTableBody") ||
-    ZUNE.element("#adminUsersBody");
-
-  if (!body) return;
-
-  body.innerHTML = '<tr><td colspan="6">Inapakia watumiaji...</td></tr>';
-
-  try {
-    const users = await ZUNE.query("profiles", query =>
-      query.select("id, full_name, phone_number, role, is_verified, created_at")
-        .order("created_at", { ascending: false })
+    const orders = await zuneFetchRows(
+      "orders",
+      "id,buyer_id,product_id,quantity,total_price,commission_fee,status,created_at",
+      query => query.order("created_at", { ascending: false })
     );
 
-    zuneSetText("#usersCount", ZUNE.number.format(users.length));
-    zuneRenderUsers(users);
-  } catch (error) {
-    console.error("Users:", error);
-    body.innerHTML =
-      '<tr><td colspan="6">Imeshindikana kupakia watumiaji. Kagua RLS policies.</td></tr>';
-  }
-}
-
-function zuneRenderUsers(users) {
-  const body =
-    ZUNE.element("#usersTableBody") ||
-    ZUNE.element("#adminUsersBody");
-
-  if (!body) return;
-
-  if (!users.length) {
-    body.innerHTML =
-      '<tr><td colspan="6">Hakuna watumiaji waliopatikana.</td></tr>';
-    return;
-  }
-
-  body.innerHTML = users.map(user => `
-    <tr data-user-id="${ZUNE.escape(user.id)}">
-      <td>${ZUNE.escape(String(user.id).slice(0, 8))}</td>
-      <td>${ZUNE.escape(user.full_name || "Bila jina")}</td>
-      <td>${ZUNE.escape(user.phone_number || "—")}</td>
-      <td>
-        <span class="status-badge">${ZUNE.escape(user.role || "buyer")}</span>
-      </td>
-      <td>${user.is_verified ? "Imethibitishwa" : "Haijathibitishwa"}</td>
-      <td>
-        <button type="button" data-user-action="verify"
-                data-id="${ZUNE.escape(user.id)}"
-                data-verified="${String(Boolean(user.is_verified))}">
-          ${user.is_verified ? "Ondoa Verified" : "Thibitisha"}
-        </button>
-        <button type="button" data-user-action="role"
-                data-id="${ZUNE.escape(user.id)}"
-                data-role="${ZUNE.escape(user.role || "buyer")}">
-          Badili Role
-        </button>
-      </td>
-    </tr>
-  `).join("");
-
-  body.querySelectorAll("[data-user-action]").forEach(button => {
-    button.addEventListener("click", async () => {
-      const id = button.dataset.id;
-
-      if (button.dataset.userAction === "verify") {
-        await zuneToggleUserVerification(
-          id,
-          button.dataset.verified !== "true"
-        );
-      }
-
-      if (button.dataset.userAction === "role") {
-        await zuneChangeUserRole(id, button.dataset.role);
-      }
-    });
-  });
-}
-
-async function zuneToggleUserVerification(userId, isVerified) {
-  if (userId === zuneAdminSession?.user?.id && !isVerified) {
-    ZUNE.toast("Huwezi kuondoa uthibitisho wa akaunti yako hapa.", "error");
-    return;
-  }
-
-  if (!window.confirm(
-    isVerified
-      ? "Unataka kuthibitisha akaunti hii?"
-      : "Unataka kuondoa uthibitisho wa akaunti hii?"
-  )) return;
-
-  try {
-    const { error } = await zuneSupabase
-      .from("profiles")
-      .update({ is_verified: isVerified })
-      .eq("id", userId)
-      .select("id");
-
-    if (error) throw error;
-
-    ZUNE.toast("Hali ya uthibitisho imesasishwa.", "success");
-    await zuneLoadUsers();
-    await zuneLoadVerification();
-  } catch (error) {
-    console.error("Profile verification:", error);
-    ZUNE.toast(
-      "Imeshindikana kubadili verification. Hakikisha trigger na RLS zinamruhusu admin.",
-      "error"
-    );
-  }
-}
-
-async function zuneChangeUserRole(userId, currentRole) {
-  if (userId === zuneAdminSession?.user?.id) {
-    ZUNE.toast("Usibadili role ya akaunti yako mwenyewe kupitia sehemu hii.", "error");
-    return;
-  }
-
-  const roles = ["buyer", "vendor", "admin"];
-  const promptText =
-    `Ingiza role mpya: buyer, vendor, au admin.\nRole ya sasa: ${currentRole}`;
-
-  const newRole = window.prompt(promptText, currentRole);
-
-  if (newRole === null) return;
-
-  const role = newRole.trim().toLowerCase();
-
-  if (!roles.includes(role)) {
-    ZUNE.toast("Role si sahihi.", "error");
-    return;
-  }
-
-  if (role === "admin" &&
-      !window.confirm("Una uhakika? Unampa mtumiaji ruhusa za admin.")) {
-    return;
-  }
-
-  try {
-    const { error } = await zuneSupabase
-      .from("profiles")
-      .update({ role })
-      .eq("id", userId)
-      .select("id");
-
-    if (error) throw error;
-
-    ZUNE.toast("Role ya mtumiaji imesasishwa.", "success");
-    await zuneLoadUsers();
-  } catch (error) {
-    console.error("Change user role:", error);
-    ZUNE.toast(
-      "Imeshindikana kubadili role. Kagua enum na RLS policies.",
-      "error"
-    );
-  }
-}
-
-async function zuneLoadVerification() {
-  const body =
-    ZUNE.element("#verificationTableBody") ||
-    ZUNE.element("#adminVerificationBody");
-
-  if (!body) return;
-
-  body.innerHTML = '<tr><td colspan="5">Inapakia taarifa...</td></tr>';
-
-  try {
-    const profiles = await ZUNE.query("profiles", query =>
-      query.select("id, full_name, phone_number, role, is_verified, created_at")
-        .order("created_at", { ascending: false })
-    );
-
-    zuneSetText(
-      "#verifiedUsersCount",
-      ZUNE.number.format(profiles.filter(profile => profile.is_verified).length)
-    );
-
-    zuneSetText(
-      "#unverifiedUsersCount",
-      ZUNE.number.format(profiles.filter(profile => !profile.is_verified).length)
-    );
-
-    const searchInput = ZUNE.element("#verificationSearch");
-    const search = searchInput?.value?.trim().toLowerCase() || "";
-
-    const filtered = profiles.filter(profile => {
-      const text = [
-        profile.full_name,
-        profile.phone_number,
-        profile.id,
-        profile.role
-      ].join(" ").toLowerCase();
-
-      return text.includes(search);
-    });
-
-    if (!filtered.length) {
-      body.innerHTML =
-        '<tr><td colspan="5">Hakuna akaunti zinazolingana na utafutaji.</td></tr>';
+    if (!orders.length) {
+      zuneRenderTableMessage(
+        body,
+        7,
+        "Hakuna oda zilizopatikana."
+      );
       return;
     }
 
-    body.innerHTML = filtered.map(profile => `
-      <tr>
-        <td>${ZUNE.escape(String(profile.id).slice(0, 8))}</td>
-        <td>${ZUNE.escape(profile.full_name || "Bila jina")}</td>
-        <td>${ZUNE.escape(profile.phone_number || "—")}</td>
-        <td>${profile.is_verified ? "Verified" : "Not verified"}</td>
-        <td>
-          <button type="button" data-verification-toggle="${ZUNE.escape(profile.id)}"
-                  data-verified="${String(Boolean(profile.is_verified))}">
-            ${profile.is_verified ? "Ondoa" : "Thibitisha"}
-          </button>
-        </td>
-      </tr>
-    `).join("");
+    orders.forEach(order => {
+      const row = document.createElement("tr");
 
-    body.querySelectorAll("[data-verification-toggle]").forEach(button => {
-      button.addEventListener("click", async () => {
-        await zuneToggleUserVerification(
-          button.dataset.verificationToggle,
-          button.dataset.verified !== "true"
-        );
-      });
+      [
+        String(order.id).slice(0, 8),
+        order.buyer_id
+          ? String(order.buyer_id).slice(0, 8)
+          : "—",
+        order.product_id
+          ? String(order.product_id).slice(0, 8)
+          : "—",
+        ZUNE.number(order.quantity),
+        ZUNE.money(order.total_price),
+        zuneFormatStatus(order.status),
+        ZUNE.date(order.created_at)
+      ].forEach(value => row.appendChild(zuneBuildCell(value)));
+
+      const actions = document.createElement("td");
+
+      actions.appendChild(
+        zuneBuildActionButton(
+          "Angalia",
+          "view-order",
+          order.id
+        )
+      );
+
+      row.appendChild(actions);
+      body.appendChild(row);
     });
+
   } catch (error) {
-    console.error("Verification:", error);
-    body.innerHTML =
-      '<tr><td colspan="5">Imeshindikana kupakia verification.</td></tr>';
+    console.error("Load orders:", error);
+
+    zuneRenderTableMessage(
+      body,
+      8,
+      ZUNE.errorMessage(error)
+    );
   }
 }
 
-function zuneBindVerificationSearch() {
-  const search = ZUNE.element("#verificationSearch");
 
-  if (!search || search.dataset.bound === "true") return;
+async function zuneViewOrder(id) {
+  zuneEnsureAdminActionAllowed();
 
-  search.dataset.bound = "true";
-  search.addEventListener("input", () => {
-    if (zuneCurrentSection === "verification") {
-      zuneLoadVerification();
-    }
-  });
+  const { data, error } = await zuneSupabase
+    .from("orders")
+    .select("id,buyer_id,product_id,quantity,total_price,commission_fee,status,created_at")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  if (!data) {
+    throw new Error("Oda haijapatikana.");
+  }
+
+  window.alert([
+    `Oda: ${data.id}`,
+    `Mteja: ${data.buyer_id || "—"}`,
+    `Bidhaa ID: ${data.product_id || "—"}`,
+    `Idadi: ${ZUNE.number(data.quantity)}`,
+    `Jumla: ${ZUNE.money(data.total_price)}`,
+    `Commission: ${ZUNE.money(data.commission_fee)}`,
+    `Hali: ${zuneFormatStatus(data.status)}`,
+    `Tarehe: ${ZUNE.date(data.created_at)}`
+  ].join("\n\n"));
 }
 
-/*
-  Matangazo na notifications:
-  Msimbo huu hukagua kama tables zipo. Hauundi tables, hauhitaji
-  kubuni schema, na hauhifadhi matangazo ya kudumu kwenye localStorage.
-*/
 
-const ZUNE_ANNOUNCEMENT_TABLE = "admin_announcements";
-const ZUNE_NOTIFICATION_TABLE = "notifications";
+/* =========================================================
+   4. WATUMIAJI
+========================================================= */
+
+async function zuneLoadUsers() {
+  const body = zuneGetTableBody(
+    "#usersTableBody",
+    "#adminUsersTableBody",
+    "#usersTable tbody"
+  );
+
+  if (!body || !zuneAdminSession) return;
+
+  body.replaceChildren();
+
+  try {
+    zuneRequireAdmin();
+
+    const users = await zuneFetchRows(
+      "profiles",
+      "id,full_name,phone_number,role,is_verified,created_at",
+      query => query.order("created_at", { ascending: false })
+    );
+
+    if (!users.length) {
+      zuneRenderTableMessage(
+        body,
+        6,
+        "Hakuna watumiaji waliopatikana."
+      );
+      return;
+    }
+
+    users.forEach(user => {
+      const row = document.createElement("tr");
+
+      [
+        user.full_name || "—",
+        user.phone_number || "—",
+        user.role || "buyer",
+        user.is_verified ? "Amethibitishwa" : "Hajathibitishwa",
+        String(user.id).slice(0, 8),
+        ZUNE.date(user.created_at)
+      ].forEach(value => row.appendChild(zuneBuildCell(value)));
+
+      body.appendChild(row);
+    });
+
+  } catch (error) {
+    console.error("Load users:", error);
+
+    zuneRenderTableMessage(
+      body,
+      6,
+      ZUNE.errorMessage(error)
+    );
+  }
+}
+
+
+/* =========================================================
+   5. VITENDO VYA JEDWALI
+========================================================= */
+
+document.addEventListener("click", async event => {
+  const button = event.target.closest("[data-action]");
+
+  if (!button || button.disabled) return;
+
+  const action = button.dataset.action;
+  const id = button.dataset.id;
+
+  if (!action || !id) return;
+
+  try {
+    button.disabled = true;
+
+    switch (action) {
+      case "approve-application":
+        await zuneUpdateApplicationStatus(id, "approved");
+        break;
+
+      case "reject-application":
+        await zuneUpdateApplicationStatus(id, "rejected");
+        break;
+
+      case "view-product":
+        await zuneViewProduct(id);
+        break;
+
+      case "view-order":
+        await zuneViewOrder(id);
+        break;
+
+      default:
+        return;
+    }
+
+  } catch (error) {
+    console.error(`Admin action ${action}:`, error);
+
+    ZUNE.toast(
+      ZUNE.errorMessage(error),
+      "error"
+    );
+
+  } finally {
+    button.disabled = false;
+  }
+});
+
+/* =========================================================
+   ZUNE PREMIUM ADMIN
+   SEHEMU YA 4/5
+   Announcements, Notifications, Verification, Settings
+========================================================= */
+
+
+/* =========================================================
+   HELPERS ZA FOMU
+========================================================= */
+
+function zuneFormValue(form, name) {
+  return form.querySelector(`[name="${name}"]`)?.value?.trim() || "";
+}
+
+function zuneBindOnce(element, eventName, callback, key) {
+  if (!element) return;
+
+  const marker = `zuneBound${key}`;
+
+  if (element.dataset[marker] === "true") return;
+
+  element.dataset[marker] = "true";
+  element.addEventListener(eventName, callback);
+}
+
+
+/* =========================================================
+   1. MATANGAZO YA ADMIN
+   Jedwali linalotarajiwa: admin_announcements
+========================================================= */
 
 async function zuneLoadAnnouncements() {
-  const container =
-    ZUNE.element("#announcementsList") ||
-    ZUNE.element("#adminAnnouncementsBody");
+  const body = zuneGetTableBody(
+    "#announcementsTableBody",
+    "#adminAnnouncementsTableBody",
+    "#announcementsTable tbody"
+  );
 
-  if (!container) return;
-
-  container.innerHTML = '<p>Inapakia matangazo...</p>';
-
-  try {
-    const announcements = await ZUNE.query(
-      ZUNE_ANNOUNCEMENT_TABLE,
-      query => query.select("*").order("created_at", { ascending: false })
-    );
-
-    zuneRenderAnnouncements(announcements);
-  } catch (error) {
-    console.warn("Announcements table may not exist:", error);
-
-    container.innerHTML = `
-      <p class="admin-empty-state">
-        Jedwali la matangazo halijapatikana au halina ruhusa ya kusomwa.
-        Unganisha sehemu hii na schema halisi ya Supabase kabla ya kutuma matangazo.
-      </p>
-    `;
-  }
-}
-
-function zuneRenderAnnouncements(announcements) {
-  const container =
-    ZUNE.element("#announcementsList") ||
-    ZUNE.element("#adminAnnouncementsBody");
-
-  if (!container) return;
-
-  if (!announcements.length) {
-    container.innerHTML = '<p class="admin-empty-state">Hakuna matangazo bado.</p>';
-    return;
-  }
-
-  container.innerHTML = announcements.map(item => `
-    <article class="admin-announcement-item">
-      <div>
-        <h3>${ZUNE.escape(item.title || "Tangazo")}</h3>
-        <p>${ZUNE.escape(item.message || item.body || "")}</p>
-        <small>
-          ${ZUNE.escape(item.audience || "—")} ·
-          ${ZUNE.escape(item.priority || "normal")} ·
-          ${ZUNE.escape(ZUNE.date(item.created_at))}
-        </small>
-      </div>
-      <span class="status-badge">${ZUNE.escape(item.status || "—")}</span>
-    </article>
-  `).join("");
-}
-
-async function zuneLoadNotifications() {
-  const container =
-    ZUNE.element("#notificationsList") ||
-    ZUNE.element("#adminNotificationsBody");
-
-  if (!container) return;
-
-  container.innerHTML = '<p>Inapakia notifications...</p>';
+  if (!zuneAdminSession) return;
 
   try {
-    const notifications = await ZUNE.query(
-      ZUNE_NOTIFICATION_TABLE,
-      query => query.select("*").order("created_at", { ascending: false }).limit(100)
+    zuneRequireAdmin();
+
+    const announcements = await zuneFetchRows(
+      "admin_announcements",
+      "*",
+      query => query.order("created_at", { ascending: false })
     );
 
-    zuneRenderNotifications(notifications);
-  } catch (error) {
-    console.warn("Notifications table may not exist:", error);
+    if (body) {
+      body.replaceChildren();
 
-    container.innerHTML = `
-      <p class="admin-empty-state">
-        Notifications hazijaunganishwa na jedwali linalopatikana kwenye Supabase.
-      </p>
-    `;
+      if (!announcements.length) {
+        zuneRenderTableMessage(
+          body,
+          6,
+          "Hakuna matangazo yaliyopatikana."
+        );
+      } else {
+        announcements.forEach(item => {
+          const row = document.createElement("tr");
+
+          [
+            item.title || "—",
+            item.audience || "all",
+            item.display_type || "notification",
+            zuneFormatStatus(item.status),
+            ZUNE.date(item.expires_at),
+            ZUNE.date(item.created_at)
+          ].forEach(value => {
+            row.appendChild(zuneBuildCell(value));
+          });
+
+          body.appendChild(row);
+        });
+      }
+    }
+
+    zuneRenderAnnouncementHistory(announcements);
+
+  } catch (error) {
+    console.error("Load announcements:", error);
+
+    if (body) {
+      zuneRenderTableMessage(
+        body,
+        6,
+        ZUNE.errorMessage(error)
+      );
+    }
   }
 }
 
-function zuneRenderNotifications(notifications) {
-  const container =
-    ZUNE.element("#notificationsList") ||
-    ZUNE.element("#adminNotificationsBody");
 
+function zuneRenderAnnouncementHistory(items) {
+  const container = ZUNE.el("#announcementHistory");
   if (!container) return;
 
-  if (!notifications.length) {
-    container.innerHTML =
-      '<p class="admin-empty-state">Hakuna notifications zilizopatikana.</p>';
-    return;
-  }
+  container.replaceChildren();
 
-  container.innerHTML = notifications.map(item => `
-    <article class="admin-notification-item">
-      <div>
-        <strong>${ZUNE.escape(item.title || "Notification")}</strong>
-        <p>${ZUNE.escape(item.message || item.body || "")}</p>
-        <small>${ZUNE.escape(ZUNE.date(item.created_at))}</small>
-      </div>
-    </article>
-  `).join("");
+  items.slice(0, 10).forEach(item => {
+    const card = document.createElement("article");
+    card.className = "announcement-history-item";
+
+    const title = document.createElement("h4");
+    title.textContent = item.title || "Tangazo";
+
+    const message = document.createElement("p");
+    message.textContent = item.message || "";
+
+    const meta = document.createElement("small");
+    meta.textContent =
+      `${item.audience || "all"} · ${zuneFormatStatus(item.status)}`;
+
+    card.append(title, message, meta);
+    container.appendChild(card);
+  });
 }
+
 
 function zuneBindAnnouncementForm() {
-  const form =
-    ZUNE.element("#announcementForm") ||
-    ZUNE.element("#adminAnnouncementForm");
+  const form = ZUNE.el("#announcementForm");
+  if (!form) return;
 
-  if (!form || form.dataset.bound === "true") return;
-
-  form.dataset.bound = "true";
-
-  form.addEventListener("submit", async event => {
+  zuneBindOnce(form, "submit", async event => {
     event.preventDefault();
 
-    const formData = new FormData(form);
-    const title = String(
-      formData.get("title") || formData.get("announcementTitle") || ""
-    ).trim();
-
-    const message = String(
-      formData.get("message") || formData.get("announcementMessage") || ""
-    ).trim();
-
-    if (!title || !message) {
-      ZUNE.toast("Weka kichwa na ujumbe wa tangazo.", "error");
-      return;
-    }
-
-    ZUNE.toast(
-      "Fomu imekaguliwa, lakini schema ya matangazo lazima ithibitishwe kabla ya kuhifadhi.",
-      "info"
-    );
-  });
-}
-
-function zuneBindModal() {
-  const modal = ZUNE.element("#adminModal");
-  if (!modal) return;
-
-  ZUNE.all("[data-modal-close], #adminModalClose, #adminModalCancel")
-    .forEach(button => {
-      button.addEventListener("click", () => {
-        modal.classList.remove("open");
-        modal.hidden = true;
-      });
-    });
-
-  modal.addEventListener("click", event => {
-    if (event.target === modal) {
-      modal.classList.remove("open");
-      modal.hidden = true;
-    }
-  });
-
-  document.addEventListener("keydown", event => {
-    if (event.key === "Escape") {
-      modal.classList.remove("open");
-      modal.hidden = true;
-    }
-  });
-}
-
-function zuneBindAnnouncementPreview() {
-  const titleInput =
-    ZUNE.element("#announcementTitle") ||
-    ZUNE.element("[name='title']");
-
-  const messageInput =
-    ZUNE.element("#announcementMessage") ||
-    ZUNE.element("[name='message']");
-
-  const titlePreview = ZUNE.element("#announcementPreviewTitle");
-  const messagePreview = ZUNE.element("#announcementPreviewMessage");
-
-  if (titleInput && titlePreview) {
-    titleInput.addEventListener("input", () => {
-      titlePreview.textContent = titleInput.value.trim() || "Kichwa cha tangazo";
-    });
-  }
-
-  if (messageInput && messagePreview) {
-    messageInput.addEventListener("input", () => {
-      messagePreview.textContent =
-        messageInput.value.trim() || "Ujumbe wa tangazo utaonekana hapa.";
-    });
-  }
-}
-
-function zuneBindSearchInputs() {
-  const productSearch = ZUNE.element("#productSearch");
-  const userSearch = ZUNE.element("#userSearch");
-  const orderSearch = ZUNE.element("#orderSearch");
-
-  const bindFilter = (input, tableBody) => {
-    if (!input || !tableBody || input.dataset.bound === "true") return;
-
-    input.dataset.bound = "true";
-
-    input.addEventListener("input", () => {
-      const query = input.value.trim().toLowerCase();
-
-      tableBody.querySelectorAll("tr").forEach(row => {
-        row.hidden = !row.textContent.toLowerCase().includes(query);
-      });
-    });
-  };
-
-  bindFilter(
-    productSearch,
-    ZUNE.element("#productsTableBody") || ZUNE.element("#adminProductsBody")
-  );
-
-  bindFilter(
-    userSearch,
-    ZUNE.element("#usersTableBody") || ZUNE.element("#adminUsersBody")
-  );
-
-  bindFilter(
-    orderSearch,
-    ZUNE.element("#ordersTableBody") || ZUNE.element("#adminOrdersBody")
-  );
-}
-
-function zuneBindSettings() {
-  const passwordForm =
-    ZUNE.element("#adminPasswordForm") ||
-    ZUNE.element("#changePasswordForm");
-
-  if (passwordForm && passwordForm.dataset.bound !== "true") {
-    passwordForm.dataset.bound = "true";
-
-    passwordForm.addEventListener("submit", async event => {
-      event.preventDefault();
-
-      const formData = new FormData(passwordForm);
-      const password = String(
-        formData.get("password") ||
-        formData.get("newPassword") ||
-        ""
-      );
-
-      const confirmPassword = String(
-        formData.get("confirmPassword") ||
-        formData.get("passwordConfirmation") ||
-        ""
-      );
-
-      if (password.length < 8) {
-        ZUNE.toast("Password mpya iwe na angalau herufi 8.", "error");
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        ZUNE.toast("Password ulizoweka hazifanani.", "error");
-        return;
-      }
-
-      try {
-        const { error } = await zuneSupabase.auth.updateUser({
-          password
-        });
-
-        if (error) throw error;
-
-        passwordForm.reset();
-        ZUNE.toast("Password imesasishwa.", "success");
-      } catch (error) {
-        console.error("Password update:", error);
-        ZUNE.toast(
-          "Imeshindikana kusasisha password. Ingia tena ikiwa session imeisha.",
-          "error"
-        );
-      }
-    });
-  }
-
-  const reloadButtons = ZUNE.all(
-    "[data-admin-refresh], #refreshDashboard, #reloadDashboard"
-  );
-
-  reloadButtons.forEach(button => {
-    if (button.dataset.bound === "true") return;
-    button.dataset.bound = "true";
-
-    button.addEventListener("click", () => {
-      zuneRefreshCurrentSection();
-    });
-  });
-}
-
-function zuneBindForms() {
-  const loginForm =
-    ZUNE.element("#adminLoginForm") ||
-    ZUNE.element("#adminLogin");
-
-  if (loginForm && loginForm.dataset.bound !== "true") {
-    loginForm.dataset.bound = "true";
-    loginForm.addEventListener("submit", zuneAdminLogin);
-  }
-
-  zuneBindAnnouncementForm();
-  zuneBindAnnouncementPreview();
-  zuneBindVerificationSearch();
-  zuneBindSettings();
-  zuneBindSearchInputs();
-}
-
-async function zuneInitializeAdmin() {
-  const loginPanel = ZUNE.element("#adminLoginPanel");
-  const dashboard = ZUNE.element("#adminDashboard");
-
-  if (loginPanel) loginPanel.hidden = false;
-  if (dashboard) dashboard.hidden = true;
-
-  if (!window.supabase?.createClient) {
-    ZUNE.message(
-      "#loginMessage",
-      "Supabase SDK haijapakiwa. Hakikisha script ya Supabase ipo kwenye admin.html.",
-      "error"
-    );
-    return;
-  }
-
-  try {
-    zuneSupabase = window.supabase.createClient(
-      ZUNE_SUPABASE_URL,
-      ZUNE_SUPABASE_PUBLISHABLE_KEY,
-      {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true
-        }
-      }
-    );
-
-    zuneBindNavigation();
-    zuneBindForms();
-    zuneBindModal();
-
-    const { data, error } = await zuneSupabase.auth.getSession();
-
-    if (error) throw error;
-
-    if (!data.session) {
-      zuneShowLogin();
-      return;
-    }
-
     try {
-      await zuneVerifyAdmin(data.session);
-      zuneShowDashboard();
-      zuneUpdateAdminIdentity();
-      zuneOpenSection("overview");
-    } catch (error) {
-      console.warn("Current session is not an admin:", error);
-      zuneShowLogin();
+      zuneRequireAdmin();
 
-      ZUNE.message(
-        "#loginMessage",
-        error.message || "Tafadhali ingia kwa akaunti ya admin.",
+      const title = zuneFormValue(form, "title");
+      const message = zuneFormValue(form, "message");
+      const audience = zuneFormValue(form, "audience") || "all";
+      const displayType =
+        zuneFormValue(form, "display_type") || "notification";
+      const priority =
+        zuneFormValue(form, "priority") || "normal";
+      const expiresAt = zuneFormValue(form, "expires_at");
+
+      if (!title || !message) {
+        throw new Error("Weka kichwa na ujumbe wa tangazo.");
+      }
+
+      if (!["all", "buyers", "vendors"].includes(audience)) {
+        throw new Error("Walengwa wa tangazo si sahihi.");
+      }
+
+      if (!["notification", "banner", "both"].includes(displayType)) {
+        throw new Error("Aina ya tangazo si sahihi.");
+      }
+
+      const payload = {
+        title,
+        message,
+        audience,
+        display_type: displayType,
+        priority,
+        status: "published",
+        created_by: zuneAdminSession.user.id,
+        expires_at: expiresAt || null
+      };
+
+      const { error } = await zuneSupabase
+        .from("admin_announcements")
+        .insert(payload);
+
+      if (error) throw error;
+
+      form.reset();
+
+      ZUNE.toast("Tangazo limehifadhiwa.", "success");
+
+      await zuneLoadAnnouncements();
+
+    } catch (error) {
+      console.error("Create announcement:", error);
+
+      ZUNE.toast(
+        ZUNE.errorMessage(error),
         "error"
       );
     }
+  }, "AnnouncementForm");
+}
 
-    zuneSupabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT" || !session) {
-        zuneAdminSession = null;
-        zuneAdminProfile = null;
-        zuneShowLogin();
-      }
+
+/* =========================================================
+   2. NOTIFICATIONS
+   Jedwali linalotarajiwa: notifications
+========================================================= */
+
+async function zuneLoadNotifications() {
+  const body = zuneGetTableBody(
+    "#notificationsTableBody",
+    "#adminNotificationsTableBody",
+    "#notificationsTable tbody"
+  );
+
+  if (!zuneAdminSession) return;
+
+  try {
+    zuneRequireAdmin();
+
+    const notifications = await zuneFetchRows(
+      "notifications",
+      "*",
+      query => query.order("created_at", { ascending: false }).limit(100)
+    );
+
+    if (!body) return;
+
+    body.replaceChildren();
+
+    if (!notifications.length) {
+      zuneRenderTableMessage(
+        body,
+        4,
+        "Hakuna notifications zilizopatikana."
+      );
+      return;
+    }
+
+    notifications.forEach(item => {
+      const row = document.createElement("tr");
+
+      [
+        item.title || "—",
+        item.message || "—",
+        item.user_id || item.recipient_id || "—",
+        ZUNE.date(item.created_at)
+      ].forEach(value => {
+        row.appendChild(zuneBuildCell(value));
+      });
+
+      body.appendChild(row);
     });
-  } catch (error) {
-    console.error("ZUNE Admin initialization:", error);
 
-    ZUNE.message(
+  } catch (error) {
+    console.error("Load notifications:", error);
+
+    if (body) {
+      zuneRenderTableMessage(
+        body,
+        4,
+        ZUNE.errorMessage(error)
+      );
+    }
+  }
+}
+
+
+/* =========================================================
+   3. VERIFICATION
+   Kusoma profiles zilizowekwa is_verified
+========================================================= */
+
+async function zuneLoadVerification() {
+  const body = zuneGetTableBody(
+    "#verificationTableBody",
+    "#adminVerificationTableBody",
+    "#verificationTable tbody"
+  );
+
+  if (!zuneAdminSession) return;
+
+  try {
+    zuneRequireAdmin();
+
+    const profiles = await zuneFetchRows(
+      "profiles",
+      "id,full_name,phone_number,role,is_verified,created_at",
+      query => query.order("created_at", { ascending: false })
+    );
+
+    if (!body) return;
+
+    body.replaceChildren();
+
+    if (!profiles.length) {
+      zuneRenderTableMessage(
+        body,
+        5,
+        "Hakuna akaunti zilizopatikana."
+      );
+      return;
+    }
+
+    profiles.forEach(profile => {
+      const row = document.createElement("tr");
+
+      [
+        profile.full_name || "—",
+        profile.phone_number || "—",
+        profile.role || "buyer",
+        profile.is_verified ? "Verified" : "Not verified"
+      ].forEach(value => {
+        row.appendChild(zuneBuildCell(value));
+      });
+
+      const actionCell = document.createElement("td");
+
+      const status = document.createElement("span");
+      status.textContent = profile.is_verified
+        ? "Imethibitishwa"
+        : "Inasubiri uhakiki";
+
+      actionCell.appendChild(status);
+      row.appendChild(actionCell);
+      body.appendChild(row);
+    });
+
+  } catch (error) {
+    console.error("Load verification:", error);
+
+    if (body) {
+      zuneRenderTableMessage(
+        body,
+        5,
+        ZUNE.errorMessage(error)
+      );
+    }
+  }
+}
+
+
+/* =========================================================
+   4. SETTINGS
+========================================================= */
+
+function zuneLoadSettings() {
+  if (!zuneAdminSession || !zuneAdminProfile) return;
+
+  zuneUpdateAdminIdentity();
+
+  ZUNE.setText(
+    "#settingsProjectName",
+    "ZUNE Premium Admin"
+  );
+
+  ZUNE.setText(
+    "#settingsProjectUrl",
+    ZUNE_SUPABASE_URL
+  );
+
+  ZUNE.setText(
+    "#settingsAdminCreated",
+    ZUNE.date(zuneAdminProfile.created_at)
+  );
+
+  ZUNE.setText(
+    "#settingsUserId",
+    zuneAdminSession.user.id
+  );
+}
+
+
+/* =========================================================
+   5. PREVIEW YA TANGAZO
+========================================================= */
+
+function zuneBindAnnouncementPreview() {
+  const form = ZUNE.el("#announcementForm");
+  const preview = ZUNE.el("#announcementPreview");
+
+  if (!form || !preview) return;
+
+  const updatePreview = () => {
+    const title =
+      zuneFormValue(form, "title") || "Kichwa cha tangazo";
+
+    const message =
+      zuneFormValue(form, "message") ||
+      "Ujumbe wa tangazo utaonekana hapa.";
+
+    const heading = preview.querySelector("[data-preview-title]");
+    const body = preview.querySelector("[data-preview-message]");
+
+    if (heading) heading.textContent = title;
+    if (body) body.textContent = message;
+  };
+
+  zuneBindOnce(
+    form,
+    "input",
+    updatePreview,
+    "AnnouncementPreview"
+  );
+
+  updatePreview();
+}
+
+
+/* =========================================================
+   6. KUANZISHA VIFAA VYA SEHEMU HII
+========================================================= */
+
+function zuneBindAdminForms() {
+  zuneBindAnnouncementForm();
+  zuneBindAnnouncementPreview();
+
+  zuneBindOnce(
+    ZUNE.el("#adminThemeToggle"),
+    "click",
+    () => {
+      document.documentElement.classList.toggle("dark");
+    },
+    "ThemeToggle"
+  );
+}
+
+
+/* =========================================================
+   7. KUHAKIKISHA SETTINGS ZINAJAZWA
+========================================================= */
+
+function zuneOnAdminSettingsOpen() {
+  zuneLoadSettings();
+}
+/* =========================================================
+   ZUNE PREMIUM ADMIN
+   SEHEMU YA 5/5 — INITIALIZATION & SESSION MANAGEMENT
+   ========================================================= */
+
+function zuneBindLoginForm() {
+  const loginScreen = zuneEl("#adminLoginScreen");
+
+  const loginForm =
+    zuneEl("#adminLoginForm") ||
+    loginScreen?.querySelector("form");
+
+  if (!loginForm) {
+    console.warn(
+      "ZUNE Admin: Login form haijapatikana. Kagua admin.html."
+    );
+    return;
+  }
+
+  zuneBindOnce(
+    loginForm,
+    "submit",
+    zuneAdminLogin,
+    "LoginSubmit"
+  );
+}
+
+function zuneBindSettingsSection() {
+  if (window.zuneSettingsSectionBound) return;
+
+  window.zuneSettingsSectionBound = true;
+
+  document.addEventListener("click", function (event) {
+    const sectionLink = event.target.closest("[data-section]");
+
+    if (!sectionLink) return;
+
+    const sectionName = sectionLink.getAttribute("data-section");
+
+    if (sectionName === "settingsSection") {
+      window.setTimeout(function () {
+        if (zuneAdminSession && zuneAdminProfile) {
+          zuneOnAdminSettingsOpen();
+        }
+      }, 0);
+    }
+  });
+}
+
+function zuneBindExtraControls() {
+  const refreshButton = zuneEl("#adminRefreshButton");
+
+  zuneBindOnce(
+    refreshButton,
+    "click",
+    async function (event) {
+      event.preventDefault();
+
+      if (!zuneAdminSession || zuneAdminBusy) return;
+
+      await zuneRefreshCurrentSection();
+    },
+    "ExtraRefresh"
+  );
+
+  const themeButton = zuneEl("#adminThemeToggle");
+
+  zuneBindOnce(
+    themeButton,
+    "click",
+    function (event) {
+      event.preventDefault();
+
+      document.documentElement.classList.toggle("dark");
+
+      const enabled =
+        document.documentElement.classList.contains("dark");
+
+      themeButton.setAttribute(
+        "aria-pressed",
+        String(enabled)
+      );
+    },
+    "ExtraTheme"
+  );
+}
+
+async function zuneRestoreAdminSession() {
+  if (!zuneSupabase) return;
+
+  try {
+    const { data, error } =
+      await zuneSupabase.auth.getSession();
+
+    if (error) throw error;
+
+    const session = data?.session;
+
+    if (!session) {
+      zuneAdminSession = null;
+      zuneAdminProfile = null;
+      zuneShowLogin();
+      return;
+    }
+
+    await zuneVerifyAdmin(session);
+
+    zuneShowDashboard();
+    zuneUpdateAdminIdentity();
+
+    zuneOpenSection("overviewSection");
+
+    zuneClearMessage(
       "#loginMessage",
-      "Imeshindikana kuanzisha Admin Dashboard. Kagua Supabase URL, publishable key na mtandao.",
+      "#adminGlobalMessage"
+    );
+  } catch (error) {
+    zuneAdminSession = null;
+    zuneAdminProfile = null;
+
+    zuneShowLogin();
+
+    zuneMessage(
+      "#loginMessage",
+      zuneErrorMessage(error),
       "error"
     );
   }
 }
 
+function zuneListenForAuthChanges() {
+  if (!zuneSupabase || window.zuneAuthListenerBound) return;
+
+  window.zuneAuthListenerBound = true;
+
+  zuneSupabase.auth.onAuthStateChange(
+    function (event, session) {
+      /*
+       * Epuka kuita Supabase Auth methods moja kwa moja
+       * ndani ya callback hii.
+       */
+      if (event === "SIGNED_OUT" || !session) {
+        zuneAdminSession = null;
+        zuneAdminProfile = null;
+
+        zuneShowLogin();
+      }
+    }
+  );
+}
+
+async function zuneInitializeAdmin() {
+  if (zuneInitialized) return;
+
+  zuneInitialized = true;
+
+  zuneShowLogin();
+
+  zuneBindNavigation();
+  zuneBindAdminForms();
+  zuneBindLoginForm();
+  zuneBindSettingsSection();
+  zuneBindExtraControls();
+
+  try {
+    zuneConnectSupabase();
+
+    zuneListenForAuthChanges();
+
+    await zuneRestoreAdminSession();
+  } catch (error) {
+    zuneShowLogin();
+
+    zuneMessage(
+      "#loginMessage",
+      zuneErrorMessage(error),
+      "error"
+    );
+
+    console.error(
+      "ZUNE Admin initialization error:",
+      error
+    );
+  }
+}
+
+/* Anzisha mfumo baada ya HTML kuwa tayari. */
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", zuneInitializeAdmin);
+  document.addEventListener(
+    "DOMContentLoaded",
+    zuneInitializeAdmin,
+    { once: true }
+  );
 } else {
   zuneInitializeAdmin();
 }
