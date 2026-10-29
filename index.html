@@ -1,0 +1,667 @@
+
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#087f50">
+  <meta name="description" content="ZUNE Premium Admin — usimamizi wa soko la ZUNE.">
+  <title>ZUNE Premium Admin</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    :root {
+      --green: #087f50;
+      --green-dark: #075c3d;
+      --green-light: #e7f6ee;
+      --orange: #ff8b38;
+      --bg: #f5f8f6;
+      --surface: #ffffff;
+      --text: #15251d;
+      --muted: #718078;
+      --border: #e5ece7;
+      --shadow: 0 14px 45px rgba(20, 65, 43, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: "DM Sans", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    button, a { font: inherit; }
+
+    a { color: inherit; text-decoration: none; }
+
+    button { cursor: pointer; }
+
+    .container {
+      width: min(1160px, calc(100% - 36px));
+      margin: auto;
+    }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255,255,255,.94);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-inner {
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-family: "Manrope", sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -.6px;
+    }
+
+    .brand-logo {
+      width: 43px;
+      height: 43px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: white;
+      font-family: "Manrope", sans-serif;
+      font-size: 25px;
+      font-weight: 800;
+      background: var(--green-dark);
+      border: 3px solid #e7f6ee;
+      position: relative;
+    }
+
+    .brand-logo::after {
+      content: "";
+      position: absolute;
+      width: 9px;
+      height: 9px;
+      right: 2px;
+      top: 5px;
+      border-radius: 2px;
+      background: var(--orange);
+      transform: rotate(35deg);
+    }
+
+    .brand small {
+      display: block;
+      font: 600 10px "DM Sans", sans-serif;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      margin-top: 1px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+      color: #526159;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .nav-links a:hover { color: var(--green); }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      color: var(--text);
+      background: white;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border: 0;
+      border-radius: 13px;
+      padding: 13px 19px;
+      font-weight: 700;
+      font-size: 13px;
+      transition: transform .2s, background .2s;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+
+    .btn-primary {
+      background: var(--green);
+      color: white;
+      box-shadow: 0 8px 20px rgba(8,127,80,.19);
+    }
+
+    .btn-primary:hover { background: var(--green-dark); }
+
+    .btn-outline {
+      background: white;
+      color: var(--green-dark);
+      border: 1px solid var(--border);
+    }
+
+    .hero { padding: 66px 0 38px; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 50px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green-light);
+      color: var(--green-dark);
+      border: 1px solid #d2eddd;
+      padding: 8px 12px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .6px;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #17a765;
+      box-shadow: 0 0 0 4px #c9f0d9;
+    }
+
+    h1, h2, h3 {
+      font-family: "Manrope", sans-serif;
+      letter-spacing: -1.3px;
+    }
+
+    h1 {
+      font-size: clamp(38px, 5vw, 60px);
+      line-height: 1.12;
+      margin: 23px 0 18px;
+      font-weight: 800;
+    }
+
+    .highlight { color: var(--green); }
+
+    .hero-copy {
+      max-width: 525px;
+      color: var(--muted);
+      line-height: 1.9;
+      font-size: 15px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 27px;
+    }
+
+    .trust-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 22px;
+    }
+
+    .trust-line i { color: var(--green); }
+
+    .preview {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 25px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .preview::before {
+      content: "";
+      position: absolute;
+      width: 210px;
+      height: 210px;
+      background: #e8f7ee;
+      border-radius: 50%;
+      right: -100px;
+      top: -105px;
+    }
+
+    .preview-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      gap: 12px;
+    }
+
+    .preview-head strong {
+      font-family: "Manrope", sans-serif;
+      font-size: 15px;
+    }
+
+    .status-pill {
+      color: var(--green-dark);
+      background: var(--green-light);
+      padding: 7px 10px;
+      border-radius: 30px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .preview-sub {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 6px;
+    }
+
+    .preview-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 23px;
+    }
+
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      background: #fff;
+    }
+
+    .metric-icon {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      background: var(--green-light);
+      color: var(--green);
+      border-radius: 11px;
+      margin-bottom: 13px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .metric strong {
+      display: block;
+      font: 800 24px "Manrope", sans-serif;
+      margin-top: 6px;
+    }
+
+    .preview-note {
+      margin-top: 14px;
+      padding: 13px;
+      border-radius: 13px;
+      background: #f5f8f6;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .preview-note i { color: var(--green); font-size: 18px; }
+
+    .section { padding: 48px 0 66px; }
+
+    .section-head {
+      text-align: center;
+      max-width: 650px;
+      margin: 0 auto 30px;
+    }
+
+    .section-head h2 {
+      font-size: clamp(27px, 4vw, 36px);
+      margin: 13px 0;
+    }
+
+    .section-head p {
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 13px;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 17px;
+    }
+
+    .feature {
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: 19px;
+      background: white;
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .feature:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 15px;
+      background: var(--green-light);
+      color: var(--green);
+      display: grid;
+      place-items: center;
+      font-size: 19px;
+    }
+
+    .feature h3 {
+      font-size: 17px;
+      margin: 19px 0 9px;
+      letter-spacing: -.4px;
+    }
+
+    .feature p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.8;
+      margin: 0;
+    }
+
+    .cta {
+      margin-bottom: 65px;
+      padding: 33px;
+      border-radius: 23px;
+      background: linear-gradient(120deg, #075c3d, #0b8a58);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+    }
+
+    .cta h2 { margin: 0 0 9px; font-size: 25px; }
+    .cta p { margin: 0; color: #d8f0e3; font-size: 12px; line-height: 1.8; }
+    .cta .btn { background: white; color: var(--green-dark); flex-shrink: 0; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      background: white;
+      padding: 23px 0;
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .footer-inner strong { color: var(--green-dark); }
+
+    body.dark {
+      --bg: #101914;
+      --surface: #17231c;
+      --text: #eaf4ed;
+      --muted: #a3b3a9;
+      --border: #293a30;
+      --green-light: #203c2c;
+      --green-dark: #a7e5bf;
+      --shadow: 0 14px 45px rgba(0,0,0,.18);
+    }
+
+    body.dark .navbar,
+    body.dark .feature,
+    body.dark .metric,
+    body.dark .preview,
+    body.dark footer,
+    body.dark .btn-outline,
+    body.dark .icon-btn { background: var(--surface); }
+
+    body.dark .preview-note { background: #1d2c23; }
+    body.dark .cta .btn { background: #fff; color: #075c3d; }
+
+    @media (max-width: 850px) {
+      .nav-links { display: none; }
+      .hero-grid { grid-template-columns: 1fr; gap: 30px; }
+      .hero { padding-top: 43px; }
+      .hero-copy { max-width: 650px; }
+      .preview { max-width: 580px; width: 100%; margin: auto; }
+      .features { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 540px) {
+      .container { width: calc(100% - 28px); }
+      .nav-inner { min-height: 67px; }
+      .brand { font-size: 16px; gap: 8px; }
+      .brand-logo { width: 39px; height: 39px; font-size: 22px; }
+      .nav-actions .btn { padding: 11px 12px; font-size: 11px; }
+      .nav-actions .icon-btn { width: 38px; height: 38px; }
+      h1 { font-size: 39px; }
+      .hero { padding-top: 36px; }
+      .hero-copy { font-size: 13px; }
+      .hero-buttons .btn { width: 100%; }
+      .preview { padding: 16px; border-radius: 19px; }
+      .metric { padding: 13px; }
+      .metric strong { font-size: 21px; }
+      .features { grid-template-columns: 1fr; }
+      .feature { padding: 21px; }
+      .cta { padding: 25px 20px; align-items: flex-start; flex-direction: column; }
+      .cta .btn { width: 100%; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+      .section { padding: 35px 0 48px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a class="brand" href="index.html" aria-label="ZUNE Premium Admin home">
+        <span class="brand-logo">Z</span>
+        <span>ZUNE <small>PREMIUM ADMIN</small></span>
+      </a>
+
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="#home">Mwanzo</a>
+        <a href="#features">Vipengele</a>
+        <a href="#security">Usalama</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="icon-btn" id="themeToggle" aria-label="Badili muonekano">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+        <a href="admin.html" class="btn btn-primary">
+          Ingia Admin <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="container hero-grid">
+        <div>
+          <div class="eyebrow">
+            <span class="live-dot"></span>
+            MFUMO WA USIMAMIZI WA ZUNE
+          </div>
+
+          <h1>
+            Simamia ZUNE.<br>
+            <span class="highlight">Kwa ufanisi zaidi.</span>
+          </h1>
+
+          <p class="hero-copy">
+            Karibu kwenye kituo cha usimamizi wa ZUNE Marketplace.
+            Dhibiti maombi ya wauzaji, bidhaa, oda, akaunti na shughuli
+            muhimu za mfumo kupitia eneo moja.
+          </p>
+
+          <div class="hero-buttons">
+            <a href="admin.html" class="btn btn-primary">
+              <i class="fa-solid fa-gauge-high"></i>
+              Fungua Admin Dashboard
+            </a>
+            <a href="#features" class="btn btn-outline">
+              <i class="fa-solid fa-layer-group"></i>
+              Angalia vipengele
+            </a>
+          </div>
+
+          <div class="trust-line" id="security">
+            <i class="fa-solid fa-shield-halved"></i>
+            Ufikiaji wa usimamizi unahitaji akaunti yenye ruhusa za admin.
+          </div>
+        </div>
+
+        <div class="preview">
+          <div class="preview-head">
+            <div>
+              <strong>Admin Control Center</strong>
+              <div class="preview-sub">Muhtasari wa sehemu za usimamizi</div>
+            </div>
+            <span class="status-pill"><i class="fa-solid fa-lock"></i> Admin</span>
+          </div>
+
+          <div class="preview-metrics">
+            <div class="metric">
+              <div class="metric-icon"><i class="fa-solid fa-users"></i></div>
+              <span>Watumiaji</span>
+              <strong>—</strong>
+            </div>
+            <div class="metric">
+              <div class="metric-icon"><i class="fa-solid fa-store"></i></div>
+              <span>Wauzaji</span>
+              <strong>—</strong>
+            </div>
+            <div class="metric">
+              <div class="metric-icon"><i class="fa-solid fa-box"></i></div>
+              <span>Bidhaa</span>
+              <strong>—</strong>
+            </div>
+            <div class="metric">
+              <div class="metric-icon"><i class="fa-solid fa-cart-shopping"></i></div>
+              <span>Oda</span>
+              <strong>—</strong>
+            </div>
+          </div>
+
+          <div class="preview-note">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>Takwimu halisi zitaonekana ndani ya dashboard baada ya kuingia kwa akaunti yenye ruhusa zinazofaa.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-head">
+          <div class="eyebrow">ZUNE MANAGEMENT</div>
+          <h2>Kila kitu muhimu, sehemu moja.</h2>
+          <p>
+            Zana za kusaidia msimamizi kufuatilia na kusimamia shughuli
+            za marketplace kwa mpangilio.
+          </p>
+        </div>
+
+        <div class="features">
+          <article class="feature">
+            <div class="feature-icon"><i class="fa-solid fa-chart-line"></i></div>
+            <h3>Muhtasari na Takwimu</h3>
+            <p>Fuatilia takwimu zinazopatikana za mauzo, oda, bidhaa na watumiaji.</p>
+          </article>
+
+          <article class="feature">
+            <div class="feature-icon"><i class="fa-solid fa-store"></i></div>
+            <h3>Maombi ya Wauzaji</h3>
+            <p>Kagua maombi ya wauzaji na chukua hatua kulingana na ruhusa zako.</p>
+          </article>
+
+          <article class="feature">
+            <div class="feature-icon"><i class="fa-solid fa-box-open"></i></div>
+            <h3>Usimamizi wa Bidhaa</h3>
+            <p>Angalia bidhaa zilizowekwa na taarifa zake kutoka kwenye mfumo.</p>
+          </article>
+
+          <article class="feature">
+            <div class="feature-icon"><i class="fa-solid fa-receipt"></i></div>
+            <h3>Oda na Malipo</h3>
+            <p>Fuatilia rekodi za oda na hali zake bila kubuni taarifa za malipo.</p>
+          </article>
+
+          <article class="feature">
+            <div class="feature-icon"><i class="fa-solid fa-user-shield"></i></div>
+            <h3>Akaunti na Uhakiki</h3>
+            <p>Kagua akaunti na hali ya uthibitishaji kulingana na sera za mfumo.</p>
+          </article>
+
+          <article class="feature">
+            <div class="feature-icon"><i class="fa-solid fa-bullhorn"></i></div>
+            <h3>Matangazo ya Admin</h3>
+            <p>Sehemu ya kusimamia matangazo na taarifa itategemea usanidi wa database.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="container">
+      <div class="cta">
+        <div>
+          <h2>Uko tayari kusimamia ZUNE?</h2>
+          <p>Ingia kwa akaunti ya admin ili kufungua eneo la usimamizi.</p>
+        </div>
+        <a href="admin.html" class="btn">
+          Endelea kwenda Admin <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <div><strong>ZUNE PREMIUM ADMIN</strong> · Kituo cha usimamizi</div>
+      <div>© <span id="currentYear"></span> ZUNE. Haki zote zimehifadhiwa.</div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
