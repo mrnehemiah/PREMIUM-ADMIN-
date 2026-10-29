@@ -1,9 +1,4 @@
 
-/* =========================================================
-   ZUNE PREMIUM ADMIN DASHBOARD
-   admin-products.js — SEHEMU YA 1/4
-   Product Management + Supabase
-   ========================================================= */
 
 (function () {
   "use strict";
