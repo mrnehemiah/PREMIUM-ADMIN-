@@ -2318,9 +2318,9 @@ function zuneBindAuthState() {
   );
 }
 async function zuneInitializeAdmin() {
-  if (zuneAdminInitialized) return;
+  if (zuneInitialized) return;
 
-  zuneAdminInitialized = true;
+  zuneInitialized = true;
 
   try {
     zuneConnectSupabase();
@@ -2343,19 +2343,13 @@ async function zuneInitializeAdmin() {
   } catch (error) {
     console.error("ZUNE initialization error:", error);
 
-    zuneAdminInitialized = false;
+    zuneInitialized = false;
+    zuneShowLogin();
 
-    zuneShowLogin(
-      zuneFriendlyError(error)
+    zuneMessage(
+      "#loginMessage",
+      zuneFriendlyError(error),
+      "error"
     );
   }
-}
-if (document.readyState === "loading") {
-  document.addEventListener(
-    "DOMContentLoaded",
-    zuneInitializeAdmin,
-    { once: true }
-  );
-} else {
-  zuneInitializeAdmin();
 }
