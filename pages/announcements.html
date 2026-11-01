@@ -5,11 +5,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZUNE Admin - Announcements</title>
+
 <link rel="stylesheet" href="../css/admin.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js"></script>
+
 <style>
-:root{--green:#15803d;--dark:#14532d;--light:#f0fdf4;--bg:#f5f7f5;--border:#e5ebe6;--muted:#718078}
+:root{
+--green:#15803d;
+--dark:#14532d;
+--light:#f0fdf4;
+--bg:#f5f7f5;
+--border:#e5ebe6;
+--muted:#718078
+}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:#17231b;font-family:Arial,sans-serif}
 .page{max-width:1250px;margin:auto;padding:22px}
@@ -17,6 +26,7 @@ body{margin:0;background:var(--bg);color:#17231b;font-family:Arial,sans-serif}
 h1{margin:0;color:var(--dark);font-size:25px}
 .subtitle{color:var(--muted);font-size:13px;margin-top:6px}
 .btn{border:0;border-radius:9px;padding:11px 15px;font-weight:700;cursor:pointer}
+.btn:disabled{opacity:.5;cursor:not-allowed}
 .primary{background:var(--green);color:white}
 .secondary{background:white;border:1px solid var(--border);color:var(--dark)}
 .danger{background:#fee2e2;color:#991b1b}
@@ -38,12 +48,12 @@ th{background:#f8faf8;color:var(--muted)}
 .status{padding:5px 9px;border-radius:20px;font-size:11px;font-weight:700}
 .active{background:#dcfce7;color:#166534}
 .inactive{background:#f1f5f9;color:#475569}
-.actions{display:flex;gap:6px}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
 .actions button{border:0;border-radius:6px;padding:7px 9px;font-weight:700;cursor:pointer}
 .edit{background:#dcfce7;color:#166534}
 .remove{background:#fee2e2;color:#991b1b}
 .empty{text-align:center;padding:30px;color:var(--muted)}
-#message{margin-bottom:14px;font-size:13px}
+#message{margin-bottom:14px;font-size:13px;white-space:pre-wrap}
 .modal{display:none;position:fixed;inset:0;background:#0008;z-index:1000;align-items:center;justify-content:center;padding:14px}
 .modal.show{display:flex}
 .modal-box{background:white;width:100%;max-width:600px;max-height:92vh;overflow:auto;border-radius:15px;padding:22px}
@@ -61,343 +71,395 @@ th{background:#f8faf8;color:var(--muted)}
 @media(max-width:430px){.grid{grid-template-columns:1fr}.full{grid-column:auto}h1{font-size:21px}}
 </style>
 </head>
+
 <body>
 <div class="page">
-  <div class="topbar">
-    <div>
-      <h1>Announcements</h1>
-      <div class="subtitle">Simamia matangazo ya ZUNE Marketplace</div>
-    </div>
-    <div style="display:flex;gap:8px">
-      <button class="btn secondary" onclick="location.href='../index.html'">← Dashboard</button>
-      <button class="btn primary" onclick="openCreate()">+ Tangazo Jipya</button>
-    </div>
-  </div>
 
-  <div id="message"></div>
+<div class="topbar">
+<div>
+<h1>Announcements</h1>
+<div class="subtitle">Simamia matangazo ya ZUNE Marketplace</div>
+</div>
+<div style="display:flex;gap:8px">
+<button class="btn secondary" onclick="location.href='../index.html'">← Dashboard</button>
+<button class="btn primary" onclick="openCreate()">+ Tangazo Jipya</button>
+</div>
+</div>
 
-  <div class="stats">
-    <div class="stat"><small>Matangazo yote</small><h2 id="total">0</h2></div>
-    <div class="stat"><small>Yaliyochapishwa</small><h2 id="published">0</h2></div>
-    <div class="stat"><small>Yaliyosimamishwa</small><h2 id="paused">0</h2></div>
-    <div class="stat"><small>Banner</small><h2 id="banners">0</h2></div>
-  </div>
+<div id="message"></div>
 
-  <div class="panel">
-    <div class="panel-head">
-      <h2>Matangazo Yaliyopo</h2>
-      <button class="btn secondary" onclick="loadAnnouncements()">↻ Refresh</button>
-    </div>
-    <div class="filters">
-      <input id="search" placeholder="Tafuta tangazo..." oninput="render()">
-      <select id="filter" onchange="render()">
-        <option value="">Aina zote za status</option>
-        <option value="active">Yaliyochapishwa</option>
-        <option value="inactive">Yaliyosimamishwa</option>
-      </select>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Tangazo</th><th>Walengwa</th><th>Aina</th>
-            <th>Priority</th><th>Status</th><th>Expiry</th><th>Vitendo</th>
-          </tr>
-        </thead>
-        <tbody id="rows"><tr><td colspan="7" class="loading">Inapakia...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
+<div class="stats">
+<div class="stat"><small>Matangazo yote</small><h2 id="total">0</h2></div>
+<div class="stat"><small>Yaliyochapishwa</small><h2 id="published">0</h2></div>
+<div class="stat"><small>Yaliyosimamishwa</small><h2 id="paused">0</h2></div>
+<div class="stat"><small>Banner</small><h2 id="banners">0</h2></div>
+</div>
+
+<div class="panel">
+<div class="panel-head">
+<h2>Matangazo Yaliyopo</h2>
+<button class="btn secondary" onclick="loadAnnouncements()">↻ Refresh</button>
+</div>
+
+<div class="filters">
+<input id="search" placeholder="Tafuta tangazo..." oninput="render()">
+<select id="filter" onchange="render()">
+<option value="">Status zote</option>
+<option value="active">Yaliyochapishwa</option>
+<option value="inactive">Yaliyosimamishwa</option>
+</select>
+</div>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Tangazo</th>
+<th>Walengwa</th>
+<th>Aina</th>
+<th>Priority</th>
+<th>Status</th>
+<th>Expiry</th>
+<th>Vitendo</th>
+</tr>
+</thead>
+<tbody id="rows">
+<tr><td colspan="7" class="loading">Inapakia...</td></tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 
 <div class="modal" id="modal">
-  <div class="modal-box">
-    <div class="modal-head">
-      <h2 id="modalTitle">Tangazo Jipya</h2>
-      <button class="close" onclick="closeModal()">×</button>
-    </div>
+<div class="modal-box">
 
-    <div class="note">
-      Matangazo huhifadhiwa Supabase. Ili yaonekane Marketplace, sehemu ya Home na Notifications pia lazima iunganishwe kuyasoma.
-    </div>
+<div class="modal-head">
+<h2 id="modalTitle">Tangazo Jipya</h2>
+<button class="close" onclick="closeModal()">×</button>
+</div>
 
-    <form id="announcementForm">
-      <div class="field">
-        <label>Kichwa cha tangazo</label>
-        <input id="title" maxlength="120" required placeholder="Mfano: Karibu ZUNE Marketplace">
-      </div>
-      <div class="field">
-        <label>Ujumbe</label>
-        <textarea id="body" maxlength="2000" required placeholder="Andika ujumbe wa tangazo..."></textarea>
-      </div>
-      <div class="grid">
-        <div class="field">
-          <label>Walengwa</label>
-          <select id="audience" required>
-            <option value="all">Watumiaji wote</option>
-            <option value="buyers">Wanunuzi</option>
-            <option value="sellers">Wauzaji</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Aina ya tangazo</label>
-          <select id="displayType" required>
-            <option value="banner">Home Banner</option>
-            <option value="notification">Notification</option>
-            <option value="both">Banner na Notification</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Priority</label>
-          <select id="priority">
-            <option value="1">Kawaida</option>
-            <option value="2">Muhimu</option>
-            <option value="3">Juu</option>
-            <option value="4">Haraka</option>
-            <option value="5">Ya juu zaidi</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Muda wa kuisha (hiari)</label>
-          <input id="expires" type="datetime-local">
-        </div>
-      </div>
-      <div class="form-actions">
-        <button type="button" class="btn secondary" onclick="closeModal()">Ghairi</button>
-        <button type="submit" class="btn primary" id="saveBtn">Chapisha Tangazo</button>
-      </div>
-    </form>
-  </div>
+<div class="note">
+Matangazo yanahifadhiwa kwenye Supabase kupitia admin_announcements. Kuonekana Marketplace kunahitaji Marketplace kuunganishwa na jedwali hili.
+</div>
+
+<form id="announcementForm">
+
+<div class="field">
+<label>Kichwa cha tangazo</label>
+<input id="title" maxlength="120" required>
+</div>
+
+<div class="field">
+<label>Ujumbe</label>
+<textarea id="body" maxlength="2000" required></textarea>
+</div>
+
+<div class="grid">
+
+<div class="field">
+<label>Walengwa</label>
+<select id="audience" required>
+<option value="all">Watumiaji wote</option>
+<option value="buyers">Wanunuzi</option>
+<option value="sellers">Wauzaji</option>
+</select>
+</div>
+
+<div class="field">
+<label>Aina ya tangazo</label>
+<select id="displayType" required>
+<option value="banner">Home Banner</option>
+<option value="notification">Notification</option>
+<option value="both">Banner na Notification</option>
+</select>
+</div>
+
+<div class="field">
+<label>Priority</label>
+<select id="priority">
+<option value="1">Kawaida</option>
+<option value="2">Muhimu</option>
+<option value="3">Juu</option>
+<option value="4">Haraka</option>
+<option value="5">Ya juu zaidi</option>
+</select>
+</div>
+
+<div class="field">
+<label>Muda wa kuisha (hiari)</label>
+<input id="expires" type="datetime-local">
+</div>
+
+</div>
+
+<div class="form-actions">
+<button type="button" class="btn secondary" onclick="closeModal()">Ghairi</button>
+<button type="submit" class="btn primary" id="saveBtn">Chapisha Tangazo</button>
+</div>
+
+</form>
+</div>
 </div>
 
 <script>
 (() => {
 "use strict";
 
+if (!window.supabase || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+document.getElementById("message").textContent = "Supabase configuration haijapatikana.";
+return;
+}
+
 const db = window.supabase.createClient(
-  window.SUPABASE_URL,
-  window.SUPABASE_ANON_KEY
+window.SUPABASE_URL,
+window.SUPABASE_ANON_KEY
 );
 
 let adminId = null;
 let announcements = [];
 let editingId = null;
+let saving = false;
 
 const $ = id => document.getElementById(id);
 
-function message(text, error=false) {
-  $("message").textContent = text;
-  $("message").style.color = error ? "#b91c1c" : "#166534";
+function message(text,error=false) {
+$("message").textContent = text;
+$("message").style.color = error ? "#b91c1c" : "#166534";
 }
 
 function safe(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  })[char]);
+return String(value ?? "").replace(/[&<>"']/g,char=>({
+"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+})[char]);
 }
 
 async function checkAdmin() {
-  const {data:{user},error} = await db.auth.getUser();
+const {data,error} = await db.auth.getUser();
 
-  if (error || !user) {
-    location.href = "../login.html";
-    return false;
-  }
+if(error || !data.user) {
+location.href="../login.html";
+return false;
+}
 
-  const {data:profile,error:profileError} = await db
-    .from("profiles")
-    .select("id,role")
-    .eq("id",user.id)
-    .single();
+const user=data.user;
 
-  if (profileError || profile?.role !== "admin") {
-    message("Huna ruhusa ya kufungua ukurasa huu.",true);
-    document.querySelectorAll("button").forEach(btn => btn.disabled=true);
-    return false;
-  }
+const {data:profile,error:profileError}=await db
+.from("profiles")
+.select("id,role")
+.eq("id",user.id)
+.single();
 
-  adminId = user.id;
-  return true;
+if(profileError || profile?.role!=="admin") {
+message("Huna ruhusa ya kufungua ukurasa huu.",true);
+document.querySelectorAll("button").forEach(btn=>btn.disabled=true);
+return false;
+}
+
+adminId=user.id;
+return true;
 }
 
 async function loadAnnouncements() {
-  $("rows").innerHTML = '<tr><td colspan="7" class="loading">Inapakia matangazo...</td></tr>';
+$("rows").innerHTML='<tr><td colspan="7" class="loading">Inapakia matangazo...</td></tr>';
 
-  const {data,error} = await db
-    .from("announcements")
-    .select("*")
-    .order("created_at",{ascending:false});
+const {data,error}=await db
+.from("admin_announcements")
+.select("id,title,message,audience,display_type,priority,status,created_at,expires_at")
+.order("created_at",{ascending:false});
 
-  if (error) {
-    $("rows").innerHTML = `<tr><td colspan="7" class="empty">${safe(error.message)}</td></tr>`;
-    message("Imeshindikana kupakia matangazo: " + error.message,true);
-    return;
-  }
+if(error) {
+$("rows").innerHTML='<tr><td colspan="7" class="empty">Imeshindikana kupakia matangazo.</td></tr>';
+message("Imeshindikana kupakia matangazo: "+error.message,true);
+console.error(error);
+return;
+}
 
-  announcements = data || [];
-  updateStats();
-  render();
+announcements=data||[];
+updateStats();
+render();
 }
 
 function updateStats() {
-  $("total").textContent = announcements.length;
-  $("published").textContent = announcements.filter(a=>a.status==="active").length;
-  $("paused").textContent = announcements.filter(a=>a.status!=="active").length;
-  $("banners").textContent = announcements.filter(a=>a.display_type==="banner" || a.display_type==="both").length;
+$("total").textContent=announcements.length;
+
+$("published").textContent=announcements.filter(a=>a.status==="active").length;
+
+$("paused").textContent=announcements.filter(a=>a.status!=="active").length;
+
+$("banners").textContent=announcements.filter(a=>
+a.display_type==="banner" || a.display_type==="both"
+).length;
 }
 
 function render() {
-  const q = $("search").value.toLowerCase().trim();
-  const filter = $("filter").value;
+const q=$("search").value.toLowerCase().trim();
+const filter=$("filter").value;
 
-  const list = announcements.filter(a => {
-    const matches = `${a.title || ""} ${a.message || ""}`.toLowerCase().includes(q);
-    return matches && (!filter || a.status===filter);
-  });
+const list=announcements.filter(a=>{
+const matches=(a.title+" "+a.message).toLowerCase().includes(q);
+return matches && (!filter || a.status===filter);
+});
 
-  if (!list.length) {
-    $("rows").innerHTML = '<tr><td colspan="7" class="empty">Hakuna matangazo yaliyopatikana.</td></tr>';
-    return;
-  }
+if(!list.length) {
+$("rows").innerHTML='<tr><td colspan="7" class="empty">Hakuna matangazo yaliyopatikana.</td></tr>';
+return;
+}
 
-  $("rows").innerHTML = list.map(a => `
-    <tr>
-      <td><strong>${safe(a.title)}</strong><br><small>${safe((a.message||"").slice(0,65))}</small></td>
-      <td>${safe(a.audience)}</td>
-      <td>${safe(a.display_type)}</td>
-      <td>${safe(a.priority)}</td>
-      <td><span class="status ${a.status==="active"?"active":"inactive"}">${a.status==="active"?"Imechapishwa":"Imesimamishwa"}</span></td>
-      <td>${a.expires_at ? safe(new Date(a.expires_at).toLocaleString()) : "Hakuna"}</td>
-      <td><div class="actions">
-        <button class="edit" onclick="editAnnouncement('${a.id}')">Hariri</button>
-        <button class="edit" onclick="toggleStatus('${a.id}')">${a.status==="active"?"Simamisha":"Chapisha"}</button>
-        <button class="remove" onclick="deleteAnnouncement('${a.id}')">Futa</button>
-      </div></td>
-    </tr>
-  `).join("");
+$("rows").innerHTML=list.map(a=>`
+<tr>
+<td><strong>${safe(a.title)}</strong><br>
+<small>${safe((a.message||"").slice(0,65))}</small></td>
+<td>${safe(a.audience)}</td>
+<td>${safe(a.display_type)}</td>
+<td>${safe(a.priority)}</td>
+<td><span class="status ${a.status==="active"?"active":"inactive"}">${a.status==="active"?"Imechapishwa":"Imesimamishwa"}</span></td>
+<td>${a.expires_at?safe(new Date(a.expires_at).toLocaleString()):"Hakuna"}</td>
+<td><div class="actions">
+<button class="edit" onclick="editAnnouncement('${a.id}')">Hariri</button>
+<button class="edit" onclick="toggleStatus('${a.id}')">${a.status==="active"?"Simamisha":"Chapisha"}</button>
+<button class="remove" onclick="deleteAnnouncement('${a.id}')">Futa</button>
+</div></td>
+</tr>
+`).join("");
 }
 
 function openCreate() {
-  editingId = null;
-  $("announcementForm").reset();
-  $("modalTitle").textContent = "Tangazo Jipya";
-  $("saveBtn").textContent = "Chapisha Tangazo";
-  $("modal").classList.add("show");
+editingId=null;
+$("announcementForm").reset();
+$("modalTitle").textContent="Tangazo Jipya";
+$("saveBtn").textContent="Chapisha Tangazo";
+$("modal").classList.add("show");
 }
 
 function closeModal() {
-  $("modal").classList.remove("show");
+$("modal").classList.remove("show");
 }
 
 function editAnnouncement(id) {
-  const a = announcements.find(x=>x.id===id);
-  if (!a) return;
+const a=announcements.find(x=>x.id===id);
+if(!a)return;
 
-  editingId = id;
-  $("title").value = a.title || "";
-  $("body").value = a.message || "";
-  $("audience").value = a.audience || "all";
-  $("displayType").value = a.display_type || "banner";
-  $("priority").value = String(a.priority ?? 1);
+editingId=id;
+$("title").value=a.title||"";
+$("body").value=a.message||"";
+$("audience").value=a.audience||"all";
+$("displayType").value=a.display_type||"banner";
+$("priority").value=String(a.priority??1);
 
-  $("expires").value = a.expires_at
-    ? new Date(new Date(a.expires_at).getTime()-new Date(a.expires_at).getTimezoneOffset()*60000).toISOString().slice(0,16)
-    : "";
+$("expires").value=a.expires_at
+?new Date(new Date(a.expires_at).getTime()-new Date(a.expires_at).getTimezoneOffset()*60000).toISOString().slice(0,16)
+:"";
 
-  $("modalTitle").textContent = "Hariri Tangazo";
-  $("saveBtn").textContent = "Hifadhi Mabadiliko";
-  $("modal").classList.add("show");
+$("modalTitle").textContent="Hariri Tangazo";
+$("saveBtn").textContent="Hifadhi Mabadiliko";
+$("modal").classList.add("show");
 }
 
-$("announcementForm").addEventListener("submit", async event => {
-  event.preventDefault();
+$("announcementForm").addEventListener("submit",async event=>{
+event.preventDefault();
 
-  const payload = {
-    title:$("title").value.trim(),
-    message:$("body").value.trim(),
-    audience:$("audience").value,
-    display_type:$("displayType").value,
-    priority:Number($("priority").value),
-    expires_at:$("expires").value ? new Date($("expires").value).toISOString() : null
-  };
+if(saving)return;
 
-  if (!payload.title || !payload.message) {
-    message("Jaza kichwa na ujumbe wa tangazo.",true);
-    return;
-  }
+const payload={
+title:$("title").value.trim(),
+message:$("body").value.trim(),
+audience:$("audience").value,
+display_type:$("displayType").value,
+priority:$("priority").value,
+expires_at:$("expires").value
+?new Date($("expires").value).toISOString()
+:null
+};
 
-  $("saveBtn").disabled = true;
+if(!payload.title||!payload.message) {
+message("Jaza kichwa na ujumbe.",true);
+return;
+}
 
-  let result;
+saving=true;
+$("saveBtn").disabled=true;
 
-  if (editingId) {
-    result = await db.from("announcements")
-      .update(payload)
-      .eq("id",editingId);
-  } else {
-    result = await db.from("announcements")
-      .insert({...payload,status:"active",created_by:adminId});
-  }
+try {
+let result;
 
-  $("saveBtn").disabled = false;
+if(editingId) {
+result=await db.from("admin_announcements")
+.update({...payload,updated_at:new Date().toISOString()})
+.eq("id",editingId);
+} else {
+result=await db.from("admin_announcements")
+.insert({
+...payload,
+status:"active",
+created_by:adminId
+});
+}
 
-  if (result.error) {
-    message("Imeshindikana kuhifadhi: " + result.error.message,true);
-    return;
-  }
+if(result.error)throw result.error;
 
-  closeModal();
-  message(editingId ? "Tangazo limehaririwa." : "Tangazo limechapishwa.");
-  await loadAnnouncements();
+message(editingId?"Tangazo limehaririwa.":"Tangazo limechapishwa.");
+closeModal();
+await loadAnnouncements();
+
+} catch(error) {
+message("Imeshindikana kuhifadhi tangazo: "+error.message,true);
+console.error(error);
+} finally {
+saving=false;
+$("saveBtn").disabled=false;
+}
 });
 
 async function toggleStatus(id) {
-  const a = announcements.find(x=>x.id===id);
-  if (!a) return;
+const a=announcements.find(x=>x.id===id);
+if(!a)return;
 
-  const next = a.status==="active" ? "inactive" : "active";
-  if (!confirm(next==="active" ? "Uchapishaji wa tangazo hili?" : "Unataka kusimamisha tangazo hili?")) return;
+const next=a.status==="active"?"inactive":"active";
 
-  const {error} = await db.from("announcements")
-    .update({status:next})
-    .eq("id",id);
+if(!confirm(next==="active"?"Unataka kuchapisha tangazo hili?":"Unataka kusimamisha tangazo hili?"))return;
 
-  if (error) {
-    message("Imeshindikana kubadilisha status: "+error.message,true);
-    return;
-  }
+const {error}=await db.from("admin_announcements")
+.update({status:next,updated_at:new Date().toISOString()})
+.eq("id",id);
 
-  message("Status ya tangazo imebadilishwa.");
-  await loadAnnouncements();
+if(error) {
+message("Imeshindikana kubadilisha status: "+error.message,true);
+return;
+}
+
+message("Status imebadilishwa.");
+await loadAnnouncements();
 }
 
 async function deleteAnnouncement(id) {
-  if (!confirm("Una uhakika unataka kufuta tangazo hili?")) return;
+if(!confirm("Una uhakika unataka kufuta tangazo hili?"))return;
 
-  const {error} = await db.from("announcements")
-    .delete()
-    .eq("id",id);
+const {error}=await db.from("admin_announcements")
+.delete()
+.eq("id",id);
 
-  if (error) {
-    message("Imeshindikana kufuta tangazo: "+error.message,true);
-    return;
-  }
-
-  message("Tangazo limefutwa.");
-  await loadAnnouncements();
+if(error) {
+message("Imeshindikana kufuta tangazo: "+error.message,true);
+return;
 }
 
-window.openCreate = openCreate;
-window.closeModal = closeModal;
-window.editAnnouncement = editAnnouncement;
-window.toggleStatus = toggleStatus;
-window.deleteAnnouncement = deleteAnnouncement;
-window.loadAnnouncements = loadAnnouncements;
-window.render = render;
+message("Tangazo limefutwa.");
+await loadAnnouncements();
+}
+
+window.openCreate=openCreate;
+window.closeModal=closeModal;
+window.editAnnouncement=editAnnouncement;
+window.toggleStatus=toggleStatus;
+window.deleteAnnouncement=deleteAnnouncement;
+window.loadAnnouncements=loadAnnouncements;
+window.render=render;
 
 (async()=>{
-  if (await checkAdmin()) await loadAnnouncements();
+if(await checkAdmin())await loadAnnouncements();
 })();
+
 })();
 </script>
 </body>
