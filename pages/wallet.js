@@ -1,313 +1,297 @@
 
-/* =========================================
-   ZUNE PREMIUM ADMIN - WALLET
-   Supabase Financial Dashboard
-========================================= */
+/* ==========================================
+   ZUNE PREMIUM ADMIN WALLET
+   ========================================== */
 
 (() => {
   "use strict";
 
-  const $ = (id) => document.getElementById(id);
+  const db = window.supabaseClient;
 
-  const supabaseClient =
-    window.supabaseClient ||
-    window.supabase?.createClient &&
-    window.supabase.createClient(
-      window.SUPABASE_URL || "",
-      window.SUPABASE_ANON_KEY || ""
-    );
+  const $ = id => document.getElementById(id);
 
   let transactions = [];
-  let filteredTransactions = [];
 
-  const currency = (amount) =>
+  const money = value =>
     new Intl.NumberFormat("en-TZ", {
       style: "currency",
-      currency: "TZS",
-      maximumFractionDigits: 2
-    }).format(Number(amount) || 0);
+      currency: "TZS"
+    }).format(Number(value) || 0);
 
-  const formatDate = (date) => {
-    if (!date) return "—";
+  const safe = value =>
+    String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    })[char]);
 
-    const parsed = new Date(date);
-
-    if (isNaN(parsed)) return "—";
-
-    return parsed.toLocaleDateString("en-TZ", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    });
-  };
-
-  function setText(id, value) {
-    const element = $(id);
-    if (element) element.textContent = value;
-  }
-
-  function setMessage(message) {
+  function message(text) {
     const table = $("transactionTable");
 
     if (table) {
       table.innerHTML = `
         <tr>
           <td colspan="4" class="empty-state">
-            ${escapeHTML(message)}
+            ${safe(text)}
           </td>
         </tr>
       `;
     }
   }
 
-  function escapeHTML(value) {
-    return String(value ?? "").replace(
-      /[&<>"']/g,
-      (char) => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;"
-      })[char]
-    );
-  }
+  // ========================================
+  // ADMIN AUTHENTICATION
+  // ========================================
 
-  // -------------------------------------
-  // AUTHENTICATION
-  // -------------------------------------
-
-  async function verifyAdmin() {
-    if (!supabaseClient) {
-      throw new Error("Supabase configuration is missing.");
+  async function checkAdmin() {
+    if (!db) {
+      throw new Error("Supabase client not found.");
     }
 
-    const { data, error } =
-      await supabaseClient.auth.getUser();
+    const { data, error } = await db.auth.getUser();
 
-    if (error || !data?.user) {
-      throw new Error("Please log in to continue.");
+    if (error || !data.user) {
+      throw new Error("Admin login required.");
     }
 
     const { data: profile, error: profileError } =
-      await supabaseClient
+      await db
         .from("profiles")
-        .select("role")
+        .select("id, full_name, zune_id, role")
         .eq("id", data.user.id)
         .single();
 
-    if (profileError || profile?.role !== "admin") {
-      throw new Error("Administrator access required.");
+    if (profileError || profile.role !== "admin") {
+      throw new Error("Admin access denied.");
     }
 
-    return data.user;
+    return profile;
   }
 
-  // -------------------------------------
-  // TRANSACTION DATA
-  // -------------------------------------
+  // ========================================
+  // LOAD WALLET SUMMARY
+  // ========================================
 
-  /*
-    IMPORTANT:
-    Connect this loader to your actual financial
-    table after confirming its database schema.
-  */
+  async function loadSummary() {
+    const { data, error } = await db
+      .from("admin_wallet_summary")
+      .select("*")
+      .single();
+
+    if (error) throw error;
+
+    $("totalBalance").textContent =
+      money(data.platform_balance);
+
+    $("totalDeposits").textContent =
+      money(data.total_credits);
+
+    $("totalWithdrawals").textContent =
+      money(data.total_debits);
+
+    $("totalCommission").textContent =
+      money(data.total_commission);
+
+    $("pendingTransactions").textContent =
+      data.pending_transactions;
+
+    $("totalTransactions").textContent =
+      data.total_transactions;
+  }
+
+  // ========================================
+  // LOAD TRANSACTIONS AND ZUNE IDS
+  // ========================================
 
   async function loadTransactions() {
-    setMessage("Financial transaction schema not configured yet.");
+    message("Loading transactions...");
 
-    transactions = [];
-    filteredTransactions = [];
+    const { data, error } = await db
+      .from("admin_wallet_transactions")
+      .select(`
+        id,
+        reference,
+        user_id,
+        zune_id,
+        transaction_type,
+        direction,
+        amount,
+        currency,
+        status,
+        description,
+        created_at,
+        profiles:user_id (
+          full_name,
+          zune_id
+        )
+      `)
+      .order("created_at", { ascending: false })
+      .limit(200);
 
-    renderTransactions();
-    updateStatistics();
+    if (error) throw error;
 
-    return;
+    transactions = data || [];
+
+    renderTransactions(transactions);
+    updateCounts();
   }
 
-  // -------------------------------------
-  // STATISTICS
-  // -------------------------------------
+  // ========================================
+  // DISPLAY TRANSACTIONS
+  // ========================================
 
-  function updateStatistics() {
-    let deposits = 0;
-    let withdrawals = 0;
-    let commissions = 0;
-    let pending = 0;
-    let successful = 0;
-    let failed = 0;
-
-    transactions.forEach((transaction) => {
-      const amount = Number(transaction.amount) || 0;
-      const type = String(transaction.type || "").toLowerCase();
-      const status = String(transaction.status || "").toLowerCase();
-
-      if (type === "deposit") deposits += amount;
-
-      if (type === "withdrawal") withdrawals += amount;
-
-      if (type === "commission") commissions += amount;
-
-      if (status === "pending") pending++;
-
-      if (["completed", "success", "successful", "paid"].includes(status)) {
-        successful++;
-      }
-
-      if (["failed", "rejected", "cancelled"].includes(status)) {
-        failed++;
-      }
-    });
-
-    const balance = deposits + commissions - withdrawals;
-
-    setText("totalBalance", currency(balance));
-    setText("totalDeposits", currency(deposits));
-    setText("totalWithdrawals", currency(withdrawals));
-    setText("totalCommission", currency(commissions));
-
-    setText("pendingTransactions", pending);
-    setText("successfulCount", successful);
-    setText("failedCount", failed);
-    setText("totalTransactions", transactions.length);
-  }
-
-  // -------------------------------------
-  // TRANSACTION TABLE
-  // -------------------------------------
-
-  function renderTransactions() {
+  function renderTransactions(list) {
     const table = $("transactionTable");
 
     if (!table) return;
 
-    if (!filteredTransactions.length) {
-      setMessage("No verified financial transactions available.");
+    if (!list.length) {
+      message("No wallet transactions found.");
       return;
     }
 
-    table.innerHTML = filteredTransactions
-      .map((transaction) => {
-        const status = String(
-          transaction.status || "unknown"
-        ).toLowerCase();
+    table.innerHTML = list.map(item => {
+      const type = safe(item.transaction_type);
+      const status = safe(item.status);
 
-        const type = String(
-          transaction.type || "transaction"
-        ).toLowerCase();
+      const profile = item.profiles || {};
 
-        const statusClass =
-          ["pending"].includes(status)
-            ? "pending"
-            : ["failed", "rejected", "cancelled"].includes(status)
-              ? "failed"
-              : "";
+      const name = profile.full_name || "Unknown user";
 
-        const amountClass =
-          type === "withdrawal"
-            ? "amount-negative"
-            : "amount-positive";
+      const zuneID =
+        item.zune_id ||
+        profile.zune_id ||
+        "Not available";
 
-        const sign =
-          type === "withdrawal" ? "−" : "+";
+      const negative = item.direction === "debit";
 
-        return `
-          <tr>
-            <td>
-              <span class="transaction-name">
-                ${escapeHTML(transaction.description || type)}
-              </span>
+      return `
+        <tr>
+          <td>
+            <span class="transaction-name">
+              ${type}
+            </span>
 
-              <span class="transaction-id">
-                ${escapeHTML(transaction.id || "")}
-              </span>
-            </td>
+            <span class="transaction-id">
+              ${safe(item.reference)}
+            </span>
 
-            <td>${escapeHTML(formatDate(transaction.created_at))}</td>
+            <span class="transaction-id">
+              ${safe(name)} · ZUNE ID: ${safe(zuneID)}
+            </span>
+          </td>
 
-            <td class="${amountClass}">
-              ${sign}${escapeHTML(currency(transaction.amount))}
-            </td>
+          <td>${new Date(item.created_at)
+            .toLocaleDateString("en-TZ")}</td>
 
-            <td>
-              <span class="status ${statusClass}">
-                ${escapeHTML(status)}
-              </span>
-            </td>
-          </tr>
-        `;
-      })
-      .join("");
+          <td class="${negative ?
+            "amount-negative" : "amount-positive"}">
+            ${negative ? "-" : "+"}
+            ${money(item.amount)}
+          </td>
+
+          <td>
+            <span class="status ${
+              status === "pending" ? "pending" :
+              ["rejected", "cancelled"].includes(status)
+                ? "failed" : ""
+            }">
+              ${status}
+            </span>
+          </td>
+        </tr>
+      `;
+    }).join("");
   }
 
-  // -------------------------------------
-  // SEARCH AND FILTER
-  // -------------------------------------
+  // ========================================
+  // COUNTS
+  // ========================================
+
+  function updateCounts() {
+    const completed = transactions.filter(
+      item => item.status === "completed"
+    ).length;
+
+    const failed = transactions.filter(
+      item => ["rejected", "cancelled"].includes(item.status)
+    ).length;
+
+    $("successfulCount").textContent = completed;
+    $("failedCount").textContent = failed;
+  }
+
+  // ========================================
+  // SEARCH
+  // ========================================
 
   function filterTransactions() {
-    const search = (
-      $("transactionSearch")?.value || ""
-    ).toLowerCase();
+    const search =
+      ($("transactionSearch")?.value || "").toLowerCase();
 
     const filter =
       $("transactionFilter")?.value || "all";
 
-    filteredTransactions = transactions.filter((item) => {
-      const searchable = [
-        item.id,
+    const result = transactions.filter(item => {
+      const profile = item.profiles || {};
+
+      const text = [
+        item.reference,
+        item.zune_id,
+        item.transaction_type,
+        item.status,
         item.description,
-        item.type,
-        item.status
+        profile.full_name,
+        profile.zune_id
       ].join(" ").toLowerCase();
 
-      const matchesSearch = searchable.includes(search);
-
-      const matchesFilter =
-        filter === "all" ||
-        String(item.type).toLowerCase() === filter;
-
-      return matchesSearch && matchesFilter;
+      return text.includes(search) &&
+        (filter === "all" ||
+         item.transaction_type === filter);
     });
 
-    renderTransactions();
+    renderTransactions(result);
   }
 
-  // -------------------------------------
-  // EXPORT CSV
-  // -------------------------------------
+  // ========================================
+  // EXPORT REPORT
+  // ========================================
 
   function exportReport() {
     if (!transactions.length) {
-      alert("No financial records available to export.");
+      alert("No transactions available.");
       return;
     }
 
     const headers = [
-      "Transaction ID",
-      "Description",
+      "Reference",
+      "Name",
+      "ZUNE ID",
       "Type",
+      "Direction",
       "Amount",
       "Status",
       "Date"
     ];
 
-    const rows = transactions.map((item) => [
-      item.id,
-      item.description,
-      item.type,
+    const rows = transactions.map(item => [
+      item.reference,
+      item.profiles?.full_name,
+      item.zune_id || item.profiles?.zune_id,
+      item.transaction_type,
+      item.direction,
       item.amount,
       item.status,
       item.created_at
     ]);
 
-    const csv = [
-      headers,
-      ...rows
-    ].map(row =>
-      row.map(value =>
+    const csv = [headers, ...rows]
+      .map(row => row.map(value =>
         `"${String(value ?? "").replace(/"/g, '""')}"`
-      ).join(",")
-    ).join("\n");
+      ).join(","))
+      .join("\n");
 
     const blob = new Blob(
       ["\uFEFF" + csv],
@@ -318,108 +302,85 @@
     const link = document.createElement("a");
 
     link.href = url;
-    link.download =
-      "ZUNE-Wallet-Report-" +
-      new Date().toISOString().slice(0, 10) +
-      ".csv";
-
+    link.download = "ZUNE-Admin-Wallet.csv";
     link.click();
 
     URL.revokeObjectURL(url);
   }
 
-  // -------------------------------------
-  // QUICK ACTIONS
-  // -------------------------------------
+  // ========================================
+  // QUICK FILTERS
+  // ========================================
 
-  function quickAction(type) {
-    const filter = $("transactionFilter");
-
-    if (!filter) return;
-
-    filter.value = type;
-
+  function quickFilter(type) {
+    $("transactionFilter").value = type;
     filterTransactions();
 
     document.querySelector(".wallet-table")
       ?.scrollIntoView({ behavior: "smooth" });
   }
 
-  // -------------------------------------
-  // INITIALIZATION
-  // -------------------------------------
+  // ========================================
+  // INITIALIZE
+  // ========================================
 
-  async function initializeWallet() {
+  async function initialize() {
     try {
-      await verifyAdmin();
+      await checkAdmin();
+
+      await loadSummary();
       await loadTransactions();
 
     } catch (error) {
-      console.error("ZUNE Wallet:", error);
+      console.error("ZUNE WALLET ERROR:", error);
 
-      setMessage(error.message);
-
-      setText("totalBalance", "Unavailable");
+      message(error.message);
     }
   }
 
   $("refreshWallet")?.addEventListener(
-    "click",
-    initializeWallet
+    "click", initialize
   );
 
   $("exportWallet")?.addEventListener(
-    "click",
-    exportReport
+    "click", exportReport
   );
 
   $("transactionSearch")?.addEventListener(
-    "input",
-    filterTransactions
+    "input", filterTransactions
   );
 
   $("transactionFilter")?.addEventListener(
-    "change",
-    filterTransactions
+    "change", filterTransactions
   );
 
   $("depositsAction")?.addEventListener(
-    "click",
-    () => quickAction("deposit")
+    "click", () => quickFilter("deposit")
   );
 
   $("withdrawalsAction")?.addEventListener(
-    "click",
-    () => quickAction("withdrawal")
+    "click", () => quickFilter("withdrawal")
   );
 
   $("commissionsAction")?.addEventListener(
-    "click",
-    () => quickAction("commission")
+    "click", () => quickFilter("commission")
   );
 
   $("paymentsAction")?.addEventListener(
-    "click",
-    () => quickAction("all")
+    "click", () => quickFilter("all")
   );
 
   $("viewAllTransactions")?.addEventListener(
-    "click",
-    (event) => {
+    "click", event => {
       event.preventDefault();
 
-      if ($("transactionFilter")) {
-        $("transactionFilter").value = "all";
-      }
-
-      if ($("transactionSearch")) {
-        $("transactionSearch").value = "";
-      }
+      $("transactionSearch").value = "";
+      $("transactionFilter").value = "all";
 
       filterTransactions();
     }
   );
 
-  initializeWallet();
+  initialize();
 
 })();
