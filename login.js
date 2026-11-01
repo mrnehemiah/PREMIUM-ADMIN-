@@ -18,9 +18,9 @@ window.addEventListener("error", (event) => {
   const message = document.getElementById("loginMessage");
 
   const client = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
+  window.SUPABASE_URL,
+  window.SUPABASE_ANON_KEY
+);
 
   function showMessage(text, success = false) {
     message.style.display = "block";
