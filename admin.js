@@ -1,75 +1,81 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
+  console.log("ZUNE PREMIUM ADMIN INITIALIZING...");
 
-  // Hakikisha Admin ameingia
-  const { data: sessionData, error: sessionError } =
-    await supabaseClient.auth.getSession();
+  const showError = (message) => {
+    const box = document.getElementById("globalMessage");
 
-  if (sessionError || !sessionData.session) {
-    window.location.replace("login.html");
-    return;
-  }
-
-  const user = sessionData.session.user;
-
-  // Hakikisha role yake ni admin kutoka Supabase
-  const { data: profile, error: profileError } =
-    await supabaseClient
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-  if (profileError || !profile || profile.role !== "admin") {
-    await supabaseClient.auth.signOut();
-    window.location.replace("login.html");
-    return;
-  }
-
-  // Mobile sidebar
-  const sidebar = document.getElementById("sidebar");
-  const menuToggle = document.getElementById("menuToggle");
-
-  if (menuToggle && sidebar) {
-    menuToggle.addEventListener("click", () => {
-      sidebar.classList.toggle("open");
-    });
-
-    document.addEventListener("click", (event) => {
-      if (
-        window.innerWidth <= 700 &&
-        sidebar.classList.contains("open") &&
-        !sidebar.contains(event.target) &&
-        !menuToggle.contains(event.target)
-      ) {
-        sidebar.classList.remove("open");
-      }
-    });
-  }
-
-  document.querySelectorAll(".nav-link").forEach(link => {
-    link.addEventListener("click", () => {
-      if (window.innerWidth <= 700) {
-        sidebar?.classList.remove("open");
-      }
-    });
-  });
-
-  // Dashboard statistics placeholders
-  const stats = {
-    totalUsers: "—",
-    totalSellers: "—",
-    totalProducts: "—",
-    totalOrders: "—"
+    if (box) {
+      box.hidden = false;
+      box.textContent = message;
+    }
   };
 
-  Object.entries(stats).forEach(([id, value]) => {
-    const element = document.getElementById(id);
-    if (element) element.textContent = value;
-  });
+  try {
+    // Check Supabase configuration
+    if (
+      !window.supabase ||
+      !window.SUPABASE_URL ||
+      !window.SUPABASE_ANON_KEY
+    ) {
+      throw new Error("Supabase configuration is missing.");
+    }
 
-  console.log("ZUNE PREMIUM ADMIN secured and initialized.");
+    // Initialize Supabase
+    const supabaseClient = window.supabase.createClient(
+      window.SUPABASE_URL,
+      window.SUPABASE_ANON_KEY
+    );
+
+    // Check authenticated session
+    const { data: sessionData, error: sessionError } =
+      await supabaseClient.auth.getSession();
+
+    if (sessionError) throw sessionError;
+
+    if (!sessionData.session) {
+      window.location.replace("login.html");
+      return;
+    }
+
+    const user = sessionData.session.user;
+
+    // Verify administrator role from database
+    const { data: profile, error: profileError } =
+      await supabaseClient
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+    if (profileError || !profile || profile.role !== "admin") {
+      await supabaseClient.auth.signOut();
+      window.location.replace("login.html");
+      return;
+    }
+
+    // Load dashboard statistics
+    const stats = {
+      totalUsers: "—",
+      totalSellers: "—",
+      totalProducts: "—",
+      totalOrders: "—"
+    };
+
+    Object.entries(stats).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+
+      if (element) {
+        element.textContent = value;
+      }
+    });
+
+    console.log("ZUNE PREMIUM ADMIN SECURED.");
+
+  } catch (error) {
+    console.error("Admin initialization error:", error);
+
+    showError(
+      error.message || "Unable to initialize administrator dashboard."
+    );
+  }
 });
