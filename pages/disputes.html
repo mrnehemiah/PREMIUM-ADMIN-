@@ -1,0 +1,443 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#15803d">
+
+    <title>Disputes | ZUNE Premium Admin</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f7f5;
+            color: #17251b;
+        }
+
+        .disputes-container {
+            width: 100%;
+            max-width: 1500px;
+            margin: auto;
+            padding: 25px;
+        }
+
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .top-header h1 {
+            font-size: 25px;
+            font-weight: 800;
+        }
+
+        .top-header p {
+            color: #718078;
+            font-size: 13px;
+            margin-top: 7px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            border: none;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .btn-green {
+            background: #15803d;
+            color: white;
+        }
+
+        .btn-light {
+            background: white;
+            color: #263b2d;
+            border: 1px solid #e2e9e3;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #e8eee9;
+            box-shadow: 0 3px 12px #173b2410;
+        }
+
+        .stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            background: #eaf7ee;
+            color: #15803d;
+            font-size: 19px;
+        }
+
+        .stat-card h2 {
+            font-size: 26px;
+            margin-top: 17px;
+        }
+
+        .stat-card p {
+            color: #718078;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid #e8eee9;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 22px;
+            box-shadow: 0 3px 12px #173b2408;
+        }
+
+        .panel-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .panel-heading h2 {
+            font-size: 17px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .filters input,
+        .filters select {
+            padding: 12px;
+            border: 1px solid #e0e8e1;
+            border-radius: 9px;
+            outline: none;
+            background: #fff;
+            font-size: 12px;
+        }
+
+        .filters input {
+            flex: 1;
+            min-width: 190px;
+        }
+
+        .filters select {
+            min-width: 145px;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        th {
+            background: #f6faf7;
+            color: #64736a;
+            font-size: 11px;
+            text-align: left;
+            padding: 14px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 15px 14px;
+            border-bottom: 1px solid #edf1ed;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .case-number {
+            color: #15803d;
+            font-weight: 800;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 9px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            background: #fff4df;
+            color: #a66a00;
+        }
+
+        .status.resolved {
+            background: #e5f7eb;
+            color: #15803d;
+        }
+
+        .status.rejected {
+            background: #feecec;
+            color: #c0392b;
+        }
+
+        .view-btn {
+            border: none;
+            background: #eaf7ee;
+            color: #15803d;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 45px 15px;
+            color: #829087;
+        }
+
+        .empty-state .icon {
+            font-size: 35px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state h3 {
+            color: #34443a;
+            margin-bottom: 7px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #718078;
+        }
+
+        @media(max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width: 520px) {
+            .disputes-container {
+                padding: 15px;
+            }
+
+            .stats-grid {
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 14px;
+            }
+
+            .stat-card h2 {
+                font-size: 22px;
+            }
+
+            .top-header h1 {
+                font-size: 21px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<main class="disputes-container">
+
+    <header class="top-header">
+        <div>
+            <h1>Dispute Management</h1>
+            <p>Manage customer and seller transaction complaints.</p>
+        </div>
+
+        <div class="header-actions">
+            <button class="btn btn-light" id="refreshDisputes">
+                ↻ Refresh
+            </button>
+
+            <button class="btn btn-green" id="exportDisputes">
+                ↓ Export
+            </button>
+        </div>
+    </header>
+
+
+    <section class="stats-grid">
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <p>Open Cases</p>
+                <div class="stat-icon">⚠</div>
+            </div>
+            <h2 id="openCases">0</h2>
+            <p>New complaints</p>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <p>Under Review</p>
+                <div class="stat-icon">⌕</div>
+            </div>
+            <h2 id="reviewCases">0</h2>
+            <p>Cases being investigated</p>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <p>Resolved</p>
+                <div class="stat-icon">✓</div>
+            </div>
+            <h2 id="resolvedCases">0</h2>
+            <p>Completed cases</p>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <p>Escalated</p>
+                <div class="stat-icon">↗</div>
+            </div>
+            <h2 id="escalatedCases">0</h2>
+            <p>Cases requiring attention</p>
+        </div>
+
+    </section>
+
+
+    <section class="panel">
+
+        <div class="panel-heading">
+            <h2>All Transaction Disputes</h2>
+            <span id="totalDisputes">0 Cases</span>
+        </div>
+
+        <div class="filters">
+
+            <input
+                type="search"
+                id="disputeSearch"
+                placeholder="Search Case Number, Order ID or ZUNE ID..."
+            >
+
+            <select id="disputeStatus">
+                <option value="all">All Statuses</option>
+                <option value="open">Open</option>
+                <option value="under_review">Under Review</option>
+                <option value="waiting_for_buyer">Waiting for Buyer</option>
+                <option value="waiting_for_seller">Waiting for Seller</option>
+                <option value="resolved">Resolved</option>
+                <option value="rejected">Rejected</option>
+                <option value="escalated">Escalated</option>
+            </select>
+
+            <select id="disputeType">
+                <option value="all">All Issues</option>
+                <option value="item_not_received">Item Not Received</option>
+                <option value="wrong_item">Wrong Item</option>
+                <option value="damaged_item">Damaged Item</option>
+                <option value="payment_problem">Payment Problem</option>
+                <option value="seller_not_paid">Seller Not Paid</option>
+                <option value="refund_request">Refund Request</option>
+                <option value="order_cancelled">Order Cancelled</option>
+                <option value="other">Other</option>
+            </select>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>CASE NUMBER</th>
+                        <th>ORDER ID</th>
+                        <th>BUYER</th>
+                        <th>SELLER</th>
+                        <th>ISSUE</th>
+                        <th>AMOUNT</th>
+                        <th>STATUS</th>
+                        <th>DATE</th>
+                        <th>ACTION</th>
+                    </tr>
+                </thead>
+
+                <tbody id="disputeTableBody">
+                    <tr>
+                        <td colspan="9" class="loading">
+                            Loading disputes...
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <section class="panel">
+        <div class="panel-heading">
+            <h2>Dispute Management Information</h2>
+        </div>
+
+        <p style="font-size:13px;color:#718078;line-height:1.8;">
+            Review complaints carefully before making decisions.
+            Every administrative decision should have a documented
+            reason and an audit history. Refunds and payment releases
+            must be processed through an authorized payment provider.
+        </p>
+    </section>
+
+</main>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js"></script>
+<script src="../js/disputes.js"></script>
+
+</body>
+</html>
