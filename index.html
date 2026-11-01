@@ -1,237 +1,547 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#087A43">
-  <title>ZUNE Premium Admin</title>
+  <meta name="theme-color" content="#087f5b">
+
+  <title>ZUNE PREMIUM ADMIN</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="./css/admin.css">
 </head>
+
 <body>
 
-  <div class="admin-layout">
+<div class="admin-app">
 
-    <aside class="sidebar" id="sidebar">
-      <div class="brand">
-        <div class="brand-icon">Z</div>
-        <div>
-          <h2>ZUNE</h2>
-          <span>PREMIUM ADMIN</span>
-        </div>
+  <!-- MOBILE OVERLAY -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar" id="sidebar">
+
+    <div class="brand">
+      <div class="brand-mark">
+        <span class="brand-z">Z</span>
+        <span class="brand-dot"></span>
       </div>
 
-      <div class="menu-label">MAIN MENU</div>
+      <div class="brand-copy">
+        <strong>ZUNE</strong>
+        <small>PREMIUM ADMIN</small>
+      </div>
+    </div>
 
-      <nav class="nav-menu">
-        <a href="index.html" class="nav-link active">
-          <span>▦</span> Dashboard
-        </a>
-        <a href="pages/users.html" class="nav-link">
-          <span>♙</span> Users
-        </a>
-        <a href="pages/sellers.html" class="nav-link">
-          <span>♧</span> Sellers
-        </a>
-        <a href="pages/verification.html" class="nav-link">
-          <span>✓</span> Verification
-        </a>
-        <a href="pages/products.html" class="nav-link">
-          <span>▣</span> Products
-        </a>
-        <a href="pages/orders.html" class="nav-link">
-          <span>▤</span> Orders
-        </a>
-        <a href="pages/payments.html" class="nav-link">
-          <span>◇</span> Payments
-        </a>
-        <a href="pages/wallet.html" class="nav-link">
-          <span>▱</span> Wallet
-        </a>
-      </nav>
+    <div class="sidebar-label">MAIN MENU</div>
 
-      <div class="menu-label">MARKETING</div>
+    <nav class="sidebar-nav">
 
-      <nav class="nav-menu">
-        <a href="pages/announcements.html" class="nav-link">
-          <span>◉</span> Announcements
-        </a>
-        <a href="pages/coupons.html" class="nav-link">
-          <span>％</span> Coupons
-        </a>
-        <a href="pages/notifications.html" class="nav-link">
-          <span>♧</span> Notifications
-        </a>
-        <a href="pages/reports.html" class="nav-link">
-          <span>▥</span> Reports
-        </a>
-      </nav>
+      <a href="index.html" class="nav-item active">
+        <span class="nav-icon">▦</span>
+        Dashboard
+      </a>
 
-      <div class="menu-label">SYSTEM</div>
+      <a href="pages/users.html" class="nav-item">
+        <span class="nav-icon">♙</span>
+        Users
+      </a>
 
-      <nav class="nav-menu">
-        <a href="pages/settings.html" class="nav-link">
-          <span>⚙</span> Settings
-        </a>
-        <a href="pages/security.html" class="nav-link">
-          <span>♜</span> Security
-        </a>
-      </nav>
+      <a href="pages/sellers.html" class="nav-item">
+        <span class="nav-icon">♧</span>
+        Sellers
+      </a>
 
-      <div class="sidebar-bottom">
-        <div class="admin-mini">
-          <div class="avatar">A</div>
-          <div>
-            <strong>Administrator</strong>
+      <a href="pages/verification.html" class="nav-item">
+        <span class="nav-icon">✓</span>
+        Verification
+        <span class="nav-count">!</span>
+      </a>
+
+      <a href="pages/products.html" class="nav-item">
+        <span class="nav-icon">▣</span>
+        Products
+      </a>
+
+      <a href="pages/orders.html" class="nav-item">
+        <span class="nav-icon">▤</span>
+        Orders
+      </a>
+
+      <a href="pages/payments.html" class="nav-item">
+        <span class="nav-icon">◇</span>
+        Payments
+      </a>
+
+      <a href="pages/wallet.html" class="nav-item">
+        <span class="nav-icon">▱</span>
+        Wallet
+      </a>
+
+    </nav>
+
+    <div class="sidebar-label sidebar-label-spaced">
+      MARKETING
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <a href="pages/announcements.html" class="nav-item">
+        <span class="nav-icon">◉</span>
+        Announcements
+      </a>
+
+      <a href="pages/coupons.html" class="nav-item">
+        <span class="nav-icon">％</span>
+        Coupons
+      </a>
+
+      <a href="pages/notifications.html" class="nav-item">
+        <span class="nav-icon">♧</span>
+        Notifications
+      </a>
+
+      <a href="pages/reports.html" class="nav-item">
+        <span class="nav-icon">▥</span>
+        Reports
+      </a>
+
+    </nav>
+
+    <div class="sidebar-label sidebar-label-spaced">
+      SYSTEM
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <a href="pages/settings.html" class="nav-item">
+        <span class="nav-icon">⚙</span>
+        Settings
+      </a>
+
+      <a href="pages/security.html" class="nav-item">
+        <span class="nav-icon">▣</span>
+        Security
+      </a>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+
+      <div class="security-card">
+        <span class="security-icon">♢</span>
+
+        <div>
+          <strong>System Protected</strong>
+          <small>Administrator access</small>
+        </div>
+
+        <span class="security-status"></span>
+      </div>
+
+      <button class="nav-item logout-item" id="logoutButton">
+        <span class="nav-icon">↪</span>
+        Sign Out
+      </button>
+
+      <div class="sidebar-footer">
+        ZUNE PREMIUM ADMIN · v1.0
+      </div>
+
+    </div>
+
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+
+    <!-- TOPBAR -->
+    <header class="admin-topbar">
+
+      <div class="topbar-left">
+
+        <button
+          class="icon-button mobile-menu-btn"
+          id="menuToggle"
+          aria-label="Open menu"
+        >
+          ☰
+        </button>
+
+        <div class="page-heading">
+          <span class="eyebrow">ZUNE CONTROL CENTER</span>
+          <h1>Dashboard</h1>
+        </div>
+
+      </div>
+
+      <div class="topbar-right">
+
+        <div class="system-status">
+          <span class="status-dot"></span>
+          System Online
+        </div>
+
+        <button class="icon-button notification-button"
+                aria-label="Notifications"
+                onclick="window.location.href='pages/notifications.html'">
+          ♧
+          <span class="notification-indicator"></span>
+        </button>
+
+        <div class="admin-profile">
+
+          <div class="admin-avatar">A</div>
+
+          <div class="admin-profile-copy">
+            <strong>
+              Administrator
+              <span class="verified-badge">✓</span>
+            </strong>
             <small>System Admin</small>
           </div>
+
+          <span class="profile-chevron">⌄</span>
+
         </div>
+
       </div>
-    </aside>
 
-    <main class="main-content">
+    </header>
 
-      <header class="topbar">
-        <div class="top-left">
-          <button class="menu-toggle" id="menuToggle">☰</button>
-          <div>
-            <h1>Dashboard</h1>
-            <p>Welcome to ZUNE administration</p>
+    <!-- CONTENT -->
+    <div class="admin-content">
+
+      <div id="globalMessage"
+           class="global-message"
+           hidden></div>
+
+      <!-- WELCOME BANNER -->
+      <section class="welcome-banner">
+
+        <div class="welcome-content">
+
+          <div class="welcome-tag">
+            <span class="welcome-tag-dot"></span>
+            ZUNE CONTROL CENTER
           </div>
-        </div>
 
-        <div class="top-actions">
-          <button class="icon-button" aria-label="Notifications">♧</button>
-          <div class="top-avatar">A</div>
-        </div>
-      </header>
+          <h2>Welcome back, Administrator!</h2>
 
-      <section class="dashboard-content">
+          <p>
+            Manage your marketplace operations, monitor activities
+            and control your ZUNE ecosystem from one place.
+          </p>
 
-        <div class="welcome-card">
-          <div>
-            <span class="welcome-tag">ZUNE CONTROL CENTER</span>
-            <h2>Welcome back, Administrator!</h2>
-            <p>Manage your marketplace operations from one place.</p>
+          <div class="welcome-meta">
+            <span class="welcome-live">● SYSTEM ACTIVE</span>
+            <span>·</span>
+            <span>Premium Administration Portal</span>
           </div>
-          <div class="welcome-symbol">Z</div>
+
         </div>
+
+        <div class="welcome-art">
+          <div class="art-orbit orbit-one"></div>
+          <div class="art-orbit orbit-two"></div>
+          <div class="art-symbol">Z</div>
+          <span class="art-spark spark-one">✦</span>
+          <span class="art-spark spark-two">✧</span>
+        </div>
+
+      </section>
+
+      <!-- STATISTICS -->
+      <section>
 
         <div class="section-heading">
           <div>
-            <h2>Business Overview</h2>
-            <p>Marketplace performance at a glance</p>
+            <span class="section-kicker">MARKETPLACE OVERVIEW</span>
+            <h2>Platform Statistics</h2>
+            <p>Overview of your marketplace activity.</p>
           </div>
-          <span class="live-status">● LIVE SYSTEM</span>
+
+          <button class="outline-button" onclick="location.reload()">
+            ↻ Refresh
+          </button>
         </div>
 
         <div class="stats-grid">
 
-          <div class="stat-card">
-            <div class="stat-top">
-              <span>Total Users</span>
-              <div class="stat-icon green">♙</div>
-            </div>
-            <h3 id="totalUsers">—</h3>
-            <small>Registered accounts</small>
-          </div>
+          <article class="stat-card">
 
-          <div class="stat-card">
             <div class="stat-top">
-              <span>Total Sellers</span>
-              <div class="stat-icon gold">♧</div>
+              <span class="stat-label">Total Users</span>
+              <span class="stat-icon">♙</span>
             </div>
-            <h3 id="totalSellers">—</h3>
-            <small>Seller accounts</small>
-          </div>
 
-          <div class="stat-card">
-            <div class="stat-top">
-              <span>Total Products</span>
-              <div class="stat-icon blue">▣</div>
-            </div>
-            <h3 id="totalProducts">—</h3>
-            <small>Marketplace products</small>
-          </div>
+            <div class="stat-value" id="totalUsers">—</div>
 
-          <div class="stat-card">
-            <div class="stat-top">
-              <span>Total Orders</span>
-              <div class="stat-icon purple">▤</div>
+            <div class="stat-bottom">
+              <span class="stat-note">Registered accounts</span>
+              <span class="stat-period">Users</span>
             </div>
-            <h3 id="totalOrders">—</h3>
-            <small>Marketplace orders</small>
-          </div>
+
+          </article>
+
+          <article class="stat-card">
+
+            <div class="stat-top">
+              <span class="stat-label">Total Sellers</span>
+              <span class="stat-icon icon-purple">♧</span>
+            </div>
+
+            <div class="stat-value" id="totalSellers">—</div>
+
+            <div class="stat-bottom">
+              <span class="stat-note">Marketplace sellers</span>
+              <span class="stat-period">Sellers</span>
+            </div>
+
+          </article>
+
+          <article class="stat-card">
+
+            <div class="stat-top">
+              <span class="stat-label">Total Products</span>
+              <span class="stat-icon icon-orange">▣</span>
+            </div>
+
+            <div class="stat-value" id="totalProducts">—</div>
+
+            <div class="stat-bottom">
+              <span class="stat-note">Listed products</span>
+              <span class="stat-period">Products</span>
+            </div>
+
+          </article>
+
+          <article class="stat-card">
+
+            <div class="stat-top">
+              <span class="stat-label">Total Orders</span>
+              <span class="stat-icon icon-blue">▤</span>
+            </div>
+
+            <div class="stat-value" id="totalOrders">—</div>
+
+            <div class="stat-bottom">
+              <span class="stat-note">Marketplace orders</span>
+              <span class="stat-period">Orders</span>
+            </div>
+
+          </article>
 
         </div>
-
-        <div class="section-heading">
-          <div>
-            <h2>Management Center</h2>
-            <p>Quick access to administration tools</p>
-          </div>
-        </div>
-
-        <div class="management-grid">
-          <a href="pages/verification.html" class="management-card">
-            <span class="management-icon">✓</span>
-            <strong>Verification Center</strong>
-            <small>Review verification requests</small>
-            <span class="card-arrow">→</span>
-          </a>
-
-          <a href="pages/sellers.html" class="management-card">
-            <span class="management-icon">♧</span>
-            <strong>Seller Applications</strong>
-            <small>Manage seller registrations</small>
-            <span class="card-arrow">→</span>
-          </a>
-
-          <a href="pages/orders.html" class="management-card">
-            <span class="management-icon">▤</span>
-            <strong>Orders Management</strong>
-            <small>Monitor marketplace orders</small>
-            <span class="card-arrow">→</span>
-          </a>
-
-          <a href="pages/announcements.html" class="management-card">
-            <span class="management-icon">◉</span>
-            <strong>Announcements</strong>
-            <small>Publish marketplace updates</small>
-            <span class="card-arrow">→</span>
-          </a>
-        </div>
-
-        <div class="system-card">
-          <div>
-            <h3>System Status</h3>
-            <p>Dashboard interface is ready for configuration.</p>
-          </div>
-          <span class="system-badge">SETUP REQUIRED</span>
-        </div>
-
-        <footer>
-          <strong>ZUNE PREMIUM ADMIN</strong>
-          <span>© 2026 ZUNE Marketplace. All rights reserved.</span>
-        </footer>
 
       </section>
-    </main>
-  </div>
 
-  <nav class="mobile-nav">
-    <a href="index.html" class="selected">▦<span>Home</span></a>
-    <a href="pages/users.html">♙<span>Users</span></a>
-    <a href="pages/orders.html">▤<span>Orders</span></a>
-    <a href="pages/verification.html">✓<span>Verify</span></a>
-    <a href="pages/settings.html">⚙<span>Settings</span></a>
-  </nav>
+      <!-- QUICK ACTIONS -->
+      <section>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
-<script src="js/admin.js"></script>
+        <div class="section-heading quick-heading">
+          <div>
+            <span class="section-kicker">MANAGEMENT CENTER</span>
+            <h2>Quick Actions</h2>
+            <p>Access important administration tools.</p>
+          </div>
+        </div>
+
+        <div class="quick-actions-grid">
+
+          <a href="pages/users.html" class="quick-action">
+            <span class="quick-action-icon quick-green">♙</span>
+            <span class="quick-action-copy">
+              <strong>Manage Users</strong>
+              <small>View user accounts</small>
+            </span>
+            <span class="quick-arrow">›</span>
+          </a>
+
+          <a href="pages/verification.html" class="quick-action">
+            <span class="quick-action-icon quick-purple">✓</span>
+            <span class="quick-action-copy">
+              <strong>Verification</strong>
+              <small>Review applications</small>
+            </span>
+            <span class="quick-arrow">›</span>
+          </a>
+
+          <a href="pages/products.html" class="quick-action">
+            <span class="quick-action-icon quick-orange">▣</span>
+            <span class="quick-action-copy">
+              <strong>Products</strong>
+              <small>Manage listings</small>
+            </span>
+            <span class="quick-arrow">›</span>
+          </a>
+
+          <a href="pages/announcements.html" class="quick-action">
+            <span class="quick-action-icon quick-blue">◉</span>
+            <span class="quick-action-copy">
+              <strong>Announcements</strong>
+              <small>Publish updates</small>
+            </span>
+            <span class="quick-arrow">›</span>
+          </a>
+
+        </div>
+
+      </section>
+
+      <!-- LOWER DASHBOARD -->
+      <section class="dashboard-lower-grid">
+
+        <div class="panel">
+
+          <div class="panel-heading">
+            <div>
+              <h3>Recent Orders</h3>
+              <p>Latest marketplace transactions</p>
+            </div>
+
+            <a href="pages/orders.html" class="text-button">
+              View All →
+            </a>
+          </div>
+
+          <div class="table-wrap">
+
+            <table class="admin-table">
+
+              <thead>
+                <tr>
+                  <th>ORDER</th>
+                  <th>PRODUCT</th>
+                  <th>AMOUNT</th>
+                  <th>STATUS</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr>
+                  <td colspan="4" class="empty-table">
+                    <span class="empty-table-icon">▤</span>
+                    <strong>No recent orders yet</strong>
+                    <small>Orders will appear here when available.</small>
+                  </td>
+                </tr>
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+        <div class="panel">
+
+          <div class="panel-heading">
+            <div>
+              <h3>Pending Activities</h3>
+              <p>Administration tasks</p>
+            </div>
+
+            <span class="panel-heading-mark">✦</span>
+          </div>
+
+          <a href="pages/verification.html" class="task-row">
+            <span class="task-icon task-icon-green">✓</span>
+            <span class="task-copy">
+              <strong>Verification Requests</strong>
+              <small>Review submitted applications</small>
+            </span>
+            <span class="task-count">→</span>
+          </a>
+
+          <a href="pages/sellers.html" class="task-row">
+            <span class="task-icon task-icon-purple">♧</span>
+            <span class="task-copy">
+              <strong>Seller Applications</strong>
+              <small>Review seller registrations</small>
+            </span>
+            <span class="task-count">→</span>
+          </a>
+
+          <a href="pages/orders.html" class="task-row">
+            <span class="task-icon task-icon-orange">▤</span>
+            <span class="task-copy">
+              <strong>Order Management</strong>
+              <small>Monitor marketplace orders</small>
+            </span>
+            <span class="task-count">→</span>
+          </a>
+
+          <div class="tasks-footer">
+            <span class="tasks-footer-dot"></span>
+            Connected to ZUNE Administration
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./js/config.js"></script>
+<script src="./admin.js"></script>
+
+<script>
+  const menuButton = document.getElementById("menuToggle");
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("sidebarOverlay");
+
+  function closeSidebar() {
+    sidebar.classList.remove("open");
+    overlay.classList.remove("active");
+  }
+
+  menuButton.addEventListener("click", () => {
+    sidebar.classList.toggle("open");
+    overlay.classList.toggle("active");
+  });
+
+  overlay.addEventListener("click", closeSidebar);
+
+  document.querySelectorAll(".nav-item").forEach(item => {
+    item.addEventListener("click", () => {
+      if (window.innerWidth <= 700) {
+        closeSidebar();
+      }
+    });
+  });
+
+  document.getElementById("logoutButton").addEventListener("click", async () => {
+    const confirmed = confirm("Are you sure you want to sign out?");
+
+    if (!confirmed) return;
+
+    try {
+      const client = window.supabase.createClient(
+        window.SUPABASE_URL,
+        window.SUPABASE_ANON_KEY
+      );
+
+      const { error } = await client.auth.signOut();
+
+      if (error) throw error;
+
+      window.location.replace("login.html");
+
+    } catch (error) {
+      alert("Unable to sign out: " + error.message);
+    }
+  });
+</script>
+
 </body>
 </html>
