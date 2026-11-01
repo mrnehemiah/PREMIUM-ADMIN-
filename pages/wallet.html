@@ -1,0 +1,610 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#087a43">
+  <title>ZUNE Admin | Wallet</title>
+
+  <link rel="stylesheet" href="../css/admin.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f5f8f6;
+      color: #183529;
+      margin: 0;
+    }
+
+    .wallet-page {
+      max-width: 1500px;
+      margin: auto;
+      padding: 28px;
+    }
+
+    .wallet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .wallet-header h1 {
+      margin: 0;
+      font-size: 27px;
+      font-weight: 800;
+    }
+
+    .wallet-header p {
+      color: #829087;
+      font-size: 13px;
+      margin-top: 7px;
+    }
+
+    .wallet-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .wallet-btn {
+      border: 0;
+      padding: 12px 17px;
+      border-radius: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .wallet-btn.primary {
+      background: #087a43;
+      color: white;
+    }
+
+    .wallet-btn.secondary {
+      background: white;
+      border: 1px solid #e3eae5;
+      color: #087a43;
+    }
+
+    .balance-card {
+      background: linear-gradient(125deg, #065c34, #087a43 65%, #15975a);
+      border-radius: 23px;
+      padding: 30px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 25px;
+      box-shadow: 0 12px 30px rgba(8, 122, 67, .15);
+    }
+
+    .balance-card::after {
+      content: "";
+      position: absolute;
+      width: 230px;
+      height: 230px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 50%;
+      right: -65px;
+      top: -95px;
+      box-shadow: 0 0 0 25px rgba(255,255,255,.035),
+                  0 0 0 55px rgba(255,255,255,.025);
+    }
+
+    .balance-label {
+      font-size: 13px;
+      color: #d0e9d9;
+      font-weight: 500;
+    }
+
+    .balance-amount {
+      font-size: clamp(30px, 5vw, 43px);
+      font-weight: 800;
+      margin: 14px 0;
+      letter-spacing: -1px;
+    }
+
+    .balance-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 28px;
+    }
+
+    .balance-footer small {
+      color: #d4e9dc;
+      font-size: 11px;
+    }
+
+    .wallet-brand {
+      color: #f6d778;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: 2px;
+    }
+
+    .wallet-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 25px;
+    }
+
+    .wallet-stat {
+      background: white;
+      border: 1px solid #eaf0eb;
+      border-radius: 17px;
+      padding: 21px;
+    }
+
+    .stat-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .stat-icon {
+      width: 39px;
+      height: 39px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      background: #e9f7ef;
+    }
+
+    .stat-title {
+      color: #849087;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 21px;
+      font-weight: 800;
+      margin-bottom: 7px;
+      overflow-wrap: anywhere;
+    }
+
+    .stat-note {
+      color: #98a49c;
+      font-size: 10px;
+    }
+
+    .wallet-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(260px, .8fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .wallet-panel {
+      background: white;
+      border: 1px solid #eaf0eb;
+      border-radius: 18px;
+      padding: 22px;
+      min-width: 0;
+    }
+
+    .panel-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .panel-heading h2 {
+      font-size: 16px;
+      margin: 0;
+      font-weight: 800;
+    }
+
+    .panel-heading a {
+      color: #087a43;
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 9px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .filter-row select,
+    .filter-row input {
+      border: 1px solid #e5ece7;
+      background: #fbfdfb;
+      border-radius: 9px;
+      padding: 10px;
+      font-size: 11px;
+      color: #365344;
+      outline: none;
+      min-width: 0;
+    }
+
+    .filter-row input {
+      flex: 1;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .wallet-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 570px;
+    }
+
+    .wallet-table th {
+      text-align: left;
+      padding: 13px 10px;
+      color: #8a978e;
+      font-size: 10px;
+      font-weight: 700;
+      border-bottom: 1px solid #edf1ed;
+    }
+
+    .wallet-table td {
+      padding: 15px 10px;
+      border-bottom: 1px solid #f0f3f0;
+      font-size: 11px;
+    }
+
+    .transaction-name {
+      font-weight: 700;
+      color: #284638;
+    }
+
+    .transaction-id {
+      display: block;
+      color: #a0aaa3;
+      font-size: 9px;
+      margin-top: 5px;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 6px 9px;
+      border-radius: 20px;
+      font-size: 9px;
+      font-weight: 700;
+      background: #e9f7ef;
+      color: #087a43;
+    }
+
+    .status.pending {
+      background: #fff6df;
+      color: #b78318;
+    }
+
+    .status.failed {
+      background: #fff0ef;
+      color: #d44c43;
+    }
+
+    .amount-positive {
+      color: #087a43;
+      font-weight: 800;
+    }
+
+    .amount-negative {
+      color: #d45b50;
+      font-weight: 800;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 35px 15px;
+      color: #95a198;
+      font-size: 12px;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .quick-action {
+      padding: 17px 10px;
+      border: 1px solid #e9efea;
+      border-radius: 13px;
+      background: #fbfdfb;
+      text-align: center;
+      cursor: pointer;
+      color: #315341;
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .quick-action span {
+      display: block;
+      font-size: 21px;
+      margin-bottom: 9px;
+    }
+
+    .quick-action:hover {
+      border-color: #087a43;
+      background: #f0faf3;
+    }
+
+    .wallet-info {
+      margin-top: 18px;
+      padding: 15px;
+      background: #f1f8f3;
+      border-radius: 12px;
+      color: #577565;
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .wallet-loading {
+      color: #89978e;
+      font-size: 11px;
+    }
+
+    @media(max-width: 1000px) {
+      .wallet-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .wallet-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media(max-width: 600px) {
+      .wallet-page {
+        padding: 17px;
+      }
+
+      .wallet-header h1 {
+        font-size: 23px;
+      }
+
+      .balance-card {
+        padding: 23px;
+      }
+
+      .wallet-stats {
+        gap: 10px;
+      }
+
+      .wallet-stat {
+        padding: 15px;
+      }
+
+      .stat-value {
+        font-size: 17px;
+      }
+
+      .wallet-panel {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<main class="wallet-page">
+
+  <header class="wallet-header">
+    <div>
+      <h1>Wallet Management</h1>
+      <p>Monitor ZUNE financial activities and transactions.</p>
+    </div>
+
+    <div class="wallet-actions">
+      <button class="wallet-btn secondary" id="refreshWallet">
+        ↻ Refresh
+      </button>
+      <button class="wallet-btn primary" id="exportWallet">
+        ↓ Export Report
+      </button>
+    </div>
+  </header>
+
+  <section class="balance-card">
+    <div class="balance-label">Total Wallet Balance</div>
+
+    <div class="balance-amount" id="totalBalance">
+      TZS 0.00
+    </div>
+
+    <div class="balance-label">
+      Available platform balance
+    </div>
+
+    <div class="balance-footer">
+      <div>
+        <small>WALLET STATUS</small>
+        <div style="font-weight:700;margin-top:6px">
+          ● Connected
+        </div>
+      </div>
+
+      <div class="wallet-brand">ZUNE</div>
+    </div>
+  </section>
+
+  <section class="wallet-stats">
+
+    <div class="wallet-stat">
+      <div class="stat-top">
+        <span class="stat-title">Total Deposits</span>
+        <span class="stat-icon">↙</span>
+      </div>
+      <div class="stat-value" id="totalDeposits">TZS 0</div>
+      <div class="stat-note">Successful deposits</div>
+    </div>
+
+    <div class="wallet-stat">
+      <div class="stat-top">
+        <span class="stat-title">Withdrawals</span>
+        <span class="stat-icon">↗</span>
+      </div>
+      <div class="stat-value" id="totalWithdrawals">TZS 0</div>
+      <div class="stat-note">Processed withdrawals</div>
+    </div>
+
+    <div class="wallet-stat">
+      <div class="stat-top">
+        <span class="stat-title">Platform Commission</span>
+        <span class="stat-icon">◆</span>
+      </div>
+      <div class="stat-value" id="totalCommission">TZS 0</div>
+      <div class="stat-note">Recorded commission</div>
+    </div>
+
+    <div class="wallet-stat">
+      <div class="stat-top">
+        <span class="stat-title">Pending Transactions</span>
+        <span class="stat-icon">◷</span>
+      </div>
+      <div class="stat-value" id="pendingTransactions">0</div>
+      <div class="stat-note">Awaiting processing</div>
+    </div>
+
+  </section>
+
+  <section class="wallet-grid">
+
+    <div class="wallet-panel">
+
+      <div class="panel-heading">
+        <h2>Recent Transactions</h2>
+        <a href="#" id="viewAllTransactions">View all</a>
+      </div>
+
+      <div class="filter-row">
+        <input
+          type="search"
+          id="transactionSearch"
+          placeholder="Search transactions..."
+        >
+
+        <select id="transactionFilter">
+          <option value="all">All transactions</option>
+          <option value="deposit">Deposits</option>
+          <option value="withdrawal">Withdrawals</option>
+          <option value="commission">Commissions</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table class="wallet-table">
+          <thead>
+            <tr>
+              <th>TRANSACTION</th>
+              <th>DATE</th>
+              <th>AMOUNT</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+
+          <tbody id="transactionTable">
+            <tr>
+              <td colspan="4" class="empty-state">
+                <span class="wallet-loading">
+                  Loading transactions...
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <div>
+
+      <div class="wallet-panel">
+        <div class="panel-heading">
+          <h2>Quick Management</h2>
+        </div>
+
+        <div class="quick-actions">
+
+          <button class="quick-action" id="depositsAction">
+            <span>↙</span>
+            Deposits
+          </button>
+
+          <button class="quick-action" id="withdrawalsAction">
+            <span>↗</span>
+            Withdrawals
+          </button>
+
+          <button class="quick-action" id="paymentsAction">
+            <span>▣</span>
+            Payments
+          </button>
+
+          <button class="quick-action" id="commissionsAction">
+            <span>◆</span>
+            Commissions
+          </button>
+
+        </div>
+
+        <div class="wallet-info">
+          <strong>ZUNE Financial Center</strong><br>
+          Monitor platform transactions, review financial records
+          and manage approved payment activities.
+        </div>
+      </div>
+
+      <div class="wallet-panel" style="margin-top:18px">
+        <div class="panel-heading">
+          <h2>Financial Overview</h2>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;margin:17px 0;font-size:12px">
+          <span>Successful transactions</span>
+          <strong id="successfulCount">0</strong>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;margin:17px 0;font-size:12px">
+          <span>Failed transactions</span>
+          <strong id="failedCount">0</strong>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;margin:17px 0;font-size:12px">
+          <span>Total transactions</span>
+          <strong id="totalTransactions">0</strong>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js"></script>
+<script src="../js/wallet.js"></script>
+
+</body>
+</html>
