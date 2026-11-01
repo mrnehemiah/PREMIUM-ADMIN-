@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders Management | ZUNE Admin</title>
+  <link rel="stylesheet" href="../css/admin.css">
+
+  <style>
+    .page-wrap { padding:25px; }
+    .page-heading {
+      display:flex; justify-content:space-between;
+      align-items:center; flex-wrap:wrap; gap:15px;
+      margin-bottom:25px;
+    }
+    .back-link { color:#15803d; text-decoration:none; font-weight:600; }
+    .search-box {
+      width:100%; max-width:320px; padding:12px;
+      border:1px solid #ddd; border-radius:9px;
+    }
+    .message {
+      padding:14px; background:#fff5df; color:#805500;
+      border-radius:9px; margin-bottom:18px; white-space:pre-wrap;
+    }
+    .panel { background:white; padding:18px; border-radius:14px; overflow-x:auto; }
+    table { width:100%; min-width:950px; border-collapse:collapse; }
+    th,td { padding:14px; text-align:left; border-bottom:1px solid #eee; }
+    th { color:#647067; font-size:13px; }
+    .empty { text-align:center; padding:25px; color:#777; }
+    .status {
+      display:inline-block; padding:6px 10px;
+      border-radius:20px; background:#e8f7ed;
+      color:#15803d; font-size:12px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page-wrap">
+
+    <div class="page-heading">
+      <div>
+        <a class="back-link" href="../index.html">← Back to Dashboard</a>
+        <h1>Orders Management</h1>
+        <p>Monitor ZUNE Marketplace orders.</p>
+      </div>
+
+      <input
+        id="orderSearch"
+        class="search-box"
+        type="search"
+        placeholder="Search orders..."
+      >
+    </div>
+
+    <div id="message" class="message">Loading orders...</div>
+
+    <section class="panel">
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Buyer ID</th>
+            <th>Product ID</th>
+            <th>Quantity</th>
+            <th>Total Price</th>
+            <th>Commission</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+
+        <tbody id="ordersTable">
+          <tr><td colspan="8" class="empty">Loading...</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const message = document.getElementById("message");
+      const table = document.getElementById("ordersTable");
+      const search = document.getElementById("orderSearch");
+
+      let orders = [];
+
+      function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, char => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;"
+        })[char]);
+      }
+
+      function renderOrders(list) {
+        if (!list.length) {
+          table.innerHTML =
+            '<tr><td colspan="8" class="empty">No orders found.</td></tr>';
+          return;
+        }
+
+        table.innerHTML = list.map(order => `
+          <tr>
+            <td>${escapeHTML(order.id)}</td>
+            <td>${escapeHTML(order.buyer_id)}</td>
+            <td>${escapeHTML(order.product_id)}</td>
+            <td>${escapeHTML(order.quantity)}</td>
+            <td>${escapeHTML(order.total_price)}</td>
+            <td>${escapeHTML(order.commission_fee)}</td>
+            <td><span class="status">${escapeHTML(order.status || "Pending")}</span></td>
+            <td>${order.created_at
+              ? escapeHTML(new Date(order.created_at).toLocaleDateString())
+              : "—"}</td>
+          </tr>
+        `).join("");
+      }
+
+      try {
+        if (
+          !window.supabase ||
+          !window.SUPABASE_URL ||
+          !window.SUPABASE_ANON_KEY
+        ) {
+          throw new Error("Supabase configuration is missing.");
+        }
+
+        const client = window.supabase.createClient(
+          window.SUPABASE_URL,
+          window.SUPABASE_ANON_KEY
+        );
+
+        const { data: sessionData, error: sessionError } =
+          await client.auth.getSession();
+
+        if (sessionError) throw sessionError;
+
+        if (!sessionData.session) {
+          window.location.href = "../login.html";
+          return;
+        }
+
+        const { data: profile, error: profileError } = await client
+          .from("profiles")
+          .select("role")
+          .eq("id", sessionData.session.user.id)
+          .single();
+
+        if (profileError || !profile || profile.role !== "admin") {
+          await client.auth.signOut();
+          window.location.href = "../login.html";
+          return;
+        }
+
+        const { data, error } = await client
+          .from("orders")
+          .select("id, buyer_id, product_id, quantity, total_price, commission_fee, status, created_at")
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        orders = data || [];
+
+        message.textContent = "Total orders: " + orders.length;
+        renderOrders(orders);
+
+        search.addEventListener("input", () => {
+          const term = search.value.toLowerCase();
+
+          renderOrders(orders.filter(order =>
+            [
+              order.id,
+              order.buyer_id,
+              order.product_id,
+              order.status
+            ].join(" ").toLowerCase().includes(term)
+          ));
+        });
+
+      } catch (error) {
+        console.error("Orders page error:", error);
+
+        message.textContent =
+          "Unable to load orders: " +
+          (error.message || "Unknown error") +
+          (error.code ? " | Code: " + error.code : "") +
+          (error.hint ? " | Hint: " + error.hint : "");
+
+        table.innerHTML =
+          '<tr><td colspan="8" class="empty">Could not load order records.</td></tr>';
+      }
+    });
+  </script>
+</body>
+</html>
