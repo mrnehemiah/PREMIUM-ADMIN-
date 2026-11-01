@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,84 +8,301 @@
   <link rel="stylesheet" href="../css/admin.css">
 
   <style>
-    .page-wrap { padding:25px; }
+    :root {
+      --green:#15803d;
+      --dark:#14532d;
+      --light:#eaf7ee;
+      --gold:#d4a72c;
+      --muted:#647067;
+      --border:#e5eae6;
+    }
+
+    * { box-sizing:border-box; }
+
+    body { background:#f5f8f5; }
+
+    .page-wrap {
+      width:100%;
+      max-width:1500px;
+      margin:auto;
+      padding:24px;
+    }
+
     .page-heading {
       display:flex;
       justify-content:space-between;
       align-items:center;
       flex-wrap:wrap;
-      gap:15px;
-      margin-bottom:25px;
+      gap:16px;
+      margin-bottom:24px;
     }
+
+    .page-heading h1 {
+      margin:12px 0 5px;
+      color:#173d27;
+      font-size:27px;
+    }
+
+    .page-heading p {
+      margin:0;
+      color:var(--muted);
+    }
+
     .back-link {
-      color:#15803d;
+      color:var(--green);
       text-decoration:none;
-      font-weight:600;
+      font-weight:700;
     }
-    .search-box {
-      width:100%;
-      max-width:320px;
-      padding:12px;
-      border:1px solid #ddd;
-      border-radius:9px;
+
+    .toolbar {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
     }
+
+    .search-box, .filter {
+      min-height:44px;
+      padding:11px 13px;
+      border:1px solid #dce5de;
+      border-radius:10px;
+      background:white;
+      outline:none;
+    }
+
+    .search-box { width:250px; max-width:100%; }
+
+    .search-box:focus, .filter:focus {
+      border-color:var(--green);
+    }
+
+    .btn {
+      border:0;
+      border-radius:10px;
+      padding:12px 16px;
+      background:var(--green);
+      color:white;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .btn:hover { background:var(--dark); }
+
+    .stats {
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:15px;
+      margin-bottom:22px;
+    }
+
+    .stat-card {
+      background:white;
+      padding:19px;
+      border:1px solid var(--border);
+      border-radius:15px;
+      box-shadow:0 3px 12px rgba(0,0,0,.025);
+    }
+
+    .stat-card small {
+      display:block;
+      color:var(--muted);
+      margin-bottom:10px;
+    }
+
+    .stat-card strong {
+      font-size:27px;
+      color:#173d27;
+    }
+
+    .stat-card .accent { color:var(--green); }
+    .stat-card .gold { color:#a87908; }
+    .stat-card .red { color:#c0392b; }
+
     .message {
-      padding:14px;
-      background:#fff5df;
-      color:#805500;
-      border-radius:9px;
-      margin-bottom:18px;
+      padding:14px 16px;
+      background:#edf7ef;
+      color:#176534;
+      border-radius:10px;
+      margin-bottom:17px;
+      overflow-wrap:anywhere;
     }
+
+    .message.error {
+      background:#fff0ef;
+      color:#a52b23;
+    }
+
     .panel {
       background:white;
       padding:18px;
-      border-radius:14px;
-      overflow-x:auto;
+      border:1px solid var(--border);
+      border-radius:15px;
+      box-shadow:0 3px 12px rgba(0,0,0,.025);
     }
+
+    .panel-heading {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:15px;
+    }
+
+    .panel-heading h2 {
+      margin:0;
+      color:#173d27;
+      font-size:18px;
+    }
+
+    .table-wrap { overflow-x:auto; }
+
     table {
       width:100%;
-      min-width:850px;
+      min-width:950px;
       border-collapse:collapse;
     }
-    th,td {
-      padding:14px;
+
+    th, td {
+      padding:14px 12px;
       text-align:left;
-      border-bottom:1px solid #eee;
+      border-bottom:1px solid #edf0ed;
+      vertical-align:middle;
     }
-    th { color:#647067; font-size:13px; }
+
+    th {
+      color:#647067;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+      background:#fafcfb;
+    }
+
+    td { font-size:13px; color:#34443a; }
+
+    tbody tr:hover { background:#f8fcf9; }
+
+    .store-name {
+      font-weight:700;
+      color:#174c2c;
+    }
+
     .status {
       display:inline-block;
       padding:6px 10px;
       border-radius:20px;
-      background:#e8f7ed;
-      color:#15803d;
-      font-size:12px;
+      font-size:11px;
+      font-weight:700;
+      text-transform:capitalize;
+      background:#f0f2f0;
+      color:#526057;
     }
-    .empty { text-align:center; padding:25px; color:#777; }
+
+    .status.pending {
+      background:#fff5dc;
+      color:#946200;
+    }
+
+    .status.approved, .status.active {
+      background:#e5f7eb;
+      color:#147239;
+    }
+
+    .status.rejected, .status.declined {
+      background:#ffebea;
+      color:#b52e28;
+    }
+
+    .empty {
+      text-align:center;
+      padding:35px 15px;
+      color:#78827b;
+    }
+
+    .record-count {
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    @media(max-width:850px) {
+      .stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+
+    @media(max-width:520px) {
+      .page-wrap { padding:15px; }
+      .page-heading h1 { font-size:23px; }
+      .toolbar { width:100%; }
+      .search-box { width:100%; flex:1 1 100%; }
+      .filter { flex:1; }
+      .btn { flex:1; }
+      .stat-card { padding:14px; }
+      .stat-card strong { font-size:23px; }
+      .panel { padding:12px; }
+    }
   </style>
 </head>
 
 <body>
-  <main class="page-wrap">
+<main class="page-wrap">
 
-    <div class="page-heading">
-      <div>
-        <a class="back-link" href="../index.html">← Back to Dashboard</a>
-        <h1>Sellers Management</h1>
-        <p>Manage ZUNE Marketplace seller applications.</p>
-      </div>
+  <header class="page-heading">
+    <div>
+      <a class="back-link" href="../index.html">← Back to Dashboard</a>
+      <h1>Sellers Management</h1>
+      <p>Monitor and manage ZUNE Marketplace seller applications.</p>
+    </div>
 
+    <div class="toolbar">
       <input
         id="sellerSearch"
         class="search-box"
         type="search"
         placeholder="Search sellers..."
+        aria-label="Search sellers"
       >
+
+      <select id="statusFilter" class="filter" aria-label="Filter by status">
+        <option value="all">All statuses</option>
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+      </select>
+
+      <button class="btn" id="refreshBtn" type="button">↻ Refresh</button>
+    </div>
+  </header>
+
+  <section class="stats">
+    <div class="stat-card">
+      <small>Total Applications</small>
+      <strong id="totalCount">—</strong>
     </div>
 
-    <div id="message" class="message">Loading seller applications...</div>
+    <div class="stat-card">
+      <small>Pending</small>
+      <strong class="gold" id="pendingCount">—</strong>
+    </div>
 
-    <section class="panel">
+    <div class="stat-card">
+      <small>Approved</small>
+      <strong class="accent" id="approvedCount">—</strong>
+    </div>
+
+    <div class="stat-card">
+      <small>Rejected</small>
+      <strong class="red" id="rejectedCount">—</strong>
+    </div>
+  </section>
+
+  <div id="message" class="message">Loading seller applications...</div>
+
+  <section class="panel">
+    <div class="panel-heading">
+      <h2>Seller Applications</h2>
+      <span class="record-count" id="recordCount">0 records</span>
+    </div>
+
+    <div class="table-wrap">
       <table>
         <thead>
           <tr>
@@ -99,143 +317,234 @@
 
         <tbody id="sellersTable">
           <tr>
-            <td colspan="6" class="empty">Loading...</td>
+            <td colspan="6" class="empty">Loading applications...</td>
           </tr>
         </tbody>
       </table>
-    </section>
+    </div>
+  </section>
 
-  </main>
+</main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js"></script>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      const message = document.getElementById("message");
-      const table = document.getElementById("sellersTable");
-      const search = document.getElementById("sellerSearch");
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const message = document.getElementById("message");
+  const table = document.getElementById("sellersTable");
+  const search = document.getElementById("sellerSearch");
+  const statusFilter = document.getElementById("statusFilter");
+  const refreshBtn = document.getElementById("refreshBtn");
 
-      let sellers = [];
+  let sellers = [];
+  let client;
 
-      function escapeHTML(value) {
-        return String(value ?? "").replace(/[&<>"']/g, char => ({
-          "&": "&amp;",
-          "<": "&lt;",
-          ">": "&gt;",
-          '"': "&quot;",
-          "'": "&#39;"
-        })[char]);
-      }
+  function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[char]);
+  }
 
-      function renderSellers(list) {
-        if (!list.length) {
-          table.innerHTML =
-            '<tr><td colspan="6" class="empty">No seller applications found.</td></tr>';
-          return;
-        }
+  function normalizedStatus(status) {
+    return String(status || "pending").trim().toLowerCase();
+  }
 
-        table.innerHTML = list.map(seller => {
-          const location = [
-            seller.city,
-            seller.district,
-            seller.region,
-            seller.country
-          ].filter(Boolean).join(", ");
+  function updateStats() {
+    document.getElementById("totalCount").textContent = sellers.length;
 
-          return `
-            <tr>
-              <td>${escapeHTML(seller.store_name || seller.business_name || "Unnamed store")}</td>
-              <td>${escapeHTML(seller.owner_name || "—")}</td>
-              <td>${escapeHTML(seller.phone || "—")}</td>
-              <td>${escapeHTML(location || "—")}</td>
-              <td>${escapeHTML(seller.category || "—")}</td>
-              <td><span class="status">${escapeHTML(seller.status || "Pending")}</span></td>
-            </tr>
-          `;
-        }).join("");
-      }
+    document.getElementById("pendingCount").textContent =
+      sellers.filter(s => normalizedStatus(s.status) === "pending").length;
 
-      try {
-        if (
-          !window.supabase ||
-          !window.SUPABASE_URL ||
-          !window.SUPABASE_ANON_KEY
-        ) {
-          throw new Error("Supabase configuration is missing.");
-        }
+    document.getElementById("approvedCount").textContent =
+      sellers.filter(s => normalizedStatus(s.status) === "approved").length;
 
-        const client = window.supabase.createClient(
-          window.SUPABASE_URL,
-          window.SUPABASE_ANON_KEY
-        );
+    document.getElementById("rejectedCount").textContent =
+      sellers.filter(s => normalizedStatus(s.status) === "rejected").length;
+  }
 
-        const { data: sessionData, error: sessionError } =
-          await client.auth.getSession();
+  function renderSellers(list) {
+    document.getElementById("recordCount").textContent =
+      `${list.length} record${list.length === 1 ? "" : "s"}`;
 
-        if (sessionError) throw sessionError;
+    if (!list.length) {
+      table.innerHTML = `
+        <tr>
+          <td colspan="6" class="empty">
+            No seller applications match your search.
+          </td>
+        </tr>`;
+      return;
+    }
 
-        if (!sessionData.session) {
-          window.location.href = "../login.html";
-          return;
-        }
+    table.innerHTML = list.map(seller => {
+      const location = [
+        seller.city,
+        seller.district,
+        seller.region,
+        seller.country
+      ].filter(Boolean).join(", ");
 
-        const { data: profile, error: profileError } = await client
-          .from("profiles")
-          .select("role")
-          .eq("id", sessionData.session.user.id)
-          .single();
+      const status = normalizedStatus(seller.status);
+      const safeStatus = escapeHTML(status);
 
-        if (profileError || !profile || profile.role !== "admin") {
-          await client.auth.signOut();
-          window.location.href = "../login.html";
-          return;
-        }
+      return `
+        <tr>
+          <td>
+            <span class="store-name">
+              ${escapeHTML(seller.store_name || seller.business_name || "Unnamed store")}
+            </span>
+          </td>
+          <td>${escapeHTML(seller.owner_name || "—")}</td>
+          <td>${escapeHTML(seller.phone || "—")}</td>
+          <td>${escapeHTML(location || "—")}</td>
+          <td>${escapeHTML(seller.category || "—")}</td>
+          <td>
+            <span class="status ${safeStatus}">
+              ${escapeHTML(status)}
+            </span>
+          </td>
+        </tr>`;
+    }).join("");
+  }
 
-        const { data, error } = await client
-          .from("seller_applications")
-          .select("store_name, business_name, owner_name, phone, country, city, district, region, category, status")
-          .order("store_name", { ascending: true });
+  function applyFilters() {
+    const term = search.value.trim().toLowerCase();
+    const selectedStatus = statusFilter.value;
 
-        if (error) throw error;
+    const filtered = sellers.filter(seller => {
+      const searchable = [
+        seller.store_name,
+        seller.business_name,
+        seller.owner_name,
+        seller.phone,
+        seller.city,
+        seller.district,
+        seller.region,
+        seller.country,
+        seller.category,
+        seller.status
+      ].join(" ").toLowerCase();
 
-        sellers = data || [];
+      const matchesSearch = searchable.includes(term);
+      const matchesStatus =
+        selectedStatus === "all" ||
+        normalizedStatus(seller.status) === selectedStatus;
 
-        message.textContent =
-          "Total seller applications: " + sellers.length;
-
-        renderSellers(sellers);
-
-        search.addEventListener("input", () => {
-          const term = search.value.toLowerCase();
-
-          const filtered = sellers.filter(seller => {
-            const searchable = [
-              seller.store_name,
-              seller.business_name,
-              seller.owner_name,
-              seller.phone,
-              seller.city,
-              seller.country,
-              seller.status
-            ].join(" ").toLowerCase();
-
-            return searchable.includes(term);
-          });
-
-          renderSellers(filtered);
-        });
-
-      } catch (error) {
-        console.error("Sellers page error:", error);
-
-        message.textContent =
-          "Unable to load seller applications: " + error.message;
-
-        table.innerHTML =
-          '<tr><td colspan="6" class="empty">Could not load seller records.</td></tr>';
-      }
+      return matchesSearch && matchesStatus;
     });
-  </script>
+
+    renderSellers(filtered);
+  }
+
+  async function loadSellers() {
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = "Loading...";
+
+    message.className = "message";
+    message.textContent = "Loading seller applications...";
+
+    try {
+      const { data: sessionData, error: sessionError } =
+        await client.auth.getSession();
+
+      if (sessionError) throw sessionError;
+
+      if (!sessionData.session) {
+        window.location.href = "../login.html";
+        return;
+      }
+
+      const { data: profile, error: profileError } = await client
+        .from("profiles")
+        .select("role")
+        .eq("id", sessionData.session.user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      if (!profile || profile.role !== "admin") {
+        await client.auth.signOut();
+        window.location.href = "../login.html";
+        return;
+      }
+
+      const { data, error } = await client
+        .from("seller_applications")
+        .select(`
+          store_name,
+          business_name,
+          owner_name,
+          phone,
+          country,
+          city,
+          district,
+          region,
+          category,
+          status
+        `)
+        .order("store_name", { ascending: true });
+
+      if (error) throw error;
+
+      sellers = data || [];
+
+      updateStats();
+      applyFilters();
+
+      message.textContent =
+        `Successfully loaded ${sellers.length} seller application(s).`;
+
+    } catch (error) {
+      console.error("Sellers page error:", error);
+
+      message.className = "message error";
+      message.textContent =
+        "Unable to load seller applications: " + (error.message || "Unknown error");
+
+      table.innerHTML = `
+        <tr>
+          <td colspan="6" class="empty">
+            Could not load seller records. Check your connection and database permissions.
+          </td>
+        </tr>`;
+    } finally {
+      refreshBtn.disabled = false;
+      refreshBtn.textContent = "↻ Refresh";
+    }
+  }
+
+  try {
+    if (
+      !window.supabase ||
+      !window.SUPABASE_URL ||
+      !window.SUPABASE_ANON_KEY
+    ) {
+      throw new Error("Supabase configuration is missing.");
+    }
+
+    client = window.supabase.createClient(
+      window.SUPABASE_URL,
+      window.SUPABASE_ANON_KEY
+    );
+
+    search.addEventListener("input", applyFilters);
+    statusFilter.addEventListener("change", applyFilters);
+    refreshBtn.addEventListener("click", loadSellers);
+
+    await loadSellers();
+
+  } catch (error) {
+    message.className = "message error";
+    message.textContent = error.message;
+    console.error(error);
+  }
+});
+</script>
+
 </body>
 </html>
