@@ -1,4 +1,16 @@
 document.addEventListener("DOMContentLoaded", () => {
+console.log("ZUNE LOGIN JS LOADED");
+
+window.addEventListener("error", (event) => {
+  const message = document.getElementById("loginMessage");
+
+  if (message) {
+    message.style.display = "block";
+    message.style.background = "#fff0f0";
+    message.style.color = "#b42318";
+    message.textContent = "System error: " + event.message;
+  }
+});
   const form = document.getElementById("adminLoginForm");
   const emailInput = document.getElementById("email");
   const passwordInput = document.getElementById("password");
