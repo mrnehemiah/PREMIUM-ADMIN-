@@ -1,9 +1,38 @@
+document.addEventListener("DOMContentLoaded", async () => {
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
 
-document.addEventListener("DOMContentLoaded", () => {
+  // Hakikisha Admin ameingia
+  const { data: sessionData, error: sessionError } =
+    await supabaseClient.auth.getSession();
+
+  if (sessionError || !sessionData.session) {
+    window.location.replace("login.html");
+    return;
+  }
+
+  const user = sessionData.session.user;
+
+  // Hakikisha role yake ni admin kutoka Supabase
+  const { data: profile, error: profileError } =
+    await supabaseClient
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+  if (profileError || !profile || profile.role !== "admin") {
+    await supabaseClient.auth.signOut();
+    window.location.replace("login.html");
+    return;
+  }
+
+  // Mobile sidebar
   const sidebar = document.getElementById("sidebar");
   const menuToggle = document.getElementById("menuToggle");
 
-  // Mobile sidebar
   if (menuToggle && sidebar) {
     menuToggle.addEventListener("click", () => {
       sidebar.classList.toggle("open");
@@ -21,7 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Close sidebar after selecting a page
   document.querySelectorAll(".nav-link").forEach(link => {
     link.addEventListener("click", () => {
       if (window.innerWidth <= 700) {
@@ -30,10 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Dashboard initialization
-  console.log("ZUNE PREMIUM ADMIN initialized.");
-
-  // Placeholder values until Supabase is connected
+  // Dashboard statistics placeholders
   const stats = {
     totalUsers: "—",
     totalSellers: "—",
@@ -43,8 +68,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   Object.entries(stats).forEach(([id, value]) => {
     const element = document.getElementById(id);
-    if (element) {
-      element.textContent = value;
-    }
+    if (element) element.textContent = value;
   });
+
+  console.log("ZUNE PREMIUM ADMIN secured and initialized.");
 });
