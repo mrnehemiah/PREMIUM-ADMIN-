@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#064e3b">
+  <title>Reports | ZUNE Premium Admin</title>
+  <link rel="stylesheet" href="../css/admin.css">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #f4f8f5;
+      color: #17352a;
+      font-family: Arial, sans-serif;
+    }
+
+    .reports-page {
+      max-width: 1250px;
+      padding: 28px;
+      margin: auto;
+    }
+
+    .page-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 24px;
+    }
+
+    .page-heading h1 {
+      margin: 0 0 7px;
+      color: #064e3b;
+      font-size: 27px;
+    }
+
+    .page-heading p {
+      margin: 0;
+      color: #718078;
+      font-size: 14px;
+    }
+
+    .panel {
+      background: white;
+      border: 1px solid #e2ebe5;
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 22px;
+      box-shadow: 0 4px 15px rgba(0,0,0,.025);
+    }
+
+    .panel h2 {
+      font-size: 18px;
+      margin: 0 0 6px;
+      color: #064e3b;
+    }
+
+    .muted {
+      color: #718078;
+      font-size: 13px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 7px;
+      color: #52645a;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #dce6df;
+      border-radius: 9px;
+      background: white;
+      color: #17352a;
+      outline: none;
+    }
+
+    select:focus, input:focus {
+      border-color: #087443;
+      box-shadow: 0 0 0 3px rgba(8,116,67,.08);
+    }
+
+    .btn {
+      border: 0;
+      background: #087443;
+      color: white;
+      padding: 12px 17px;
+      border-radius: 9px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn:hover { background: #064e3b; }
+
+    .btn.secondary {
+      background: #ecfdf5;
+      color: #087443;
+      border: 1px solid #bbebd0;
+    }
+
+    .report-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin-bottom: 22px;
+    }
+
+    .stat-card {
+      background: white;
+      border: 1px solid #e2ebe5;
+      border-radius: 14px;
+      padding: 19px;
+    }
+
+    .stat-card span {
+      color: #718078;
+      font-size: 12px;
+    }
+
+    .stat-card h3 {
+      color: #064e3b;
+      font-size: 27px;
+      margin: 10px 0 0;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 650px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 13px;
+      border-bottom: 1px solid #edf1ee;
+      font-size: 13px;
+    }
+
+    th {
+      background: #f8faf9;
+      color: #718078;
+      font-size: 11px;
+    }
+
+    .message {
+      display: none;
+      padding: 12px;
+      border-radius: 9px;
+      margin-bottom: 15px;
+      font-size: 13px;
+    }
+
+    .message.error {
+      display: block;
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .message.success {
+      display: block;
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 30px;
+      color: #718078;
+    }
+
+    @media(max-width: 850px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .filters { grid-template-columns: 1fr; }
+    }
+
+    @media(max-width: 550px) {
+      .reports-page { padding: 16px; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .stat-card { padding: 14px; }
+      .stat-card h3 { font-size: 22px; }
+      .report-actions .btn { width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+
+<main class="reports-page">
+
+  <header class="page-heading">
+    <div>
+      <h1>Reports & Analytics</h1>
+      <p>Monitor marketplace records and export reports.</p>
+    </div>
+
+    <button class="btn secondary" id="refreshBtn">↻ Refresh Data</button>
+  </header>
+
+  <div id="messageBox" class="message"></div>
+
+  <section class="panel">
+    <h2>Report Filters</h2>
+    <p class="muted">Choose the data type and reporting period.</p>
+
+    <div class="filters">
+      <div>
+        <label for="reportType">Report Type</label>
+        <select id="reportType">
+          <option value="orders">Orders</option>
+          <option value="products">Products</option>
+          <option value="users">Users</option>
+          <option value="sellers">Seller Applications</option>
+          <option value="payments">Payments</option>
+          <option value="verification">Verification Requests</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="period">Reporting Period</label>
+        <select id="period">
+          <option value="7">Last 7 days</option>
+          <option value="30" selected>Last 30 days</option>
+          <option value="90">Last 90 days</option>
+          <option value="365">Last 12 months</option>
+          <option value="all">All time</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="format">Export Format</label>
+        <select id="format">
+          <option value="csv">CSV Spreadsheet</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="report-actions">
+      <button class="btn" id="generateBtn">Generate Report</button>
+      <button class="btn secondary" id="downloadBtn">Download CSV ↓</button>
+    </div>
+  </section>
+
+  <section class="stats-grid">
+    <div class="stat-card">
+      <span>Records Found</span>
+      <h3 id="recordCount">—</h3>
+    </div>
+
+    <div class="stat-card">
+      <span>Completed / Active</span>
+      <h3 id="completedCount">—</h3>
+    </div>
+
+    <div class="stat-card">
+      <span>Pending</span>
+      <h3 id="pendingCount">—</h3>
+    </div>
+
+    <div class="stat-card">
+      <span>Total Value (TZS)</span>
+      <h3 id="totalValue">—</h3>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2 id="tableTitle">Report Results</h2>
+    <p class="muted" id="reportDescription">Generated records will appear here.</p>
+
+    <div class="table-wrap" style="margin-top:18px">
+      <table>
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody">
+          <tr><td class="empty">Select filters and generate a report.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="muted" style="text-align:center;padding:15px">
+    © 2026 ZUNE Marketplace · Premium Admin
+  </footer>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js"></script>
+
+<script>
+(async function () {
+  "use strict";
+
+  const URL = window.SUPABASE_URL;
+  const KEY = window.SUPABASE_ANON_KEY;
+
+  const $ = id => document.getElementById(id);
+
+  let db;
+  let reportRows = [];
+  let reportColumns = [];
+  let currentType = "orders";
+
+  const configs = {
+    orders: {
+      table: "orders",
+      columns: ["id", "buyer_id", "product_id", "quantity", "total_price", "status", "created_at"],
+      date: "created_at",
+      status: "status",
+      value: "total_price"
+    },
+    products: {
+      table: "products",
+      columns: ["id", "vendor_id", "title", "price", "stock_quantity", "created_at"],
+      date: "created_at",
+      status: null,
+      value: "price"
+    },
+    users: {
+      table: "profiles",
+      columns: ["id", "full_name", "zune_id", "role", "is_verified", "created_at"],
+      date: "created_at",
+      status: "role",
+      value: null
+    },
+    sellers: {
+      table: "seller_applications",
+      columns: ["id", "store_name", "owner_name", "country", "city", "status", "created_at"],
+      date: "created_at",
+      status: "status",
+      value: null
+    },
+    payments: {
+      table: "payments",
+      columns: ["id", "order_id", "amount", "status", "created_at"],
+      date: "created_at",
+      status: "status",
+      value: "amount"
+    },
+    verification: {
+      table: "verification_requests",
+      columns: ["id", "full_name", "document_type", "role", "status", "created_at"],
+      date: "created_at",
+      status: "status",
+      value: null
+    }
+  };
+
+  function showMessage(message, type = "error") {
+    $("messageBox").textContent = message;
+    $("messageBox").className = "message " + type;
+
+    setTimeout(() => {
+      $("messageBox").className = "message";
+    }, 5000);
+  }
+
+  function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, c => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    })[c]);
+  }
+
+  function formatValue(value) {
+    if (value === null || value === undefined) return "—";
+
+    if (typeof value === "boolean") {
+      return value ? "Yes" : "No";
+    }
+
+    if (typeof value === "object") {
+      return JSON.stringify(value);
+    }
+
+    return String(value);
+  }
+
+  function formatMoney(value) {
+    const amount = Number(value) || 0;
+    return amount.toLocaleString("en-US");
+  }
+
+  async function verifyAdmin() {
+    const { data: auth, error: authError } = await db.auth.getUser();
+
+    if (authError || !auth.user) {
+      location.href = "../login.html";
+      return false;
+    }
+
+    const { data: profile, error } = await db
+      .from("profiles")
+      .select("role")
+      .eq("id", auth.user.id)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!profile || profile.role !== "admin") {
+      document.body.innerHTML = `
+        <div style="padding:40px;text-align:center;font-family:Arial">
+          <h2>Access Restricted</h2>
+          <p>Administrator permission is required.</p>
+          <a href="../login.html">Return to login</a>
+        </div>
+      `;
+      return false;
+    }
+
+    return true;
+  }
+
+  async function generateReport() {
+    const type = $("reportType").value;
+    const days = $("period").value;
+    const config = configs[type];
+
+    currentType = type;
+
+    $("generateBtn").disabled = true;
+    $("generateBtn").textContent = "Generating...";
+
+    $("tableBody").innerHTML =
+      '<tr><td class="empty">Loading report...</td></tr>';
+
+    try {
+      let query = db
+        .from(config.table)
+        .select(config.columns.join(","))
+        .order(config.date, { ascending: false });
+
+      if (days !== "all") {
+        const fromDate = new Date();
+        fromDate.setDate(fromDate.getDate() - Number(days));
+
+        query = query.gte(config.date, fromDate.toISOString());
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      reportRows = data || [];
+      reportColumns = config.columns;
+
+      renderReport(config);
+
+      showMessage("Report generated successfully.", "success");
+
+    } catch (error) {
+      reportRows = [];
+
+      $("tableBody").innerHTML =
+        '<tr><td class="empty">Unable to load report records.</td></tr>';
+
+      showMessage("Report error: " + error.message);
+
+      $("recordCount").textContent = "—";
+      $("completedCount").textContent = "—";
+      $("pendingCount").textContent = "—";
+      $("totalValue").textContent = "—";
+
+    } finally {
+      $("generateBtn").disabled = false;
+      $("generateBtn").textContent = "Generate Report";
+    }
+  }
+
+  function renderReport(config) {
+    $("tableTitle").textContent =
+      $("reportType").selectedOptions[0].text + " Report";
+
+    $("reportDescription").textContent =
+      reportRows.length + " records found for the selected period.";
+
+    $("recordCount").textContent = reportRows.length;
+
+    let completed = 0;
+    let pending = 0;
+    let total = 0;
+
+    reportRows.forEach(row => {
+      if (config.status) {
+        const status = String(row[config.status] ?? "").toLowerCase();
+
+        if (
+          status === "completed" ||
+          status === "active" ||
+          status === "approved" ||
+          status === "admin" ||
+          status === "seller" ||
+          status === "buyer" ||
+          row[config.status] === true
+        ) completed++;
+
+        if (
+          status === "pending" ||
+          status === "processing"
+        ) pending++;
+      }
+
+      if (config.value) {
+        total += Number(row[config.value]) || 0;
+      }
+    });
+
+    $("completedCount").textContent = completed;
+    $("pendingCount").textContent = pending;
+    $("totalValue").textContent = config.value
+      ? formatMoney(total)
+      : "N/A";
+
+    $("tableHead").innerHTML = `
+      <tr>
+        ${reportColumns.map(col =>
+          `<th>${escapeHTML(col.replaceAll("_", " ").toUpperCase())}</th>`
+        ).join("")}
+      </tr>
+    `;
+
+    if (!reportRows.length) {
+      $("tableBody").innerHTML = `
+        <tr>
+          <td colspan="${reportColumns.length}" class="empty">
+            No records found for this period.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    $("tableBody").innerHTML = reportRows.map(row => `
+      <tr>
+        ${reportColumns.map(col =>
+          `<td>${escapeHTML(formatValue(row[col]))}</td>`
+        ).join("")}
+      </tr>
+    `).join("");
+  }
+
+  function downloadCSV() {
+    if (!reportRows.length || !reportColumns.length) {
+      showMessage("Generate a report before downloading.");
+      return;
+    }
+
+    const quote = value =>
+      '"' + String(value ?? "").replace(/"/g, '""') + '"';
+
+    const lines = [
+      reportColumns.map(quote).join(","),
+      ...reportRows.map(row =>
+        reportColumns.map(col => quote(formatValue(row[col]))).join(",")
+      )
+    ];
+
+    const blob = new Blob(
+      ["\uFEFF" + lines.join("\r\n")],
+      { type: "text/csv;charset=utf-8;" }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download =
+      "zune-" + currentType + "-report-" +
+      new Date().toISOString().slice(0, 10) + ".csv";
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(url);
+
+    showMessage("CSV report downloaded.", "success");
+  }
+
+  $("generateBtn").addEventListener("click", generateReport);
+  $("downloadBtn").addEventListener("click", downloadCSV);
+  $("refreshBtn").addEventListener("click", generateReport);
+
+  try {
+    if (!URL || !KEY || !window.supabase) {
+      throw new Error("Supabase configuration is missing.");
+    }
+
+    db = window.supabase.createClient(URL, KEY);
+
+    const allowed = await verifyAdmin();
+
+    if (allowed) {
+      await generateReport();
+    }
+
+  } catch (error) {
+    showMessage(error.message);
+    $("tableBody").innerHTML =
+      '<tr><td class="empty">Could not initialize reports.</td></tr>';
+  }
+
+})();
+</script>
+
+</body>
+</html>
