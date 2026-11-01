@@ -1,3 +1,4 @@
+
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("ZUNE PREMIUM ADMIN INITIALIZING...");
 
@@ -7,6 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!box) {
       box = document.createElement("div");
       box.id = "globalMessage";
+
       box.style.cssText = `
         margin:15px;
         padding:14px;
@@ -15,6 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         color:#805500;
         font-size:14px;
         white-space:pre-wrap;
+        border-radius:12px;
       `;
 
       const main = document.querySelector("main") || document.body;
@@ -38,7 +41,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   try {
-    // 1. Check Supabase configuration
+    // 1. Supabase configuration
     if (
       !window.supabase ||
       !window.SUPABASE_URL ||
@@ -47,13 +50,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       throw new Error("Supabase configuration is missing.");
     }
 
-    // 2. Connect to Supabase
+    // 2. Connect
     const client = window.supabase.createClient(
       window.SUPABASE_URL,
       window.SUPABASE_ANON_KEY
     );
 
-    // 3. Check login session
+    // 3. Check session
     const { data: sessionData, error: sessionError } =
       await client.auth.getSession();
 
@@ -64,23 +67,23 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // 4. Verify administrator
     const user = sessionData.session.user;
 
-    const { data: profile, error: profileError } = await client
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    // 4. Verify admin
+    const { data: profile, error: profileError } =
+      await client
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
 
     if (profileError || !profile || profile.role !== "admin") {
-      console.error("Admin verification failed:", profileError);
       await client.auth.signOut();
       window.location.replace("login.html");
       return;
     }
 
-    // 5. Read each table independently
+    // 5. Statistics
     async function getCount(table, column = null, value = null) {
       try {
         let query = client
@@ -96,13 +99,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const { count, error } = await query;
 
-        if (error) {
-          return {
-            table,
-            count: null,
-            error
-          };
-        }
+        if (error) throw error;
 
         return {
           table,
@@ -126,7 +123,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       getCount("orders")
     ]);
 
-    // 6. Update successful statistics
     const statIds = [
       "totalUsers",
       "totalSellers",
@@ -135,42 +131,106 @@ document.addEventListener("DOMContentLoaded", async () => {
     ];
 
     results.forEach((result, index) => {
-      if (result.error) {
-        updateStat(statIds[index], "—");
-      } else {
-        updateStat(
-          statIds[index],
-          result.count.toLocaleString()
-        );
-      }
+      updateStat(
+        statIds[index],
+        result.error ? "—" : result.count.toLocaleString()
+      );
     });
 
-    // 7. Display exact errors
+    // 6. Load announcements from correct table
+    async function loadAnnouncements() {
+      const container =
+        document.getElementById("announcementsList");
+
+      if (!container) {
+        console.warn(
+          "Announcements container not found: announcementsList"
+        );
+        return;
+      }
+
+      container.innerHTML = "Loading announcements...";
+
+      const { data, error } = await client
+        .from("admin_announcements")
+        .select(`
+          id,
+          title,
+          message,
+          audience,
+          display_type,
+          priority,
+          status,
+          created_at,
+          expires_at
+        `)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Announcement loading error:", error);
+
+        container.textContent =
+          "Failed to load announcements: " + error.message;
+
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        container.textContent = "No announcements found.";
+        return;
+      }
+
+      container.innerHTML = "";
+
+      data.forEach(item => {
+        const card = document.createElement("div");
+
+        card.style.cssText = `
+          background:#ffffff;
+          border:1px solid #e5e7eb;
+          border-radius:14px;
+          padding:16px;
+          margin-bottom:12px;
+        `;
+
+        const title = document.createElement("h3");
+        title.textContent = item.title;
+
+        const message = document.createElement("p");
+        message.textContent = item.message;
+
+        const details = document.createElement("p");
+        details.textContent =
+          "Audience: " + item.audience +
+          " | Display: " + item.display_type +
+          " | Priority: " + item.priority +
+          " | Status: " + item.status;
+
+        details.style.cssText = `
+          font-size:12px;
+          color:#64748b;
+        `;
+
+        card.append(title, message, details);
+        container.appendChild(card);
+      });
+    }
+
+    await loadAnnouncements();
+
+    // 7. Dashboard messages
     const failed = results.filter(result => result.error);
 
     if (failed.length > 0) {
-      const details = failed.map(result => {
-        const error = result.error;
-
-        return (
-          result.table +
-          ": " +
-          (error.message || "Unknown error") +
-          (error.code ? " | Code: " + error.code : "") +
-          (error.hint ? " | Hint: " + error.hint : "")
-        );
-      });
-
-      console.error("Supabase table errors:", failed);
-
       showMessage(
         "Some dashboard statistics could not load:\n\n" +
-        details.join("\n\n")
+        failed.map(result =>
+          result.table + ": " + result.error.message
+        ).join("\n\n")
       );
-
     } else {
       showMessage(
-        "All dashboard statistics loaded successfully.",
+        "Dashboard statistics and announcement records loaded successfully.",
         false
       );
     }
