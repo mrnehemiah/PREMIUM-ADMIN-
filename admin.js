@@ -1,13 +1,35 @@
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("ZUNE PREMIUM ADMIN INITIALIZING...");
 
-  const showError = (message) => {
-    const box = document.getElementById("globalMessage");
+  const messageBox = () => {
+    let box = document.getElementById("globalMessage");
 
-    if (box) {
-      box.hidden = false;
-      box.textContent = message;
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "globalMessage";
+      box.style.cssText = `
+        margin:15px;
+        padding:14px;
+        border-radius:10px;
+        background:#fff5df;
+        color:#805500;
+        font-size:14px;
+        white-space:pre-wrap;
+      `;
+
+      const main = document.querySelector("main") || document.body;
+      main.prepend(box);
     }
+
+    return box;
+  };
+
+  const showMessage = (message, isError = true) => {
+    const box = messageBox();
+    box.hidden = false;
+    box.textContent = message;
+    box.style.background = isError ? "#fff0f0" : "#e8f7ed";
+    box.style.color = isError ? "#b42318" : "#15803d";
   };
 
   const updateStat = (id, value) => {
@@ -16,7 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   try {
-    // 1. Check configuration
+    // 1. Check Supabase configuration
     if (
       !window.supabase ||
       !window.SUPABASE_URL ||
@@ -31,7 +53,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.SUPABASE_ANON_KEY
     );
 
-    // 3. Verify login session
+    // 3. Check login session
     const { data: sessionData, error: sessionError } =
       await client.auth.getSession();
 
@@ -42,7 +64,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // 4. Verify administrator role
+    // 4. Verify administrator
     const user = sessionData.session.user;
 
     const { data: profile, error: profileError } = await client
@@ -51,31 +73,50 @@ document.addEventListener("DOMContentLoaded", async () => {
       .eq("id", user.id)
       .single();
 
-    if (
-      profileError ||
-      !profile ||
-      profile.role !== "admin"
-    ) {
+    if (profileError || !profile || profile.role !== "admin") {
+      console.error("Admin verification failed:", profileError);
       await client.auth.signOut();
       window.location.replace("login.html");
       return;
     }
 
-    // 5. Load real statistics
-    async function getCount(table, column, value) {
-      let query = client
-        .from(table)
-        .select("*", { count: "exact", head: true });
+    // 5. Read each table independently
+    async function getCount(table, column = null, value = null) {
+      try {
+        let query = client
+          .from(table)
+          .select("*", {
+            count: "exact",
+            head: true
+          });
 
-      if (column && value) {
-        query = query.eq(column, value);
+        if (column && value !== null) {
+          query = query.eq(column, value);
+        }
+
+        const { count, error } = await query;
+
+        if (error) {
+          return {
+            table,
+            count: null,
+            error
+          };
+        }
+
+        return {
+          table,
+          count: count ?? 0,
+          error: null
+        };
+
+      } catch (error) {
+        return {
+          table,
+          count: null,
+          error
+        };
       }
-
-      const { count, error } = await query;
-
-      if (error) throw error;
-
-      return count ?? 0;
     }
 
     const results = await Promise.all([
@@ -85,17 +126,61 @@ document.addEventListener("DOMContentLoaded", async () => {
       getCount("orders")
     ]);
 
-    updateStat("totalUsers", results[0].toLocaleString());
-    updateStat("totalSellers", results[1].toLocaleString());
-    updateStat("totalProducts", results[2].toLocaleString());
-    updateStat("totalOrders", results[3].toLocaleString());
+    // 6. Update successful statistics
+    const statIds = [
+      "totalUsers",
+      "totalSellers",
+      "totalProducts",
+      "totalOrders"
+    ];
 
-    console.log("Dashboard statistics loaded successfully.");
+    results.forEach((result, index) => {
+      if (result.error) {
+        updateStat(statIds[index], "—");
+      } else {
+        updateStat(
+          statIds[index],
+          result.count.toLocaleString()
+        );
+      }
+    });
+
+    // 7. Display exact errors
+    const failed = results.filter(result => result.error);
+
+    if (failed.length > 0) {
+      const details = failed.map(result => {
+        const error = result.error;
+
+        return (
+          result.table +
+          ": " +
+          (error.message || "Unknown error") +
+          (error.code ? " | Code: " + error.code : "") +
+          (error.hint ? " | Hint: " + error.hint : "")
+        );
+      });
+
+      console.error("Supabase table errors:", failed);
+
+      showMessage(
+        "Some dashboard statistics could not load:\n\n" +
+        details.join("\n\n")
+      );
+
+    } else {
+      showMessage(
+        "All dashboard statistics loaded successfully.",
+        false
+      );
+    }
+
+    console.log("ZUNE ADMIN DASHBOARD:", results);
 
   } catch (error) {
     console.error("ZUNE ADMIN ERROR:", error);
 
-    showError(
+    showMessage(
       "Dashboard error: " +
       (error.message || "Unable to load data from Supabase.")
     );
