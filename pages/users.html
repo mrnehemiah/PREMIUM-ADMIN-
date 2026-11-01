@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Users Management | ZUNE Admin</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <style>
+    .page-wrap { padding: 25px; }
+    .page-heading { display:flex; justify-content:space-between; align-items:center; gap:15px; flex-wrap:wrap; margin-bottom:25px; }
+    .users-panel { background:#fff; border-radius:14px; padding:20px; overflow-x:auto; }
+    .users-table { width:100%; border-collapse:collapse; min-width:650px; }
+    .users-table th,.users-table td { padding:14px; text-align:left; border-bottom:1px solid #eee; }
+    .users-table th { color:#647067; font-size:13px; }
+    .status { background:#e8f7ed; color:#15803d; padding:5px 10px; border-radius:20px; font-size:12px; }
+    .message { padding:12px; margin-bottom:15px; border-radius:8px; background:#fff5df; color:#805500; }
+    .search-box { padding:11px; border:1px solid #ddd; border-radius:8px; width:100%; max-width:300px; }
+    .back-link { color:#15803d; text-decoration:none; font-weight:600; }
+  </style>
+</head>
+<body>
+  <main class="page-wrap">
+    <div class="page-heading">
+      <div>
+        <a class="back-link" href="../index.html">← Back to Dashboard</a>
+        <h1>Users Management</h1>
+        <p>View registered ZUNE Marketplace users.</p>
+      </div>
+      <input id="userSearch" class="search-box" type="search" placeholder="Search users...">
+    </div>
+
+    <div id="message" class="message">Loading users...</div>
+
+    <section class="users-panel">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Full Name</th>
+            <th>Role</th>
+            <th>Verification</th>
+            <th>Joined</th>
+          </tr>
+        </thead>
+        <tbody id="usersTable">
+          <tr><td colspan="4">Loading...</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const message = document.getElementById("message");
+      const table = document.getElementById("usersTable");
+      const search = document.getElementById("userSearch");
+      let users = [];
+
+      try {
+        if (!window.supabase || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+          throw new Error("Supabase configuration is missing.");
+        }
+
+        const client = window.supabase.createClient(
+          window.SUPABASE_URL,
+          window.SUPABASE_ANON_KEY
+        );
+
+        const { data: sessionData, error: sessionError } =
+          await client.auth.getSession();
+
+        if (sessionError) throw sessionError;
+
+        if (!sessionData.session) {
+          window.location.href = "../login.html";
+          return;
+        }
+
+        const { data: profile, error: profileError } = await client
+          .from("profiles")
+          .select("role")
+          .eq("id", sessionData.session.user.id)
+          .single();
+
+        if (profileError || !profile || profile.role !== "admin") {
+          await client.auth.signOut();
+          window.location.href = "../login.html";
+          return;
+        }
+
+        const { data, error } = await client
+          .from("profiles")
+          .select("id, full_name, role, is_verified, created_at")
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        users = data || [];
+        message.textContent = "Total users: " + users.length;
+        message.className = "message";
+        renderUsers(users);
+
+        function renderUsers(list) {
+          if (!list.length) {
+            table.innerHTML = '<tr><td colspan="4">No users found.</td></tr>';
+            return;
+          }
+
+          table.innerHTML = list.map(user => `
+            <tr>
+              <td>${escapeHTML(user.full_name || "Unnamed user")}</td>
+              <td>${escapeHTML(user.role || "User")}</td>
+              <td><span class="status">${user.is_verified ? "Verified" : "Not verified"}</span></td>
+              <td>${user.created_at ? new Date(user.created_at).toLocaleDateString() : "—"}</td>
+            </tr>
+          `).join("");
+        }
+
+        function escapeHTML(value) {
+          return String(value).replace(/[&<>"']/g, char => ({
+            "&": "&amp;", "<": "&lt;", ">": "&gt;",
+            '"': "&quot;", "'": "&#39;"
+          })[char]);
+        }
+
+        search.addEventListener("input", () => {
+          const term = search.value.toLowerCase();
+          renderUsers(users.filter(user =>
+            (user.full_name || "").toLowerCase().includes(term) ||
+            (user.role || "").toLowerCase().includes(term)
+          ));
+        });
+
+      } catch (error) {
+        console.error("Users page error:", error);
+        message.textContent = "Unable to load users: " + error.message;
+        table.innerHTML = '<tr><td colspan="4">Could not load user records.</td></tr>';
+      }
+    });
+  </script>
+</body>
+</html>
