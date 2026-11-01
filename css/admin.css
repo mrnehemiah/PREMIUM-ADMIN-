@@ -1306,8 +1306,6 @@ a {
   }
 }
 
-/* SMALL MOBILE */
-
 @media (max-width: 360px) {
   .admin-content {
     padding-left: 10px;
