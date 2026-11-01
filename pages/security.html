@@ -1,0 +1,718 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#15803d">
+
+    <title>Security Center | ZUNE Premium Admin</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Inter, sans-serif;
+            background: #f4f7f5;
+            color: #17251b;
+        }
+
+        button, input, textarea {
+            font: inherit;
+        }
+
+        .security-container {
+            max-width: 1450px;
+            margin: auto;
+            padding: 26px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .page-header h1 {
+            font-size: 25px;
+            font-weight: 800;
+        }
+
+        .page-header p {
+            color: #718078;
+            font-size: 13px;
+            margin-top: 7px;
+        }
+
+        .admin-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #e8f6ec;
+            color: #15803d;
+            padding: 9px 13px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .security-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+            background: #fff;
+            border: 1px solid #e5ece7;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .status-icon {
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            background: #e8f6ec;
+            color: #15803d;
+            border-radius: 14px;
+            font-size: 23px;
+        }
+
+        .status-info h2 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .status-info p {
+            color: #718078;
+            font-size: 12px;
+        }
+
+        .status-pill {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 30px;
+            background: #e8f6ec;
+            color: #15803d;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .status-pill.off {
+            background: #feecec;
+            color: #c0392b;
+        }
+
+        .status-pill.scheduled {
+            background: #fff4df;
+            color: #986000;
+        }
+
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .security-card {
+            background: #fff;
+            border: 1px solid #e5ece7;
+            border-radius: 16px;
+            padding: 21px;
+            min-width: 0;
+        }
+
+        .card-heading {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .card-icon {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            background: #e8f6ec;
+            color: #15803d;
+            font-size: 19px;
+        }
+
+        .card-heading h2 {
+            font-size: 15px;
+        }
+
+        .card-heading p {
+            color: #829087;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .field {
+            margin-bottom: 15px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .field input,
+        .field textarea {
+            width: 100%;
+            border: 1px solid #dfe8e1;
+            background: #fbfdfb;
+            border-radius: 10px;
+            padding: 12px;
+            outline: none;
+            font-size: 12px;
+            color: #24362a;
+        }
+
+        .field input:focus,
+        .field textarea:focus {
+            border-color: #15803d;
+        }
+
+        .field textarea {
+            min-height: 105px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .field small {
+            display: block;
+            color: #849087;
+            font-size: 10px;
+            margin-top: 6px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .btn-green {
+            background: #15803d;
+            color: #fff;
+        }
+
+        .btn-green:hover {
+            background: #11632f;
+        }
+
+        .btn-red {
+            background: #c0392b;
+            color: #fff;
+        }
+
+        .btn-light {
+            background: #eef4ef;
+            color: #304537;
+        }
+
+        .btn-yellow {
+            background: #fff2cf;
+            color: #875900;
+        }
+
+        .notice {
+            padding: 13px;
+            border-radius: 10px;
+            background: #f4f8f5;
+            color: #617067;
+            font-size: 11px;
+            line-height: 1.7;
+            margin-top: 14px;
+        }
+
+        .notice.warning {
+            background: #fff8e9;
+            color: #815a16;
+        }
+
+        .notice.danger {
+            background: #fff0ef;
+            color: #9f332a;
+        }
+
+        .message-preview {
+            border: 1px dashed #cbd9ce;
+            border-radius: 11px;
+            padding: 14px;
+            margin-top: 12px;
+            background: #f8fbf8;
+        }
+
+        .message-preview strong {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .message-preview p {
+            font-size: 12px;
+            line-height: 1.6;
+            color: #68766d;
+            overflow-wrap: anywhere;
+        }
+
+        .feature-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid #edf1ed;
+            border-radius: 11px;
+        }
+
+        .feature-item .symbol {
+            color: #15803d;
+            font-size: 17px;
+        }
+
+        .feature-item h3 {
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .feature-item p {
+            font-size: 11px;
+            color: #7a887e;
+            line-height: 1.6;
+        }
+
+        .feature-state {
+            margin-left: auto;
+            white-space: nowrap;
+            font-size: 9px;
+            font-weight: 800;
+            color: #8a6b27;
+            background: #fff5dc;
+            border-radius: 20px;
+            padding: 6px 8px;
+        }
+
+        .activity-box {
+            color: #7a887e;
+            font-size: 12px;
+            line-height: 1.7;
+            background: #f8fbf8;
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .page-footer {
+            text-align: center;
+            color: #8a968e;
+            font-size: 10px;
+            padding: 25px 0 5px;
+        }
+
+        #securityNotice {
+            display: none;
+            margin-bottom: 18px;
+            padding: 13px;
+            border-radius: 10px;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        #securityNotice.show {
+            display: block;
+        }
+
+        #securityNotice.error {
+            color: #a12d25;
+            background: #fff0ef;
+        }
+
+        #securityNotice.success {
+            color: #176b35;
+            background: #e8f6ec;
+        }
+
+        @media(max-width: 800px) {
+            .security-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media(max-width: 520px) {
+            .security-container {
+                padding: 15px;
+            }
+
+            .page-header h1 {
+                font-size: 21px;
+            }
+
+            .security-card {
+                padding: 16px;
+            }
+
+            .button-row .btn {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<main class="security-container">
+
+    <header class="page-header">
+        <div>
+            <h1>Security Center</h1>
+            <p>Protect and control the entire ZUNE Marketplace.</p>
+        </div>
+
+        <span class="admin-label">🔐 ADMIN ONLY</span>
+    </header>
+
+    <div id="securityNotice"></div>
+
+    <section class="security-status">
+        <div class="status-info">
+            <div class="status-icon">🛡</div>
+            <div>
+                <h2 id="mainStatusTitle">Checking Marketplace...</h2>
+                <p id="mainStatusDescription">
+                    Loading security settings.
+                </p>
+            </div>
+        </div>
+
+        <span class="status-pill" id="mainStatusBadge">
+            CHECKING
+        </span>
+    </section>
+
+
+    <div class="security-grid">
+
+        <!-- MARKETPLACE CONTROL -->
+        <section class="security-card">
+
+            <div class="card-heading">
+                <div class="card-icon">⏻</div>
+                <div>
+                    <h2>Global Marketplace Control</h2>
+                    <p>Control access to ZUNE Marketplace.</p>
+                </div>
+            </div>
+
+            <div class="notice warning">
+                Turning off Marketplace blocks normal customer and seller
+                access only after the maintenance gate is connected to the
+                Marketplace website and its protected backend operations.
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-green" id="enableMarketplace">
+                    Enable Marketplace
+                </button>
+
+                <button class="btn btn-red" id="disableMarketplace">
+                    Disable Marketplace
+                </button>
+            </div>
+
+            <div class="field" style="margin-top:20px;">
+                <label for="shutdownAt">Automatic Shutdown Date & Time</label>
+                <input type="datetime-local" id="shutdownAt">
+                <small>Leave empty if you do not want to schedule a shutdown.</small>
+            </div>
+
+            <div class="field">
+                <label for="returnAt">Expected Return Date & Time</label>
+                <input type="datetime-local" id="returnAt">
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-green" id="saveSchedule">
+                    Save Shutdown Schedule
+                </button>
+
+                <button class="btn btn-light" id="clearSchedule">
+                    Clear Schedule
+                </button>
+            </div>
+
+            <div class="notice" id="scheduleSummary">
+                No shutdown schedule loaded.
+            </div>
+
+        </section>
+
+
+        <!-- MAINTENANCE MESSAGE -->
+        <section class="security-card">
+
+            <div class="card-heading">
+                <div class="card-icon">✉</div>
+                <div>
+                    <h2>Maintenance Message</h2>
+                    <p>Message visible to Marketplace visitors.</p>
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="maintenanceMessage">
+                    Public Maintenance Message
+                </label>
+
+                <textarea
+                    id="maintenanceMessage"
+                    maxlength="1000"
+                    placeholder="Tell customers why ZUNE Marketplace is temporarily unavailable..."
+                ></textarea>
+
+                <small>Maximum 1000 characters.</small>
+            </div>
+
+            <div class="message-preview">
+                <strong>Message Preview</strong>
+                <p id="messagePreview">
+                    Your maintenance message will appear here.
+                </p>
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-green" id="saveMessage">
+                    Save Public Message
+                </button>
+            </div>
+
+        </section>
+
+
+        <!-- ACCESS SECURITY -->
+        <section class="security-card">
+
+            <div class="card-heading">
+                <div class="card-icon">🔐</div>
+                <div>
+                    <h2>Admin Access Protection</h2>
+                    <p>Administrative access and permissions.</p>
+                </div>
+            </div>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span class="symbol">✓</span>
+                    <div>
+                        <h3>Admin Role Verification</h3>
+                        <p>Security page checks the signed-in user's admin role.</p>
+                    </div>
+                    <span class="feature-state">ACTIVE</span>
+                </div>
+
+                <div class="feature-item">
+                    <span class="symbol">✓</span>
+                    <div>
+                        <h3>Database Admin Policies</h3>
+                        <p>Marketplace control updates are restricted to admins.</p>
+                    </div>
+                    <span class="feature-state">SQL REQUIRED</span>
+                </div>
+
+                <div class="feature-item">
+                    <span class="symbol">•</span>
+                    <div>
+                        <h3>Admin Permission Management</h3>
+                        <p>Individual admin permissions will be connected after a dedicated permissions system is configured.</p>
+                    </div>
+                    <span class="feature-state">NOT CONNECTED</span>
+                </div>
+
+                <div class="feature-item">
+                    <span class="symbol">•</span>
+                    <div>
+                        <h3>Multi-Factor Authentication</h3>
+                        <p>Requires Supabase Auth MFA setup and recovery procedures.</p>
+                    </div>
+                    <span class="feature-state">NOT CONNECTED</span>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- SECURITY MONITORING -->
+        <section class="security-card">
+
+            <div class="card-heading">
+                <div class="card-icon">◷</div>
+                <div>
+                    <h2>Security Monitoring</h2>
+                    <p>Activity and system protection.</p>
+                </div>
+            </div>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span class="symbol">•</span>
+                    <div>
+                        <h3>Login Activity</h3>
+                        <p>Login history requires a dedicated secure event collection system.</p>
+                    </div>
+                    <span class="feature-state">NOT CONNECTED</span>
+                </div>
+
+                <div class="feature-item">
+                    <span class="symbol">•</span>
+                    <div>
+                        <h3>Active Sessions</h3>
+                        <p>Session revocation must be connected to the authentication system.</p>
+                    </div>
+                    <span class="feature-state">NOT CONNECTED</span>
+                </div>
+
+                <div class="feature-item">
+                    <span class="symbol">•</span>
+                    <div>
+                        <h3>Security Alerts</h3>
+                        <p>Requires event logging and alert rules.</p>
+                    </div>
+                    <span class="feature-state">NOT CONNECTED</span>
+                </div>
+
+                <div class="feature-item">
+                    <span class="symbol">•</span>
+                    <div>
+                        <h3>Audit Logs</h3>
+                        <p>Administrative activity history will be connected to a protected audit table.</p>
+                    </div>
+                    <span class="feature-state">NOT CONNECTED</span>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- DATABASE SECURITY -->
+        <section class="security-card">
+
+            <div class="card-heading">
+                <div class="card-icon">▤</div>
+                <div>
+                    <h2>Database & API Security</h2>
+                    <p>Database access and policy protection.</p>
+                </div>
+            </div>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span class="symbol">✓</span>
+                    <div>
+                        <h3>Marketplace Control RLS</h3>
+                        <p>Admin-only update policy is configured in the database when its SQL has been applied.</p>
+                    </div>
+                    <span class="feature-state">VERIFY</span>
+                </div>
+
+                <div class="feature-item">
+                    <span class="symbol">•</span>
+                    <div>
+                        <h3>Full RLS Security Audit</h3>
+                        <p>All marketplace tables must be reviewed individually.</p>
+                    </div>
+                    <span class="feature-state">NOT CONNECTED</span>
+                </div>
+
+                <div class="feature-item">
+                    <span class="symbol">•</span>
+                    <div>
+                        <h3>API Key Protection</h3>
+                        <p>Never place the Supabase service-role key in browser code.</p>
+                    </div>
+                    <span class="feature-state">REVIEW</span>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- SECURITY ACTIVITY -->
+        <section class="security-card">
+
+            <div class="card-heading">
+                <div class="card-icon">▣</div>
+                <div>
+                    <h2>Security Activity</h2>
+                    <p>Marketplace control update information.</p>
+                </div>
+            </div>
+
+            <div class="activity-box" id="securityActivity">
+                Security activity information will appear here after loading.
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-light" id="refreshSecurity">
+                    ↻ Refresh Security Status
+                </button>
+            </div>
+
+        </section>
+
+    </div>
+
+    <footer class="page-footer">
+        ZUNE SECURITY CENTER · ADMIN CONTROL PANEL
+    </footer>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js"></script>
+<script src="../js/security.js"></script>
+
+</body>
+</html>
