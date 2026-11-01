@@ -10,8 +10,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   };
 
+  const updateStat = (id, value) => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  };
+
   try {
-    // Check Supabase configuration
+    // 1. Check configuration
     if (
       !window.supabase ||
       !window.SUPABASE_URL ||
@@ -20,15 +25,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       throw new Error("Supabase configuration is missing.");
     }
 
-    // Initialize Supabase
-    const supabaseClient = window.supabase.createClient(
+    // 2. Connect to Supabase
+    const client = window.supabase.createClient(
       window.SUPABASE_URL,
       window.SUPABASE_ANON_KEY
     );
 
-    // Check authenticated session
+    // 3. Verify login session
     const { data: sessionData, error: sessionError } =
-      await supabaseClient.auth.getSession();
+      await client.auth.getSession();
 
     if (sessionError) throw sessionError;
 
@@ -37,45 +42,62 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    // 4. Verify administrator role
     const user = sessionData.session.user;
 
-    // Verify administrator role from database
-    const { data: profile, error: profileError } =
-      await supabaseClient
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
+    const { data: profile, error: profileError } = await client
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
 
-    if (profileError || !profile || profile.role !== "admin") {
-      await supabaseClient.auth.signOut();
+    if (
+      profileError ||
+      !profile ||
+      profile.role !== "admin"
+    ) {
+      await client.auth.signOut();
       window.location.replace("login.html");
       return;
     }
 
-    // Load dashboard statistics
-    const stats = {
-      totalUsers: "—",
-      totalSellers: "—",
-      totalProducts: "—",
-      totalOrders: "—"
-    };
+    // 5. Load real statistics
+    async function getCount(table, column, value) {
+      let query = client
+        .from(table)
+        .select("*", { count: "exact", head: true });
 
-    Object.entries(stats).forEach(([id, value]) => {
-      const element = document.getElementById(id);
-
-      if (element) {
-        element.textContent = value;
+      if (column && value) {
+        query = query.eq(column, value);
       }
-    });
 
-    console.log("ZUNE PREMIUM ADMIN SECURED.");
+      const { count, error } = await query;
+
+      if (error) throw error;
+
+      return count ?? 0;
+    }
+
+    const results = await Promise.all([
+      getCount("profiles"),
+      getCount("profiles", "role", "seller"),
+      getCount("products"),
+      getCount("orders")
+    ]);
+
+    updateStat("totalUsers", results[0].toLocaleString());
+    updateStat("totalSellers", results[1].toLocaleString());
+    updateStat("totalProducts", results[2].toLocaleString());
+    updateStat("totalOrders", results[3].toLocaleString());
+
+    console.log("Dashboard statistics loaded successfully.");
 
   } catch (error) {
-    console.error("Admin initialization error:", error);
+    console.error("ZUNE ADMIN ERROR:", error);
 
     showError(
-      error.message || "Unable to initialize administrator dashboard."
+      "Dashboard error: " +
+      (error.message || "Unable to load data from Supabase.")
     );
   }
 });
