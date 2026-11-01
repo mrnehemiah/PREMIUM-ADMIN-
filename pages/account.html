@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZUNE Admin Account</title>
+<link rel="stylesheet" href="../css/admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f7f4;color:#17231b;font-family:Arial,sans-serif}
+.container{max-width:950px;margin:auto;padding:22px}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap}
+h1{font-size:25px;color:#14532d;margin:0}
+.muted{color:#718078;font-size:13px;margin-top:6px}
+.btn{border:0;padding:11px 15px;border-radius:9px;font-weight:bold;cursor:pointer}
+.green{background:#15803d;color:white}
+.light{background:white;border:1px solid #dce5dd;color:#14532d}
+.red{background:#fee2e2;color:#991b1b}
+.card{background:white;border:1px solid #e3ebe4;border-radius:15px;padding:22px;margin-bottom:17px}
+.profile{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.avatar{width:76px;height:76px;border-radius:50%;background:#dcfce7;color:#166534;display:grid;place-items:center;font-size:30px;font-weight:bold}
+.name{font-size:22px;font-weight:bold;color:#14532d}
+.verified{display:inline-block;background:#dcfce7;color:#166534;padding:6px 10px;border-radius:20px;font-size:11px;font-weight:bold;margin-top:8px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.field{margin-bottom:14px}
+label{display:block;font-size:12px;font-weight:bold;margin-bottom:7px}
+input{width:100%;padding:12px;border:1px solid #dce5dd;border-radius:8px;font-size:14px}
+.value{padding:12px;background:#f8faf8;border-radius:8px;overflow-wrap:anywhere;font-size:14px}
+h2{font-size:17px;color:#14532d;margin:0 0 17px}
+.actions{display:flex;gap:9px;flex-wrap:wrap}
+#notice{margin-bottom:15px;font-size:13px}
+@media(max-width:600px){.container{padding:14px}.grid{grid-template-columns:1fr}.card{padding:17px}}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div>
+      <h1>Admin Account</h1>
+      <div class="muted">Simamia akaunti yako ya ZUNE Admin</div>
+    </div>
+    <button class="btn light" onclick="location.href='../index.html'">← Dashboard</button>
+  </div>
+
+  <div id="notice"></div>
+
+  <div class="card">
+    <div class="profile">
+      <div class="avatar" id="avatar">A</div>
+      <div>
+        <div class="name" id="displayName">Inapakia...</div>
+        <div class="verified">✓ VERIFIED ADMIN</div>
+        <div class="muted" id="displayEmail"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Personal Information</h2>
+    <div class="grid">
+      <div class="field">
+        <label>Jina kamili</label>
+        <input id="fullName" type="text" maxlength="100">
+      </div>
+      <div class="field">
+        <label>ZUNE ID</label>
+        <div class="value" id="zuneId">Inapakia...</div>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <div class="value" id="email">Inapakia...</div>
+      </div>
+      <div class="field">
+        <label>Admin Role</label>
+        <div class="value">Administrator</div>
+      </div>
+      <div class="field">
+        <label>Tarehe ya kujiunga</label>
+        <div class="value" id="joined">Inapakia...</div>
+      </div>
+      <div class="field">
+        <label>Hali ya akaunti</label>
+        <div class="value">Active Session</div>
+      </div>
+    </div>
+    <button class="btn green" id="saveProfile">Hifadhi Mabadiliko</button>
+  </div>
+
+  <div class="card">
+    <h2>Security & Password</h2>
+    <div class="field">
+      <label>Password mpya</label>
+      <input id="newPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Angalau herufi 8">
+    </div>
+    <div class="field">
+      <label>Thibitisha password mpya</label>
+      <input id="confirmPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Rudia password mpya">
+    </div>
+    <button class="btn green" id="changePassword">Badilisha Password</button>
+  </div>
+
+  <div class="card">
+    <h2>Account Session</h2>
+    <p class="muted">Ondoka kwenye akaunti yako ya admin kwa usalama.</p>
+    <div class="actions">
+      <button class="btn red" id="logout">Logout</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="account.js"></script>
+</body>
+</html>
