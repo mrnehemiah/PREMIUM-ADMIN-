@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +10,11 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+    rel="stylesheet"
+  >
 
   <link rel="stylesheet" href="./css/admin.css">
 </head>
@@ -19,12 +24,17 @@
 <div class="admin-app">
 
   <!-- MOBILE OVERLAY -->
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div
+    class="sidebar-overlay"
+    id="sidebarOverlay"
+  ></div>
 
   <!-- SIDEBAR -->
   <aside class="admin-sidebar" id="sidebar">
 
+    <!-- BRAND -->
     <div class="brand">
+
       <div class="brand-mark">
         <span class="brand-z">Z</span>
         <span class="brand-dot"></span>
@@ -34,8 +44,10 @@
         <strong>ZUNE</strong>
         <small>PREMIUM ADMIN</small>
       </div>
+
     </div>
 
+    <!-- MAIN MENU -->
     <div class="sidebar-label">MAIN MENU</div>
 
     <nav class="sidebar-nav">
@@ -76,24 +88,14 @@
         Payments
       </a>
 
-    <a href="pages/wallet.html" class="nav-item">
+      <a href="pages/wallet.html" class="nav-item">
+        <span class="nav-icon">▱</span>
+        Wallet
+      </a>
 
-    <span class="nav-icon">▱</span>
+    </nav>
 
-    Wallet
-
-</a>
-
-<a href="pages/disputes.html" class="nav-item">
-
-    <span class="nav-icon">⚖</span>
-
-    Disputes
-
-</a>
-
-</nav>
-
+    <!-- MARKETING -->
     <div class="sidebar-label sidebar-label-spaced">
       MARKETING
     </div>
@@ -122,6 +124,7 @@
 
     </nav>
 
+    <!-- SYSTEM -->
     <div class="sidebar-label sidebar-label-spaced">
       SYSTEM
     </div>
@@ -140,9 +143,11 @@
 
     </nav>
 
+    <!-- SIDEBAR BOTTOM -->
     <div class="sidebar-bottom">
 
       <div class="security-card">
+
         <span class="security-icon">♢</span>
 
         <div>
@@ -151,9 +156,14 @@
         </div>
 
         <span class="security-status"></span>
+
       </div>
 
-      <button class="nav-item logout-item" id="logoutButton">
+      <button
+        class="nav-item logout-item"
+        id="logoutButton"
+        type="button"
+      >
         <span class="nav-icon">↪</span>
         Sign Out
       </button>
@@ -177,7 +187,10 @@
         <button
           class="icon-button mobile-menu-btn"
           id="menuToggle"
+          type="button"
           aria-label="Open menu"
+          aria-controls="sidebar"
+          aria-expanded="false"
         >
           ☰
         </button>
@@ -196,9 +209,12 @@
           System Online
         </div>
 
-        <button class="icon-button notification-button"
-                aria-label="Notifications"
-                onclick="window.location.href='pages/notifications.html'">
+        <button
+          class="icon-button notification-button"
+          type="button"
+          aria-label="Notifications"
+          onclick="window.location.href='pages/notifications.html'"
+        >
           ♧
           <span class="notification-indicator"></span>
         </button>
@@ -223,12 +239,15 @@
 
     </header>
 
-    <!-- CONTENT -->
+    <!-- DASHBOARD CONTENT -->
     <div class="admin-content">
 
-      <div id="globalMessage"
-           class="global-message"
-           hidden></div>
+      <!-- GLOBAL MESSAGE -->
+      <div
+        id="globalMessage"
+        class="global-message"
+        hidden
+      ></div>
 
       <!-- WELCOME BANNER -->
       <section class="welcome-banner">
@@ -256,11 +275,15 @@
         </div>
 
         <div class="welcome-art">
+
           <div class="art-orbit orbit-one"></div>
           <div class="art-orbit orbit-two"></div>
+
           <div class="art-symbol">Z</div>
+
           <span class="art-spark spark-one">✦</span>
           <span class="art-spark spark-two">✧</span>
+
         </div>
 
       </section>
@@ -269,19 +292,32 @@
       <section>
 
         <div class="section-heading">
+
           <div>
-            <span class="section-kicker">MARKETPLACE OVERVIEW</span>
+            <span class="section-kicker">
+              MARKETPLACE OVERVIEW
+            </span>
+
             <h2>Platform Statistics</h2>
-            <p>Overview of your marketplace activity.</p>
+
+            <p>
+              Overview of your marketplace activity.
+            </p>
           </div>
 
-          <button class="outline-button" onclick="location.reload()">
+          <button
+            class="outline-button"
+            type="button"
+            onclick="location.reload()"
+          >
             ↻ Refresh
           </button>
+
         </div>
 
         <div class="stats-grid">
 
+          <!-- TOTAL USERS -->
           <article class="stat-card">
 
             <div class="stat-top">
@@ -298,6 +334,7 @@
 
           </article>
 
+          <!-- TOTAL SELLERS -->
           <article class="stat-card">
 
             <div class="stat-top">
@@ -314,6 +351,7 @@
 
           </article>
 
+          <!-- TOTAL PRODUCTS -->
           <article class="stat-card">
 
             <div class="stat-top">
@@ -330,6 +368,7 @@
 
           </article>
 
+          <!-- TOTAL ORDERS -->
           <article class="stat-card">
 
             <div class="stat-top">
@@ -354,49 +393,73 @@
       <section>
 
         <div class="section-heading quick-heading">
+
           <div>
-            <span class="section-kicker">MANAGEMENT CENTER</span>
+            <span class="section-kicker">
+              MANAGEMENT CENTER
+            </span>
+
             <h2>Quick Actions</h2>
-            <p>Access important administration tools.</p>
+
+            <p>
+              Access important administration tools.
+            </p>
           </div>
+
         </div>
 
         <div class="quick-actions-grid">
 
           <a href="pages/users.html" class="quick-action">
+
             <span class="quick-action-icon quick-green">♙</span>
+
             <span class="quick-action-copy">
               <strong>Manage Users</strong>
               <small>View user accounts</small>
             </span>
+
             <span class="quick-arrow">›</span>
+
           </a>
 
           <a href="pages/verification.html" class="quick-action">
+
             <span class="quick-action-icon quick-purple">✓</span>
+
             <span class="quick-action-copy">
               <strong>Verification</strong>
               <small>Review applications</small>
             </span>
+
             <span class="quick-arrow">›</span>
+
           </a>
 
           <a href="pages/products.html" class="quick-action">
+
             <span class="quick-action-icon quick-orange">▣</span>
+
             <span class="quick-action-copy">
               <strong>Products</strong>
               <small>Manage listings</small>
             </span>
+
             <span class="quick-arrow">›</span>
+
           </a>
 
           <a href="pages/announcements.html" class="quick-action">
+
             <span class="quick-action-icon quick-blue">◉</span>
+
             <span class="quick-action-copy">
               <strong>Announcements</strong>
               <small>Publish updates</small>
             </span>
+
             <span class="quick-arrow">›</span>
+
           </a>
 
         </div>
@@ -406,17 +469,23 @@
       <!-- LOWER DASHBOARD -->
       <section class="dashboard-lower-grid">
 
+        <!-- RECENT ORDERS -->
         <div class="panel">
 
           <div class="panel-heading">
+
             <div>
               <h3>Recent Orders</h3>
               <p>Latest marketplace transactions</p>
             </div>
 
-            <a href="pages/orders.html" class="text-button">
+            <a
+              href="pages/orders.html"
+              class="text-button"
+            >
               View All →
             </a>
+
           </div>
 
           <div class="table-wrap">
@@ -433,13 +502,21 @@
               </thead>
 
               <tbody>
+
                 <tr>
                   <td colspan="4" class="empty-table">
+
                     <span class="empty-table-icon">▤</span>
+
                     <strong>No recent orders yet</strong>
-                    <small>Orders will appear here when available.</small>
+
+                    <small>
+                      Orders will appear here when available.
+                    </small>
+
                   </td>
                 </tr>
+
               </tbody>
 
             </table>
@@ -448,47 +525,74 @@
 
         </div>
 
+        <!-- PENDING ACTIVITIES -->
         <div class="panel">
 
           <div class="panel-heading">
+
             <div>
               <h3>Pending Activities</h3>
               <p>Administration tasks</p>
             </div>
 
             <span class="panel-heading-mark">✦</span>
+
           </div>
 
-          <a href="pages/verification.html" class="task-row">
+          <a
+            href="pages/verification.html"
+            class="task-row"
+          >
+
             <span class="task-icon task-icon-green">✓</span>
+
             <span class="task-copy">
               <strong>Verification Requests</strong>
               <small>Review submitted applications</small>
             </span>
+
             <span class="task-count">→</span>
+
           </a>
 
-          <a href="pages/sellers.html" class="task-row">
+          <a
+            href="pages/sellers.html"
+            class="task-row"
+          >
+
             <span class="task-icon task-icon-purple">♧</span>
+
             <span class="task-copy">
               <strong>Seller Applications</strong>
               <small>Review seller registrations</small>
             </span>
+
             <span class="task-count">→</span>
+
           </a>
 
-          <a href="pages/orders.html" class="task-row">
+          <a
+            href="pages/orders.html"
+            class="task-row"
+          >
+
             <span class="task-icon task-icon-orange">▤</span>
+
             <span class="task-copy">
               <strong>Order Management</strong>
               <small>Monitor marketplace orders</small>
             </span>
+
             <span class="task-count">→</span>
+
           </a>
 
           <div class="tasks-footer">
+
             <span class="tasks-footer-dot"></span>
+
             Connected to ZUNE Administration
+
           </div>
 
         </div>
@@ -501,12 +605,18 @@
 
 </div>
 
-<!-- SCRIPTS -->
+<!-- SUPABASE LIBRARY -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- SUPABASE CONFIGURATION -->
 <script src="./js/config.js"></script>
+
+<!-- ADMIN DASHBOARD LOGIC -->
 <script src="./admin.js?v=3"></script>
 
+<!-- SIDEBAR AND LOGOUT -->
 <script>
+
   const menuButton = document.getElementById("menuToggle");
   const sidebar = document.getElementById("sidebar");
   const overlay = document.getElementById("sidebarOverlay");
@@ -514,44 +624,92 @@
   function closeSidebar() {
     sidebar.classList.remove("open");
     overlay.classList.remove("active");
+
+    menuButton.setAttribute("aria-expanded", "false");
   }
 
   menuButton.addEventListener("click", () => {
-    sidebar.classList.toggle("open");
-    overlay.classList.toggle("active");
+
+    const isOpen = sidebar.classList.toggle("open");
+
+    overlay.classList.toggle("active", isOpen);
+
+    menuButton.setAttribute(
+      "aria-expanded",
+      String(isOpen)
+    );
+
   });
 
   overlay.addEventListener("click", closeSidebar);
 
   document.querySelectorAll(".nav-item").forEach(item => {
+
     item.addEventListener("click", () => {
-      if (window.innerWidth <= 700) {
+
+      if (window.innerWidth <= 768) {
         closeSidebar();
       }
+
     });
+
   });
 
-  document.getElementById("logoutButton").addEventListener("click", async () => {
-    const confirmed = confirm("Are you sure you want to sign out?");
+  window.addEventListener("resize", () => {
 
-    if (!confirmed) return;
+    if (window.innerWidth > 768) {
+      closeSidebar();
+    }
 
-    try {
-      const client = window.supabase.createClient(
-        window.SUPABASE_URL,
-        window.SUPABASE_ANON_KEY
+  });
+
+  /* SIGN OUT */
+
+  document
+    .getElementById("logoutButton")
+    .addEventListener("click", async () => {
+
+      const confirmed = confirm(
+        "Are you sure you want to sign out?"
       );
 
-      const { error } = await client.auth.signOut();
+      if (!confirmed) return;
 
-      if (error) throw error;
+      try {
 
-      window.location.replace("login.html");
+        if (
+          !window.supabase ||
+          !window.SUPABASE_URL ||
+          !window.SUPABASE_ANON_KEY
+        ) {
+          throw new Error(
+            "Supabase configuration is missing."
+          );
+        }
 
-    } catch (error) {
-      alert("Unable to sign out: " + error.message);
-    }
-  });
+        const client = window.supabase.createClient(
+          window.SUPABASE_URL,
+          window.SUPABASE_ANON_KEY
+        );
+
+        const { error } = await client.auth.signOut();
+
+        if (error) {
+          throw error;
+        }
+
+        window.location.replace("login.html");
+
+      } catch (error) {
+
+        alert(
+          "Unable to sign out: " + error.message
+        );
+
+      }
+
+    });
+
 </script>
 
 </body>
