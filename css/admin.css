@@ -1862,3 +1862,35 @@ body {
     font-size: 26px;
   }
   }
+
+.add-field {
+    margin-bottom:15px;
+}
+
+.add-field label {
+    display:block;
+    font-size:13px;
+    font-weight:700;
+    margin-bottom:7px;
+}
+
+.add-field input,
+.add-field textarea {
+    width:100%;
+    padding:12px;
+    border:1px solid #dce5dd;
+    border-radius:9px;
+    font-size:14px;
+    outline:none;
+    background:#fff;
+}
+
+.add-field input:focus,
+.add-field textarea:focus {
+    border-color:#15803d;
+    box-shadow:0 0 0 3px rgba(21,128,61,.08);
+}
+
+.add-field textarea {
+    resize:vertical;
+}
