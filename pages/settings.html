@@ -1,589 +1,323 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#064e3b">
-  <title>Settings | ZUNE Premium Admin</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#064e3b">
+<title>Settings | ZUNE Premium Admin</title>
+<link rel="stylesheet" href="../css/admin.css">
 
-  <link rel="stylesheet" href="../css/admin.css">
-
-  <style>
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      background: #f4f8f5;
-      color: #17352a;
-      font-family: Arial, sans-serif;
-    }
-
-    .settings-page {
-      max-width: 1150px;
-      margin: auto;
-      padding: 28px;
-    }
-
-    .page-heading {
-      margin-bottom: 25px;
-    }
-
-    .page-heading h1 {
-      margin: 0 0 7px;
-      font-size: 27px;
-      color: #064e3b;
-    }
-
-    .page-heading p {
-      margin: 0;
-      color: #718078;
-      font-size: 14px;
-    }
-
-    .settings-layout {
-      display: grid;
-      grid-template-columns: 230px 1fr;
-      gap: 20px;
-      align-items: start;
-    }
-
-    .settings-nav,
-    .settings-panel {
-      background: white;
-      border: 1px solid #e2ebe5;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,.025);
-    }
-
-    .settings-nav {
-      padding: 12px;
-    }
-
-    .settings-nav button {
-      display: block;
-      width: 100%;
-      padding: 13px;
-      margin-bottom: 5px;
-      border: 0;
-      border-radius: 9px;
-      background: transparent;
-      text-align: left;
-      color: #52645a;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .settings-nav button.active,
-    .settings-nav button:hover {
-      background: #ecfdf5;
-      color: #087443;
-    }
-
-    .settings-panel {
-      padding: 23px;
-      min-width: 0;
-    }
-
-    .settings-section {
-      display: none;
-    }
-
-    .settings-section.active {
-      display: block;
-    }
-
-    .section-heading {
-      margin-bottom: 22px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid #edf1ee;
-    }
-
-    .section-heading h2 {
-      margin: 0 0 6px;
-      font-size: 19px;
-      color: #064e3b;
-    }
-
-    .section-heading p {
-      margin: 0;
-      font-size: 13px;
-      color: #718078;
-      line-height: 1.5;
-    }
-
-    .setting-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 15px;
-      padding: 17px 0;
-      border-bottom: 1px solid #edf1ee;
-    }
-
-    .setting-row:last-child {
-      border-bottom: 0;
-    }
-
-    .setting-info {
-      min-width: 0;
-    }
-
-    .setting-info strong {
-      display: block;
-      font-size: 14px;
-      margin-bottom: 5px;
-    }
-
-    .setting-info small {
-      display: block;
-      color: #718078;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    .switch {
-      width: 48px;
-      height: 27px;
-      position: relative;
-      flex-shrink: 0;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .switch span {
-      position: absolute;
-      inset: 0;
-      background: #cbd5cf;
-      border-radius: 30px;
-      cursor: pointer;
-      transition: .2s;
-    }
-
-    .switch span:before {
-      content: "";
-      position: absolute;
-      width: 19px;
-      height: 19px;
-      left: 4px;
-      top: 4px;
-      background: white;
-      border-radius: 50%;
-      transition: .2s;
-    }
-
-    .switch input:checked + span {
-      background: #087443;
-    }
-
-    .switch input:checked + span:before {
-      transform: translateX(21px);
-    }
-
-    .field {
-      margin-bottom: 17px;
-    }
-
-    .field label {
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      color: #52645a;
-      margin-bottom: 7px;
-    }
-
-    .field input,
-    .field select {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #dce6df;
-      border-radius: 9px;
-      outline: none;
-      background: white;
-      color: #17352a;
-      font: inherit;
-    }
-
-    .field input:focus,
-    .field select:focus {
-      border-color: #087443;
-      box-shadow: 0 0 0 3px rgba(8,116,67,.08);
-    }
-
-    .btn {
-      border: 0;
-      background: #087443;
-      color: white;
-      padding: 12px 18px;
-      border-radius: 9px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .btn:hover { background: #064e3b; }
-
-    .btn.secondary {
-      background: #ecfdf5;
-      color: #087443;
-      border: 1px solid #bbebd0;
-    }
-
-    .btn.danger {
-      background: #dc2626;
-    }
-
-    .info-card {
-      padding: 15px;
-      background: #ecfdf5;
-      border: 1px solid #bbebd0;
-      border-radius: 10px;
-      color: #166534;
-      font-size: 13px;
-      line-height: 1.6;
-      margin-bottom: 18px;
-    }
-
-    .warning-card {
-      padding: 15px;
-      background: #fffbeb;
-      border: 1px solid #f5df9b;
-      border-radius: 10px;
-      color: #854d0e;
-      font-size: 13px;
-      line-height: 1.6;
-      margin-bottom: 18px;
-    }
-
-    .message {
-      display: none;
-      padding: 12px;
-      border-radius: 9px;
-      margin-bottom: 17px;
-      font-size: 13px;
-    }
-
-    .message.success {
-      display: block;
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .message.error {
-      display: block;
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .system-list {
-      display: grid;
-      grid-template-columns: 150px 1fr;
-      gap: 13px;
-      font-size: 13px;
-      padding: 13px 0;
-      border-bottom: 1px solid #edf1ee;
-    }
-
-    .system-list span:first-child {
-      color: #718078;
-    }
-
-    .system-list strong {
-      overflow-wrap: anywhere;
-    }
-
-    .status-online {
-      color: #15803d;
-    }
-
-    @media(max-width: 750px) {
-      .settings-page { padding: 16px; }
-
-      .settings-layout {
-        grid-template-columns: 1fr;
-      }
-
-      .settings-nav {
-        display: flex;
-        gap: 5px;
-        overflow-x: auto;
-      }
-
-      .settings-nav button {
-        width: auto;
-        min-width: max-content;
-        margin: 0;
-      }
-
-      .settings-panel {
-        padding: 17px;
-      }
-    }
-
-    @media(max-width: 480px) {
-      .setting-row {
-        align-items: flex-start;
-      }
-
-      .system-list {
-        grid-template-columns: 1fr;
-        gap: 5px;
-      }
-    }
-  </style>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f8f5;color:#17352a;font-family:Arial,sans-serif}
+.settings-page{max-width:1150px;margin:auto;padding:28px}
+.page-heading{margin-bottom:25px}
+.page-heading h1{margin:0 0 7px;font-size:27px;color:#064e3b}
+.page-heading p{margin:0;color:#718078;font-size:14px}
+.settings-layout{display:grid;grid-template-columns:230px 1fr;gap:20px;align-items:start}
+.settings-nav,.settings-panel{background:white;border:1px solid #e2ebe5;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.025)}
+.settings-nav{padding:12px}
+.settings-nav button{display:block;width:100%;padding:13px;margin-bottom:5px;border:0;border-radius:9px;background:transparent;text-align:left;color:#52645a;font-weight:700;cursor:pointer}
+.settings-nav button.active,.settings-nav button:hover{background:#ecfdf5;color:#087443}
+.settings-panel{padding:23px;min-width:0}
+.settings-section{display:none}
+.settings-section.active{display:block}
+.section-heading{margin-bottom:22px;padding-bottom:15px;border-bottom:1px solid #edf1ee}
+.section-heading h2{margin:0 0 6px;font-size:19px;color:#064e3b}
+.section-heading p{margin:0;font-size:13px;color:#718078;line-height:1.5}
+.setting-row{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:17px 0;border-bottom:1px solid #edf1ee}
+.setting-info{min-width:0}
+.setting-info strong{display:block;font-size:14px;margin-bottom:5px}
+.setting-info small{display:block;color:#718078;font-size:12px;line-height:1.5}
+.switch{width:48px;height:27px;position:relative;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch span{position:absolute;inset:0;background:#cbd5cf;border-radius:30px;cursor:pointer;transition:.2s}
+.switch span:before{content:"";position:absolute;width:19px;height:19px;left:4px;top:4px;background:white;border-radius:50%;transition:.2s}
+.switch input:checked+span{background:#087443}
+.switch input:checked+span:before{transform:translateX(21px)}
+.field{margin-bottom:17px}
+.field label{display:block;font-size:12px;font-weight:700;color:#52645a;margin-bottom:7px}
+.field input,.field select{width:100%;padding:12px;border:1px solid #dce6df;border-radius:9px;outline:none;background:white;color:#17352a;font:inherit}
+.field input:focus,.field select:focus{border-color:#087443;box-shadow:0 0 0 3px rgba(8,116,67,.08)}
+.btn{display:inline-block;border:0;background:#087443;color:white;padding:12px 18px;border-radius:9px;font-weight:700;cursor:pointer;text-decoration:none}
+.btn:hover{background:#064e3b}
+.btn.secondary{background:#ecfdf5;color:#087443;border:1px solid #bbebd0}
+.btn.danger{background:#dc2626}
+.info-card,.warning-card{padding:15px;border-radius:10px;font-size:13px;line-height:1.6;margin-bottom:18px}
+.info-card{background:#ecfdf5;border:1px solid #bbebd0;color:#166534}
+.warning-card{background:#fffbeb;border:1px solid #f5df9b;color:#854d0e}
+.message{display:none;padding:12px;border-radius:9px;margin-bottom:17px;font-size:13px}
+.message.success{display:block;background:#dcfce7;color:#166534}
+.message.error{display:block;background:#fee2e2;color:#991b1b}
+.system-list{display:grid;grid-template-columns:150px 1fr;gap:13px;font-size:13px;padding:13px 0;border-bottom:1px solid #edf1ee}
+.system-list span:first-child{color:#718078}
+.system-list strong{overflow-wrap:anywhere}
+.status-online{color:#15803d}
+.support-card{border:1px solid #dcebe1;border-radius:13px;padding:18px;margin-bottom:14px;display:flex;align-items:center;gap:14px}
+.support-icon{width:46px;height:46px;border-radius:12px;background:#ecfdf5;color:#087443;display:grid;place-items:center;font-size:23px;flex-shrink:0}
+.support-info{flex:1;min-width:0}
+.support-info strong{display:block;font-size:14px;margin-bottom:5px}
+.support-info small{color:#718078;font-size:12px;line-height:1.5}
+.support-arrow{font-size:22px;color:#087443}
+@media(max-width:750px){
+.settings-page{padding:16px}
+.settings-layout{grid-template-columns:1fr}
+.settings-nav{display:flex;gap:5px;overflow-x:auto}
+.settings-nav button{width:auto;min-width:max-content;margin:0}
+.settings-panel{padding:17px}
+}
+@media(max-width:480px){
+.setting-row{align-items:flex-start}
+.system-list{grid-template-columns:1fr;gap:5px}
+}
+</style>
 </head>
 
 <body>
-
 <main class="settings-page">
 
-  <header class="page-heading">
-    <h1>System Settings</h1>
-    <p>Manage your admin dashboard preferences and account options.</p>
-  </header>
+<header class="page-heading">
+<h1>System Settings</h1>
+<p>Manage your ZUNE Premium Admin workspace.</p>
+</header>
 
-  <div id="messageBox" class="message"></div>
+<div id="messageBox" class="message"></div>
 
-  <div class="settings-layout">
+<div class="settings-layout">
 
-    <!-- SETTINGS NAVIGATION -->
-    <nav class="settings-nav">
-      <button class="active" data-section="general">⚙ General</button>
-      <button data-section="appearance">◐ Appearance</button>
-      <button data-section="notifications">♧ Notifications</button>
-      <button data-section="security">♜ Security</button>
-      <button data-section="system">▣ System Information</button>
-    </nav>
+<nav class="settings-nav">
+<button class="active" data-section="general">⚙ General</button>
+<button data-section="appearance">◐ Appearance</button>
+<button data-section="notifications">♧ Notifications</button>
+<button data-section="security">♜ Security</button>
+<button data-section="support">🎧 Help & Support</button>
+<button data-section="system">▣ System Information</button>
+</nav>
 
-    <!-- SETTINGS CONTENT -->
-    <div class="settings-panel">
+<div class="settings-panel">
 
-      <!-- GENERAL -->
-      <section class="settings-section active" id="general">
+<section class="settings-section active" id="general">
+<div class="section-heading">
+<h2>General Settings</h2>
+<p>Basic preferences for your administration workspace.</p>
+</div>
 
-        <div class="section-heading">
-          <h2>General Settings</h2>
-          <p>Basic preferences for your administration workspace.</p>
-        </div>
+<div class="setting-row">
+<div class="setting-info">
+<strong>Dashboard language</strong>
+<small>Choose your preferred language.</small>
+</div>
+<select id="languageSelect" style="max-width:145px;padding:9px;border:1px solid #dce6df;border-radius:8px">
+<option value="en">English</option>
+<option value="sw">Kiswahili</option>
+</select>
+</div>
 
-        <div class="setting-row">
-          <div class="setting-info">
-            <strong>Dashboard language</strong>
-            <small>Choose the language used for this settings page.</small>
-          </div>
+<div class="setting-row">
+<div class="setting-info">
+<strong>Confirm before important actions</strong>
+<small>Ask for confirmation before signing out.</small>
+</div>
+<label class="switch">
+<input type="checkbox" id="confirmActions" checked>
+<span></span>
+</label>
+</div>
 
-          <select id="languageSelect" style="max-width:145px;padding:9px;border:1px solid #dce6df;border-radius:8px;">
-            <option value="en">English</option>
-            <option value="sw">Kiswahili</option>
-          </select>
-        </div>
+<div style="margin-top:20px">
+<button class="btn" id="saveGeneral">Save Preferences</button>
+</div>
+</section>
 
-        <div class="setting-row">
-          <div class="setting-info">
-            <strong>Confirm before important actions</strong>
-            <small>Show a confirmation before actions such as signing out.</small>
-          </div>
+<section class="settings-section" id="appearance">
+<div class="section-heading">
+<h2>Appearance</h2>
+<p>Change the dashboard theme and layout preferences.</p>
+</div>
 
-          <label class="switch">
-            <input type="checkbox" id="confirmActions" checked>
-            <span></span>
-          </label>
-        </div>
+<div class="field">
+<label for="themeSelect">Dashboard Theme</label>
+<select id="themeSelect">
+<option value="light">Light Theme</option>
+<option value="dark">Dark Theme</option>
+</select>
+</div>
 
-        <div style="margin-top:20px">
-          <button class="btn" id="saveGeneral">Save Preferences</button>
-        </div>
+<div class="setting-row">
+<div class="setting-info">
+<strong>Compact layout</strong>
+<small>Use a more compact layout where supported.</small>
+</div>
+<label class="switch">
+<input type="checkbox" id="compactLayout">
+<span></span>
+</label>
+</div>
 
-      </section>
+<div class="info-card" style="margin-top:18px">
+Theme settings are currently saved on this device. Applying the theme across every admin page requires the shared admin theme stylesheet and script.
+</div>
 
-      <!-- APPEARANCE -->
-      <section class="settings-section" id="appearance">
+<button class="btn" id="saveAppearance">Save Appearance</button>
+</section>
 
-        <div class="section-heading">
-          <h2>Appearance</h2>
-          <p>Change how the admin dashboard looks on this device.</p>
-        </div>
+<section class="settings-section" id="notifications">
+<div class="section-heading">
+<h2>Notification Preferences</h2>
+<p>Choose which dashboard alerts you want to see.</p>
+</div>
 
-        <div class="field">
-          <label for="themeSelect">Dashboard Theme</label>
-          <select id="themeSelect">
-            <option value="light">Light Theme</option>
-            <option value="dark">Dark Theme</option>
-          </select>
-        </div>
+<div class="info-card">
+These preferences affect this browser only. They do not change notifications sent to marketplace customers.
+</div>
 
-        <div class="setting-row">
-          <div class="setting-info">
-            <strong>Compact layout</strong>
-            <small>Use a more compact layout where supported.</small>
-          </div>
+<div class="setting-row">
+<div class="setting-info">
+<strong>Seller application alerts</strong>
+<small>Alerts for seller application activity.</small>
+</div>
+<label class="switch">
+<input type="checkbox" id="sellerAlerts" checked>
+<span></span>
+</label>
+</div>
 
-          <label class="switch">
-            <input type="checkbox" id="compactLayout">
-            <span></span>
-          </label>
-        </div>
+<div class="setting-row">
+<div class="setting-info">
+<strong>Verification alerts</strong>
+<small>Alerts for verification activity.</small>
+</div>
+<label class="switch">
+<input type="checkbox" id="verificationAlerts" checked>
+<span></span>
+</label>
+</div>
 
-        <div style="margin-top:20px">
-          <button class="btn" id="saveAppearance">Save Appearance</button>
-        </div>
+<div class="setting-row">
+<div class="setting-info">
+<strong>Order alerts</strong>
+<small>Alerts for new order activity.</small>
+</div>
+<label class="switch">
+<input type="checkbox" id="orderAlerts" checked>
+<span></span>
+</label>
+</div>
 
-      </section>
+<div style="margin-top:20px">
+<button class="btn" id="saveNotifications">Save Preferences</button>
+</div>
+</section>
 
-      <!-- NOTIFICATIONS -->
-      <section class="settings-section" id="notifications">
+<section class="settings-section" id="security">
+<div class="section-heading">
+<h2>Security Settings</h2>
+<p>Manage your administrator account security.</p>
+</div>
 
-        <div class="section-heading">
-          <h2>Notification Preferences</h2>
-          <p>Choose which dashboard alerts you want to see on this device.</p>
-        </div>
+<div class="warning-card">
+Never share your password or Supabase secret keys. This dashboard uses Supabase authentication and database permissions.
+</div>
 
-        <div class="info-card">
-          These preferences affect this browser only. They do not change
-          notifications sent to marketplace customers.
-        </div>
+<div class="setting-row">
+<div class="setting-info">
+<strong>Admin Account</strong>
+<small>Manage your profile and password.</small>
+</div>
+<a href="account.html" class="btn secondary">Open Account</a>
+</div>
 
-        <div class="setting-row">
-          <div class="setting-info">
-            <strong>Seller application alerts</strong>
-            <small>Show dashboard alerts for seller application activity.</small>
-          </div>
+<div class="setting-row">
+<div class="setting-info">
+<strong>Active login session</strong>
+<small>Sign out of this admin session.</small>
+</div>
+<button class="btn danger" id="securityLogout">Sign Out</button>
+</div>
+</section>
 
-          <label class="switch">
-            <input type="checkbox" id="sellerAlerts" checked>
-            <span></span>
-          </label>
-        </div>
-
-        <div class="setting-row">
-          <div class="setting-info">
-            <strong>Verification alerts</strong>
-            <small>Show dashboard alerts for verification activity.</small>
-          </div>
-
-          <label class="switch">
-            <input type="checkbox" id="verificationAlerts" checked>
-            <span></span>
-          </label>
-        </div>
-
-        <div class="setting-row">
-          <div class="setting-info">
-            <strong>Order alerts</strong>
-            <small>Show dashboard alerts for new order activity.</small>
-          </div>
-
-          <label class="switch">
-            <input type="checkbox" id="orderAlerts" checked>
-            <span></span>
-          </label>
-        </div>
-
-        <div style="margin-top:20px">
-          <button class="btn" id="saveNotifications">Save Preferences</button>
-        </div>
-
-      </section>
-
-      <!-- SECURITY -->
-      <section class="settings-section" id="security">
-
-        <div class="section-heading">
-          <h2>Security Settings</h2>
-          <p>Manage your administrator account security.</p>
-        </div>
-
-        <div class="warning-card">
-          Never share your password or Supabase secret keys. This dashboard
-          uses Supabase authentication and database permissions.
-        </div>
-
-        <div class="setting-row">
-          <div class="setting-info">
-            <strong>Admin Account</strong>
-            <small>Manage your profile and password.</small>
-          </div>
-
-          <a href="account.html" class="btn secondary"
-             style="text-decoration:none;white-space:nowrap">
-            Open Account
-          </a>
-        </div>
-
-        <div class="setting-row">
-          <div class="setting-info">
-            <strong>Active login session</strong>
-            <small>Sign out of this admin session.</small>
-          </div>
-
-          <button class="btn danger" id="securityLogout">Sign Out</button>
-        </div>
-
-      </section>
-
-      <!-- SYSTEM -->
-      <section class="settings-section" id="system">
-
-        <div class="section-heading">
-          <h2>System Information</h2>
-          <p>Information about this administration workspace.</p>
-        </div>
-
-        <div class="system-list">
-          <span>Platform</span>
-          <strong>ZUNE Marketplace</strong>
-        </div>
-
-        <div class="system-list">
-          <span>Dashboard</span>
-          <strong>Premium Admin</strong>
-        </div>
-
-        <div class="system-list">
-          <span>Version</span>
-          <strong>1.0.0</strong>
-        </div>
-
-        <div class="system-list">
-          <span>Database</span>
-          <strong>Supabase</strong>
-        </div>
-
-        <div class="system-list">
-          <span>Authentication</span>
-          <strong>Supabase Auth</strong>
-        </div>
-
-        <div class="system-list">
-          <span>Connection</span>
-          <strong class="status-online">● Configured</strong>
-        </div>
-
-        <div class="system-list">
-          <span>Browser</span>
-          <strong id="browserInfo">Detecting...</strong>
-        </div>
-
-        <div class="system-list">
-          <span>Last checked</span>
-          <strong id="lastChecked">—</strong>
-        </div>
-
-        <p class="muted" style="margin-top:18px">
-          System information is displayed for reference. It does not
-          change your database configuration.
-        </p>
-
-      </section>
-
-    </div>
+<!-- HELP & SUPPORT -->
+<section class="settings-section" id="support">
+  <div class="section-heading">
+    <h2>Help & Support</h2>
+    <p>Manage customer reports, support tickets and assistance.</p>
   </div>
 
-  <footer style="text-align:center;color:#87948d;font-size:12px;padding:22px">
-    © 2026 ZUNE Marketplace · Premium Admin
-  </footer>
+  <div class="info-card">
+    View customer reports, review their messages and send replies from the Support Tickets page.
+  </div>
+
+  <a href="support-tickets.html" class="support-card" style="text-decoration:none;color:inherit">
+    <div class="support-icon">🎧</div>
+    <div class="support-info">
+      <strong>Support Tickets</strong>
+      <small>View customer reports, open tickets and respond to customers.</small>
+    </div>
+    <span class="support-arrow">›</span>
+  </a>
+
+  <a href="support-tickets.html" class="support-card" style="text-decoration:none;color:inherit">
+    <div class="support-icon">💬</div>
+    <div class="support-info">
+      <strong>Customer Support</strong>
+      <small>Manage customer questions and support requests.</small>
+    </div>
+    <span class="support-arrow">›</span>
+  </a>
+
+  <div class="warning-card">
+    Make sure support-tickets.html exists in the same folder as settings.html.
+  </div>
+</section>
+
+<!-- SYSTEM INFORMATION -->
+<section class="settings-section" id="system">
+  <div class="section-heading">
+    <h2>System Information</h2>
+    <p>Information about this administration workspace.</p>
+  </div>
+
+  <div class="system-list">
+    <span>Platform</span>
+    <strong>ZUNE Marketplace</strong>
+  </div>
+  <div class="system-list">
+    <span>Dashboard</span>
+    <strong>Premium Admin</strong>
+  </div>
+  <div class="system-list">
+    <span>Version</span>
+    <strong>1.0.0</strong>
+  </div>
+  <div class="system-list">
+    <span>Database</span>
+    <strong>Supabase</strong>
+  </div>
+  <div class="system-list">
+    <span>Authentication</span>
+    <strong>Supabase Auth</strong>
+  </div>
+  <div class="system-list">
+    <span>Connection</span>
+    <strong class="status-online">● Configured</strong>
+  </div>
+  <div class="system-list">
+    <span>Browser</span>
+    <strong id="browserInfo">Detecting...</strong>
+  </div>
+  <div class="system-list">
+    <span>Last checked</span>
+    <strong id="lastChecked">—</strong>
+  </div>
+</section>
+
+</div>
+</div>
+
+<footer style="text-align:center;color:#87948d;font-size:12px;padding:22px">
+© 2026 ZUNE Marketplace · Premium Admin
+</footer>
 
 </main>
 
@@ -592,248 +326,230 @@
 
 <script>
 (async function () {
-  "use strict";
+"use strict";
 
-  const $ = id => document.getElementById(id);
+const $ = id => document.getElementById(id);
 
-  const URL = window.SUPABASE_URL;
-  const KEY = window.SUPABASE_ANON_KEY;
+const URL = window.SUPABASE_URL;
+const KEY = window.SUPABASE_PUBLISHABLE_KEY || window.SUPABASE_ANON_KEY;
 
-  let db;
+const STORAGE_KEY = "zune_admin_preferences";
 
-  const STORAGE_KEY = "zune_admin_preferences";
+const defaults = {
+  language: "en",
+  confirmActions: true,
+  theme: "light",
+  compactLayout: false,
+  sellerAlerts: true,
+  verificationAlerts: true,
+  orderAlerts: true
+};
 
-  const defaults = {
-    language: "en",
-    confirmActions: true,
-    theme: "light",
-    compactLayout: false,
-    sellerAlerts: true,
-    verificationAlerts: true,
-    orderAlerts: true
-  };
+let preferences = getPreferences();
+let db;
 
-  function getPreferences() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+function getPreferences() {
+  try {
+    return {
+      ...defaults,
+      ...JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}")
+    };
+  } catch {
+    return { ...defaults };
+  }
+}
 
-      return {
-        ...defaults,
-        ...saved
-      };
-    } catch {
-      return { ...defaults };
-    }
+function showMessage(message, type = "success") {
+  const box = $("messageBox");
+  box.textContent = message;
+  box.className = "message " + type;
+
+  setTimeout(() => {
+    box.className = "message";
+  }, 4500);
+}
+
+function savePreferences() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+    return true;
+  } catch {
+    showMessage("Could not save preferences on this device.", "error");
+    return false;
+  }
+}
+
+function applyTheme() {
+  const dark = preferences.theme === "dark";
+
+  document.body.style.background = dark ? "#10231b" : "#f4f8f5";
+  document.body.style.color = dark ? "#e5f2e9" : "#17352a";
+
+  document.querySelectorAll(".settings-nav,.settings-panel").forEach(el => {
+    el.style.background = dark ? "#183629" : "#ffffff";
+    el.style.borderColor = dark ? "#315443" : "#e2ebe5";
+  });
+
+  document.querySelectorAll(".section-heading h2").forEach(el => {
+    el.style.color = dark ? "#bbf7d0" : "#064e3b";
+  });
+
+  document.querySelectorAll(".setting-info strong").forEach(el => {
+    el.style.color = dark ? "#e5f2e9" : "#17352a";
+  });
+
+  document.querySelectorAll(".setting-info small,.section-heading p").forEach(el => {
+    el.style.color = dark ? "#b6c9bd" : "#718078";
+  });
+
+  document.querySelectorAll(".support-card").forEach(el => {
+    el.style.background = dark ? "#183629" : "#ffffff";
+    el.style.borderColor = dark ? "#315443" : "#dcebe1";
+  });
+}
+
+function applyCompactLayout() {
+  document.querySelector(".settings-page").style.padding =
+    preferences.compactLayout ? "14px" : "";
+
+  document.querySelector(".settings-panel").style.padding =
+    preferences.compactLayout ? "14px" : "";
+}
+
+function fillForm() {
+  $("languageSelect").value = preferences.language;
+  $("confirmActions").checked = preferences.confirmActions;
+  $("themeSelect").value = preferences.theme;
+  $("compactLayout").checked = preferences.compactLayout;
+  $("sellerAlerts").checked = preferences.sellerAlerts;
+  $("verificationAlerts").checked = preferences.verificationAlerts;
+  $("orderAlerts").checked = preferences.orderAlerts;
+
+  applyTheme();
+  applyCompactLayout();
+}
+
+function readGeneral() {
+  preferences.language = $("languageSelect").value;
+  preferences.confirmActions = $("confirmActions").checked;
+}
+
+function readAppearance() {
+  preferences.theme = $("themeSelect").value;
+  preferences.compactLayout = $("compactLayout").checked;
+}
+
+function readNotifications() {
+  preferences.sellerAlerts = $("sellerAlerts").checked;
+  preferences.verificationAlerts = $("verificationAlerts").checked;
+  preferences.orderAlerts = $("orderAlerts").checked;
+}
+
+async function verifyAdmin() {
+  const { data, error } = await db.auth.getUser();
+
+  if (error || !data.user) {
+    location.href = "../login.html";
+    return false;
   }
 
-  let preferences = getPreferences();
+  const { data: profile, error: profileError } = await db
+    .from("profiles")
+    .select("role")
+    .eq("id", data.user.id)
+    .maybeSingle();
 
-  function savePreferences() {
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(preferences)
-      );
-
-      return true;
-    } catch {
-      showMessage("Could not save preferences on this device.", "error");
-      return false;
-    }
+  if (profileError) {
+    throw new Error("Unable to verify admin permissions: " + profileError.message);
   }
 
-  function showMessage(message, type = "success") {
-    const box = $("messageBox");
-
-    box.textContent = message;
-    box.className = "message " + type;
-
-    setTimeout(() => {
-      box.className = "message";
-    }, 4500);
+  if (!profile || profile.role !== "admin") {
+    document.body.innerHTML = `
+      <div style="font-family:Arial;text-align:center;padding:50px">
+        <h2>Access Restricted</h2>
+        <p>Administrator permission is required.</p>
+        <a href="../login.html">Return to Login</a>
+      </div>`;
+    return false;
   }
 
-  function applyTheme() {
-    document.documentElement.dataset.theme = preferences.theme;
+  return true;
+}
 
-    if (preferences.theme === "dark") {
-      document.body.style.background = "#10231b";
-      document.body.style.color = "#e5f2e9";
+async function signOut() {
+  if (preferences.confirmActions &&
+      !confirm("Are you sure you want to sign out?")) return;
 
-      document.querySelectorAll(
-        ".settings-nav, .settings-panel, .stat-card"
-      ).forEach(element => {
-        element.style.background = "#183629";
-        element.style.borderColor = "#315443";
-      });
-    } else {
-      document.body.style.background = "#f4f8f5";
-      document.body.style.color = "#17352a";
+  $("securityLogout").disabled = true;
 
-      document.querySelectorAll(
-        ".settings-nav, .settings-panel, .stat-card"
-      ).forEach(element => {
-        element.style.background = "white";
-        element.style.borderColor = "#e2ebe5";
-      });
-    }
+  const { error } = await db.auth.signOut();
+
+  if (error) {
+    showMessage("Sign out failed: " + error.message, "error");
+    $("securityLogout").disabled = false;
+    return;
   }
 
-  function applyCompactLayout() {
-    document.querySelector(".settings-page").style.padding =
-      preferences.compactLayout ? "14px" : "28px";
+  location.href = "../login.html";
+}
 
-    document.querySelectorAll(".settings-panel, .settings-nav").forEach(el => {
-      el.style.padding = preferences.compactLayout ? "14px" : "";
-    });
-  }
+// SETTINGS NAVIGATION
+document.querySelectorAll(".settings-nav button").forEach(button => {
+  button.addEventListener("click", () => {
+    const target = button.dataset.section;
+    const section = $(target);
 
-  function fillForm() {
-    $("languageSelect").value = preferences.language;
-    $("confirmActions").checked = preferences.confirmActions;
+    if (!section) return;
 
-    $("themeSelect").value = preferences.theme;
-    $("compactLayout").checked = preferences.compactLayout;
+    document.querySelectorAll(".settings-nav button")
+      .forEach(item => item.classList.remove("active"));
 
-    $("sellerAlerts").checked = preferences.sellerAlerts;
-    $("verificationAlerts").checked = preferences.verificationAlerts;
-    $("orderAlerts").checked = preferences.orderAlerts;
+    document.querySelectorAll(".settings-section")
+      .forEach(item => item.classList.remove("active"));
 
+    button.classList.add("active");
+    section.classList.add("active");
+  });
+});
+
+$("saveGeneral").addEventListener("click", () => {
+  readGeneral();
+  if (savePreferences()) showMessage("General preferences saved.");
+});
+
+$("saveAppearance").addEventListener("click", () => {
+  readAppearance();
+
+  if (savePreferences()) {
     applyTheme();
     applyCompactLayout();
+    showMessage("Appearance preferences saved on this device.");
+  }
+});
+
+$("saveNotifications").addEventListener("click", () => {
+  readNotifications();
+  if (savePreferences()) showMessage("Notification preferences saved.");
+});
+
+$("securityLogout").addEventListener("click", signOut);
+
+$("browserInfo").textContent = navigator.userAgent;
+$("lastChecked").textContent = new Date().toLocaleString();
+
+try {
+  if (!URL || !KEY || !window.supabase) {
+    throw new Error("Supabase configuration is missing. Check js/config.js.");
   }
 
-  function readGeneral() {
-    preferences.language = $("languageSelect").value;
-    preferences.confirmActions = $("confirmActions").checked;
+  db = window.supabase.createClient(URL, KEY);
+
+  if (await verifyAdmin()) {
+    fillForm();
   }
-
-  function readAppearance() {
-    preferences.theme = $("themeSelect").value;
-    preferences.compactLayout = $("compactLayout").checked;
-  }
-
-  function readNotifications() {
-    preferences.sellerAlerts = $("sellerAlerts").checked;
-    preferences.verificationAlerts = $("verificationAlerts").checked;
-    preferences.orderAlerts = $("orderAlerts").checked;
-  }
-
-  async function verifyAdmin() {
-    const { data: authData, error: authError } =
-      await db.auth.getUser();
-
-    if (authError || !authData.user) {
-      location.href = "../login.html";
-      return false;
-    }
-
-    const { data: profile, error } = await db
-      .from("profiles")
-      .select("role")
-      .eq("id", authData.user.id)
-      .maybeSingle();
-
-    if (error) {
-      throw new Error("Unable to verify admin permissions: " + error.message);
-    }
-
-    if (!profile || profile.role !== "admin") {
-      document.body.innerHTML = `
-        <div style="font-family:Arial;text-align:center;padding:50px">
-          <h2>Access Restricted</h2>
-          <p>Administrator permission is required.</p>
-          <a href="../login.html">Return to Login</a>
-        </div>
-      `;
-
-      return false;
-    }
-
-    return true;
-  }
-
-  async function signOut() {
-    if (preferences.confirmActions) {
-      if (!confirm("Are you sure you want to sign out?")) return;
-    }
-
-    $("securityLogout").disabled = true;
-
-    const { error } = await db.auth.signOut();
-
-    if (error) {
-      showMessage("Sign out failed: " + error.message, "error");
-      $("securityLogout").disabled = false;
-      return;
-    }
-
-    location.href = "../login.html";
-  }
-
-  // SETTINGS NAVIGATION
-  document.querySelectorAll(".settings-nav button").forEach(button => {
-    button.addEventListener("click", () => {
-      const target = button.dataset.section;
-
-      document.querySelectorAll(".settings-nav button")
-        .forEach(item => item.classList.remove("active"));
-
-      document.querySelectorAll(".settings-section")
-        .forEach(section => section.classList.remove("active"));
-
-      button.classList.add("active");
-      $(target).classList.add("active");
-    });
-  });
-
-  $("saveGeneral").addEventListener("click", () => {
-    readGeneral();
-
-    if (savePreferences()) {
-      showMessage("General preferences saved on this device.");
-    }
-  });
-
-  $("saveAppearance").addEventListener("click", () => {
-    readAppearance();
-
-    if (savePreferences()) {
-      applyTheme();
-      applyCompactLayout();
-      showMessage("Appearance preferences saved.");
-    }
-  });
-
-  $("saveNotifications").addEventListener("click", () => {
-    readNotifications();
-
-    if (savePreferences()) {
-      showMessage("Notification preferences saved.");
-    }
-  });
-
-  $("securityLogout").addEventListener("click", signOut);
-
-  $("browserInfo").textContent = navigator.userAgent;
-  $("lastChecked").textContent = new Date().toLocaleString();
-
-  try {
-    if (!URL || !KEY || !window.supabase) {
-      throw new Error("Supabase configuration is missing. Check js/config.js.");
-    }
-
-    db = window.supabase.createClient(URL, KEY);
-
-    const allowed = await verifyAdmin();
-
-    if (allowed) {
-      fillForm();
-    }
-
-  } catch (error) {
-    showMessage(error.message, "error");
-  }
+} catch (error) {
+  showMessage(error.message, "error");
+}
 
 })();
 </script>
