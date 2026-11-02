@@ -32,9 +32,7 @@
       font-family: Arial, sans-serif;
     }
 
-    button,
-    input,
-    select {
+    button, input, select {
       font: inherit;
     }
 
@@ -215,12 +213,11 @@
 
     table {
       width: 100%;
-      min-width: 1050px;
+      min-width: 1100px;
       border-collapse: collapse;
     }
 
-    th,
-    td {
+    th, td {
       padding: 14px 12px;
       text-align: left;
       border-bottom: 1px solid #edf0ed;
@@ -297,6 +294,12 @@
     .approve-btn {
       background: #e5f7eb;
       color: #147239;
+    }
+
+    .activate-btn {
+      background: #dcefe3;
+      color: #14532d;
+      border: 1px solid #b9ddc5;
     }
 
     .reject-btn {
@@ -406,6 +409,7 @@
     .modal-actions {
       display: flex;
       justify-content: flex-end;
+      flex-wrap: wrap;
       gap: 9px;
       margin-top: 20px;
     }
@@ -421,6 +425,11 @@
     .modal-approve {
       background: var(--green);
       color: white;
+    }
+
+    .modal-activate {
+      background: #dcefe3;
+      color: #14532d;
     }
 
     .modal-reject {
@@ -557,6 +566,7 @@
 
     <div class="panel-heading">
       <h2>Seller Applications</h2>
+
       <span class="record-count" id="recordCount">
         0 records
       </span>
@@ -626,7 +636,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
   // =====================================================
-  // 1. ELEMENTS
+  // 1. ELEMENTS AND VARIABLES
   // =====================================================
 
   const message = document.getElementById("message");
@@ -642,11 +652,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let client = null;
   let sellers = [];
-  let selectedSellerId = null;
+  let profileRoles = new Map();
   let isUpdating = false;
 
   // =====================================================
-  // 2. UTILITIES
+  // 2. SECURITY AND UTILITIES
   // =====================================================
 
   function escapeHTML(value) {
@@ -676,7 +686,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // =====================================================
-  // 3. VERIFY ADMIN
+  // 3. VERIFY ADMIN SESSION
   // =====================================================
 
   async function verifyAdmin() {
@@ -685,7 +695,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       error: sessionError
     } = await client.auth.getSession();
 
-    if (sessionError) throw sessionError;
+    if (sessionError) {
+      throw sessionError;
+    }
 
     const user = sessionData.session?.user;
 
@@ -703,7 +715,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       .eq("id", user.id)
       .single();
 
-    if (profileError) throw profileError;
+    if (profileError) {
+      throw profileError;
+    }
 
     if (!profile || profile.role !== "admin") {
       await client.auth.signOut();
@@ -715,7 +729,44 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // =====================================================
-  // 4. UPDATE STATISTICS
+  // 4. LOAD PROFILE ROLES
+  // =====================================================
+
+  async function loadProfileRoles() {
+    const userIds = [
+      ...new Set(
+        sellers
+          .map(seller => seller.user_id)
+          .filter(Boolean)
+      )
+    ];
+
+    profileRoles = new Map();
+
+    if (!userIds.length) return;
+
+    const {
+      data,
+      error
+    } = await client
+      .from("profiles")
+      .select("id, role")
+      .in("id", userIds);
+
+    if (error) {
+      throw error;
+    }
+
+    (data || []).forEach(profile => {
+      profileRoles.set(
+        profile.id,
+        profile.role
+      );
+    });
+  }
+
+  // =====================================================
+  // 5. UPDATE STATISTICS
   // =====================================================
 
   function updateStats() {
@@ -739,7 +790,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // =====================================================
-  // 5. RENDER SELLERS
+  // 6. RENDER SELLER APPLICATIONS
   // =====================================================
 
   function renderSellers(list) {
@@ -759,6 +810,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     table.innerHTML = list.map(seller => {
       const status = normalizedStatus(seller.status);
+      const role = profileRoles.get(seller.user_id);
 
       const location = [
         seller.city,
@@ -794,6 +846,26 @@ document.addEventListener("DOMContentLoaded", async () => {
             data-id="${escapeHTML(seller.id)}">
             ✕ Reject
           </button>
+        `;
+      }
+
+      if (status === "approved" && role !== "vendor") {
+        actions += `
+          <button
+            class="action-btn activate-btn"
+            type="button"
+            data-action="approve"
+            data-id="${escapeHTML(seller.id)}">
+            Activate Vendor
+          </button>
+        `;
+      }
+
+      if (status === "approved" && role === "vendor") {
+        actions += `
+          <span class="status approved">
+            Vendor Active
+          </span>
         `;
       }
 
@@ -834,7 +906,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // =====================================================
-  // 6. SEARCH AND FILTER
+  // 7. SEARCH AND FILTER
   // =====================================================
 
   function applyFilters() {
@@ -870,7 +942,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // =====================================================
-  // 7. LOAD SELLER APPLICATIONS
+  // 8. LOAD SELLER APPLICATIONS
   // =====================================================
 
   async function loadSellers() {
@@ -917,9 +989,13 @@ document.addEventListener("DOMContentLoaded", async () => {
           ascending: false
         });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       sellers = data || [];
+
+      await loadProfileRoles();
 
       updateStats();
       applyFilters();
@@ -955,7 +1031,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // =====================================================
-  // 8. SELLER DETAILS
+  // 9. SELLER DETAILS
   // =====================================================
 
   function addDetail(label, value) {
@@ -968,18 +1044,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function openSellerDetails(seller) {
-    selectedSellerId = seller.id;
-
     const status = normalizedStatus(seller.status);
+    const role = profileRoles.get(seller.user_id);
 
     const date = seller.created_at
       ? new Date(seller.created_at).toLocaleString()
       : "—";
 
     sellerDetails.innerHTML = [
-      addDetail("Store Name",
-        seller.store_name || seller.business_name),
-
+      addDetail(
+        "Store Name",
+        seller.store_name || seller.business_name
+      ),
       addDetail("Owner Name", seller.owner_name),
       addDetail("Phone", seller.phone),
       addDetail("Email", seller.email),
@@ -994,11 +1070,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       addDetail("ID Type", seller.id_type),
       addDetail("ID Number", seller.id_number),
       addDetail("Application Status", status),
+      addDetail("Account Role", role || "Unknown"),
       addDetail("Application Date", date)
     ].join("");
 
+    let buttons = "";
+
     if (status === "pending") {
-      modalActions.innerHTML = `
+      buttons += `
         <button
           class="modal-reject"
           type="button"
@@ -1012,31 +1091,42 @@ document.addEventListener("DOMContentLoaded", async () => {
           type="button"
           data-action="approve"
           data-id="${escapeHTML(seller.id)}">
-          Approve
+          Approve & Activate
         </button>
       `;
-    } else {
-      modalActions.innerHTML = "";
     }
 
-    modal.classList.add("show");
+    if (status === "approved" && role !== "vendor") {
+      buttons += `
+        <button
+          class="modal-activate"
+          type="button"
+          data-action="approve"
+          data-id="${escapeHTML(seller.id)}">
+          Activate Vendor Account
+        </button>
+      `;
+    }
+
+    modalActions.innerHTML = buttons;
+
+    document
+      .getElementById("sellerModal")
+      .classList.add("show");
   }
 
   function closeModal() {
     modal.classList.remove("show");
-    selectedSellerId = null;
   }
 
   // =====================================================
-  // 9. APPROVE OR REJECT APPLICATION
+  // 10. APPROVE AND ACTIVATE VENDOR
   // =====================================================
 
   async function updateSellerStatus(id, newStatus) {
     if (isUpdating) return;
 
-    if (
-      !["approved", "rejected"].includes(newStatus)
-    ) {
+    if (!["approved", "rejected"].includes(newStatus)) {
       return;
     }
 
@@ -1052,10 +1142,35 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    if (normalizedStatus(seller.status) !== "pending") {
+    const currentStatus = normalizedStatus(seller.status);
+    const currentRole = profileRoles.get(seller.user_id);
+
+    if (newStatus === "rejected" && currentStatus !== "pending") {
       showMessage(
-        "This application has already been reviewed.",
+        "Only pending applications can be rejected.",
         "error"
+      );
+      return;
+    }
+
+    if (
+      newStatus === "approved" &&
+      !["pending", "approved"].includes(currentStatus)
+    ) {
+      showMessage(
+        "This application cannot be approved.",
+        "error"
+      );
+      return;
+    }
+
+    if (
+      newStatus === "approved" &&
+      currentStatus === "approved" &&
+      currentRole === "vendor"
+    ) {
+      showMessage(
+        "This account is already an active vendor."
       );
       return;
     }
@@ -1067,8 +1182,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const confirmed = window.confirm(
       newStatus === "approved"
-        ? `Are you sure you want to APPROVE ${storeName}?`
-        : `Are you sure you want to REJECT ${storeName}?`
+        ? `Approve and activate the Vendor Account for ${storeName}?`
+        : `Are you sure you want to reject ${storeName}?`
     );
 
     if (!confirmed) return;
@@ -1077,53 +1192,86 @@ document.addEventListener("DOMContentLoaded", async () => {
     hideMessage();
 
     try {
-      // Thibitisha tena admin kabla ya kubadilisha status.
       const isAdmin = await verifyAdmin();
 
       if (!isAdmin) return;
 
       showMessage(
-        `Updating ${storeName}...`,
+        "Processing seller application...",
         "info"
       );
 
-      const {
-        data,
-        error
-      } = await client
-        .from("seller_applications")
-        .update({
-          status: newStatus
-        })
-        .eq("id", id)
-        .eq("status", "pending")
-        .select("id, status")
-        .maybeSingle();
+      if (newStatus === "approved") {
 
-      if (error) throw error;
+        // APPROVE + ACTIVATE ACCOUNT USING DATABASE FUNCTION
 
-      if (!data) {
-        throw new Error(
-          "No application was updated. It may already have been reviewed, or database permissions may be missing."
+        const {
+          data,
+          error
+        } = await client.rpc(
+          "approve_seller_application",
+          {
+            p_application_id: id
+          }
         );
+
+        if (error) {
+          throw error;
+        }
+
+        if (!data || data.success !== true) {
+          throw new Error(
+            "Vendor activation was not confirmed by the database."
+          );
+        }
+
+      } else {
+
+        // REJECT APPLICATION
+
+        const {
+          data,
+          error
+        } = await client
+          .from("seller_applications")
+          .update({
+            status: "rejected"
+          })
+          .eq("id", id)
+          .eq("status", "pending")
+          .select("id, status")
+          .maybeSingle();
+
+        if (error) {
+          throw error;
+        }
+
+        if (!data) {
+          throw new Error(
+            "Application was not updated. It may already have been reviewed or permissions may be missing."
+          );
+        }
       }
 
       closeModal();
 
-      showMessage(
-        `${storeName} application successfully ${newStatus}.`
-      );
-
+      // Refresh applications and profile roles
       await loadSellers();
+
+      showMessage(
+        newStatus === "approved"
+          ? `${storeName} approved. Vendor account activation completed.`
+          : `${storeName} application rejected.`
+      );
 
     } catch (error) {
       console.error(
-        "ZUNE Seller approval error:",
+        "ZUNE Seller action error:",
         error
       );
 
       showMessage(
-        "Unable to update application: " +
+        "Operation failed: " +
         (error.message || "Unknown error"),
         "error"
       );
@@ -1134,7 +1282,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // =====================================================
-  // 10. TABLE AND MODAL ACTIONS
+  // 11. ACTION HANDLER
   // =====================================================
 
   async function handleAction(event) {
@@ -1143,6 +1291,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
 
     if (!button) return;
+
+    if (isUpdating) return;
 
     const action = button.dataset.action;
     const id = button.dataset.id;
@@ -1172,7 +1322,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // =====================================================
-  // 11. EVENT LISTENERS
+  // 12. EVENT LISTENERS
   // =====================================================
 
   search.addEventListener(
@@ -1224,7 +1374,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   );
 
   // =====================================================
-  // 12. INITIALIZE SUPABASE
+  // 13. INITIALIZE SUPABASE
   // =====================================================
 
   try {
@@ -1259,7 +1409,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
 
     showMessage(
-      error.message || "Unable to initialize Sellers Management.",
+      error.message ||
+      "Unable to initialize Sellers Management.",
       "error"
     );
   }
