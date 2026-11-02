@@ -497,3 +497,432 @@ td {
 </head>
 
 <body>
+<div class="layout">
+
+<aside class="sidebar">
+
+  <div class="logo">ZUNE<span>.</span></div>
+
+  <div class="sidebar-label">Main Menu</div>
+
+  <a class="nav-link" href="index.html">🏠 Dashboard</a>
+  <a class="nav-link" href="users.html">👥 Users</a>
+  <a class="nav-link" href="products.html">📦 Products</a>
+  <a class="nav-link" href="orders.html">🛒 Orders</a>
+  <a class="nav-link" href="verification.html">✓ Verification</a>
+
+  <div class="sidebar-label">Management</div>
+
+  <a class="nav-link active" href="support-tickets.html">🎧 Support Tickets</a>
+  <a class="nav-link" href="announcements.html">📢 Announcements</a>
+  <a class="nav-link" href="coupons.html">🎟 Coupons</a>
+  <a class="nav-link" href="settings.html">⚙ Settings</a>
+
+  <div class="sidebar-label">Account</div>
+
+  <a class="nav-link" href="index.html">← Back to Dashboard</a>
+
+</aside>
+
+<main class="main">
+
+  <div class="topbar">
+    <div>
+      <h1>Support Tickets</h1>
+      <p>Manage customer reports and support requests.</p>
+    </div>
+
+    <div class="admin-label">🛡 Admin Panel</div>
+  </div>
+
+  <div id="notice" class="notice"></div>
+
+  <section class="stats">
+
+    <div class="stat">
+      <div class="icon">📩</div>
+      <p>Total Tickets</p>
+      <h2 id="totalCount">0</h2>
+    </div>
+
+    <div class="stat">
+      <div class="icon">🟠</div>
+      <p>Open</p>
+      <h2 id="openCount">0</h2>
+    </div>
+
+    <div class="stat">
+      <div class="icon">🔵</div>
+      <p>In Progress</p>
+      <h2 id="progressCount">0</h2>
+    </div>
+
+    <div class="stat">
+      <div class="icon">🟢</div>
+      <p>Resolved</p>
+      <h2 id="resolvedCount">0</h2>
+    </div>
+
+  </section>
+
+  <section class="panel">
+
+    <div class="panel-header">
+      <h2>Customer Reports</h2>
+
+      <div class="filters">
+        <input
+          type="search"
+          id="searchInput"
+          placeholder="Search tickets..."
+        >
+
+        <select id="statusFilter">
+          <option value="">All Status</option>
+          <option value="open">Open</option>
+          <option value="in_progress">In Progress</option>
+          <option value="resolved">Resolved</option>
+          <option value="closed">Closed</option>
+        </select>
+
+        <button class="view-btn" id="refreshBtn">
+          ↻ Refresh
+        </button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Category</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody id="ticketsBody">
+          <tr>
+            <td colspan="5" class="empty">
+              Loading support tickets...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <span id="pageInfo">Page 1</span>
+
+      <div>
+        <button id="previousBtn" disabled>Previous</button>
+        <button id="nextBtn" disabled>Next</button>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+</div>
+
+<!-- TICKET DETAILS MODAL -->
+
+<div class="modal" id="ticketModal">
+
+  <div class="modal-content">
+
+    <div class="modal-header">
+      <h2>Ticket Details</h2>
+      <button class="close-btn" id="closeModal">×</button>
+    </div>
+
+    <div class="detail">
+      <small>Customer</small>
+      <p id="detailName">—</p>
+    </div>
+
+    <div class="detail">
+      <small>Category</small>
+      <p id="detailCategory">—</p>
+    </div>
+
+    <div class="detail">
+      <small>Submitted</small>
+      <p id="detailDate">—</p>
+    </div>
+
+    <div class="detail">
+      <small>Customer Message</small>
+      <p id="detailMessage">—</p>
+    </div>
+
+    <div class="detail" id="existingReplyBox" style="display:none">
+      <small>Previous Admin Reply</small>
+      <p id="existingReply"></p>
+    </div>
+
+    <form id="ticketUpdateForm">
+
+      <label for="ticketStatus">Ticket Status</label>
+
+      <select id="ticketStatus" required>
+        <option value="open">Open</option>
+        <option value="in_progress">In Progress</option>
+        <option value="resolved">Resolved</option>
+        <option value="closed">Closed</option>
+      </select>
+
+      <label for="adminReply">Admin Reply</label>
+
+      <textarea
+        id="adminReply"
+        maxlength="5000"
+        placeholder="Write your response to the customer..."
+      ></textarea>
+
+      <button class="save-btn" id="saveTicketBtn" type="submit">
+        Save Changes
+      </button>
+
+    </form>
+
+  </div>
+
+</div>
+
+<script>
+/* =====================================
+   ZUNE ADMIN SUPPORT TICKETS
+===================================== */
+
+const SUPABASE_URL = window.SUPABASE_URL;
+
+const SUPABASE_KEY =
+  window.SUPABASE_PUBLISHABLE_KEY ||
+  window.SUPABASE_ANON_KEY;
+
+let db = null;
+let tickets = [];
+let selectedTicket = null;
+let currentPage = 1;
+const pageSize = 10;
+
+/* ELEMENTS */
+const body = document.getElementById("ticketsBody");
+const notice = document.getElementById("notice");
+const modal = document.getElementById("ticketModal");
+
+/* ESCAPE HTML */
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+  })[char]);
+}
+
+/* NOTICE */
+function showNotice(message, type = "success") {
+  notice.textContent = message;
+  notice.className = "notice " + type;
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+}
+
+/* DATE */
+function formatDate(value) {
+  if (!value) return "—";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return date.toLocaleString();
+}
+
+/* STATUS LABEL */
+function statusLabel(status) {
+  const labels = {
+    open:"Open",
+    in_progress:"In Progress",
+    resolved:"Resolved",
+    closed:"Closed"
+  };
+
+  return labels[status] || status;
+}
+
+/* INITIALIZATION */
+async function initialize() {
+
+  if (!window.supabase || !SUPABASE_URL || !SUPABASE_KEY) {
+    body.innerHTML = `
+      <tr>
+        <td colspan="5" class="empty">
+          Supabase configuration could not be loaded.
+          Check js/config.js.
+        </td>
+      </tr>`;
+    return;
+  }
+
+  db = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY,
+    {
+      auth: {
+        persistSession:true,
+        autoRefreshToken:true,
+        detectSessionInUrl:true
+      }
+    }
+  );
+
+  try {
+
+    const { data: sessionData, error: sessionError } =
+      await db.auth.getSession();
+
+    if (sessionError) throw sessionError;
+
+    const user = sessionData.session?.user;
+
+    if (!user) {
+      body.innerHTML = `
+        <tr>
+          <td colspan="5" class="empty">
+            Admin login required.
+          </td>
+        </tr>`;
+      showNotice("Please log in using your ZUNE Admin account.", "error");
+      return;
+    }
+
+    const { data: profile, error: profileError } = await db
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError) throw profileError;
+
+    if (profile.role !== "admin") {
+      body.innerHTML = `
+        <tr>
+          <td colspan="5" class="empty">
+            Access denied. Admin permission is required.
+          </td>
+        </tr>`;
+      showNotice("You do not have permission to access support tickets.", "error");
+      return;
+    }
+
+    await loadTickets();
+
+  } catch (error) {
+
+    console.error("Admin initialization error:", error);
+
+    body.innerHTML = `
+      <tr>
+        <td colspan="5" class="empty">
+          Could not verify admin access. Check your login and database permissions.
+        </td>
+      </tr>`;
+
+    showNotice(error.message || "Could not initialize admin dashboard.", "error");
+  }
+}
+
+/* LOAD TICKETS */
+async function loadTickets() {
+
+  body.innerHTML = `
+    <tr>
+      <td colspan="5" class="empty">Loading tickets...</td>
+    </tr>`;
+
+  const { data, error } = await db
+    .from("support_tickets")
+    .select("id,user_id,customer_name,category,message,status,admin_reply,created_at,updated_at")
+    .order("created_at", { ascending:false });
+
+  if (error) {
+    console.error(error);
+    body.innerHTML = `
+      <tr>
+        <td colspan="5" class="empty">
+          Could not load support tickets.
+        </td>
+      </tr>`;
+    showNotice(error.message, "error");
+    return;
+  }
+
+  tickets = data || [];
+
+  updateStats();
+  renderTickets();
+}
+
+/* STATISTICS */
+function updateStats() {
+
+  document.getElementById("totalCount").textContent =
+    tickets.length;
+
+  document.getElementById("openCount").textContent =
+    tickets.filter(t => t.status === "open").length;
+
+  document.getElementById("progressCount").textContent =
+    tickets.filter(t => t.status === "in_progress").length;
+
+  document.getElementById("resolvedCount").textContent =
+    tickets.filter(t =>
+      t.status === "resolved" || t.status === "closed"
+    ).length;
+}
+
+/* FILTER */
+function getFilteredTickets() {
+
+  const query = document
+    .getElementById("searchInput")
+    .value.toLowerCase()
+    .trim();
+
+  const status = document
+    .getElementById("statusFilter").value;
+
+  return tickets.filter(ticket => {
+
+    const matchesSearch =
+      (ticket.customer_name || "").toLowerCase().includes(query) ||
+      (ticket.category || "").toLowerCase().includes(query) ||
+      (ticket.message || "").toLowerCase().includes(query);
+
+    const matchesStatus =
+      !status || ticket.status === status;
+
+    return matchesSearch && matchesStatus;
+  });
+}
+
+/* RENDER */
+function renderTickets() {
+
+  const filtered = getFilteredTickets();
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filtered.length / pageSize)
+  );
+
+  if (currentPage > totalPages) currentPage = totalPages;
