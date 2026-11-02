@@ -430,26 +430,88 @@ th{
     </div>
 </div>
 
-<!-- ADD USER INFORMATION MODAL -->
+
+<!-- ADD USER MODAL -->
 <div class="modal" id="addUserModal">
     <div class="modal-content">
+
         <div class="modal-header">
-            <h2>Add New User</h2>
-            <button class="close-btn" onclick="closeModal('addUserModal')">×</button>
+            <h2>Create ZUNE Account</h2>
+            <button class="close-btn"
+                onclick="closeModal('addUserModal')">×</button>
         </div>
 
-        <div class="notice">
-            Creating a real ZUNE login account requires the Supabase Auth
-            Admin API. This feature must be connected through a secure
-            server-side function before an account can be created.
+        <form id="addUserForm">
 
-            <br><br>
-            Do not enter passwords or private credentials into this page.
-            Existing users and their data will not be affected.
-        </div>
+            <div class="add-field">
+                <label for="newFullName">Full Name</label>
+                <input id="newFullName" type="text"
+                    maxlength="100" required
+                    placeholder="Enter full name">
+            </div>
+
+            <div class="add-field">
+                <label for="newEmail">Email Address</label>
+                <input id="newEmail" type="email"
+                    maxlength="254" required
+                    placeholder="Enter email address">
+            </div>
+
+            <div class="add-field">
+                <label for="newPhone">Phone Number (Optional)</label>
+                <input id="newPhone" type="tel"
+                    maxlength="30"
+                    placeholder="Enter phone number">
+            </div>
+
+            <div class="add-field">
+                <label for="newPassword">Temporary Password</label>
+                <input id="newPassword" type="password"
+                    minlength="8" maxlength="128"
+                    autocomplete="new-password"
+                    required
+                    placeholder="Create temporary password">
+            </div>
+
+            <div class="add-field">
+                <label for="confirmNewPassword">
+                    Confirm Temporary Password
+                </label>
+                <input id="confirmNewPassword" type="password"
+                    minlength="8" maxlength="128"
+                    autocomplete="new-password"
+                    required
+                    placeholder="Confirm password">
+            </div>
+
+            <div class="add-field">
+                <label for="newUserReason">Reason</label>
+                <textarea id="newUserReason"
+                    maxlength="500"
+                    required
+                    placeholder="Why are you creating this account?"
+                    rows="3"></textarea>
+            </div>
+
+            <div class="notice">
+                This creates a real ZUNE Auth account.
+
+                Use a temporary password that is not your own
+                password or reused elsewhere. Give it to the
+                account owner securely and ask them to change it.
+            </div>
+
+            <button class="btn primary"
+                type="submit"
+                id="createUserButton"
+                style="width:100%;margin-top:16px">
+                Create Account
+            </button>
+
+        </form>
+
     </div>
 </div>
-
 <script>
 const client = window.supabase.createClient(
     window.SUPABASE_URL,
