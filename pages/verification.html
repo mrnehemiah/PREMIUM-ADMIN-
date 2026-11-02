@@ -1,82 +1,184 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#14532d">
 <title>ZUNE Admin | Verification Center</title>
+
 <link rel="stylesheet" href="../css/admin.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js"></script>
+
 <style>
-:root {
-  --green:#15803d;--dark:#14532d;--gold:#d4a72c;
-  --bg:#f5f8f5;--muted:#718078;--border:#e5ece7;
+:root{
+  --green:#15803d;
+  --dark:#14532d;
+  --deep:#052e16;
+  --gold:#d4a72c;
+  --bg:#f4f8f5;
+  --muted:#718078;
+  --border:#e5ece7;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:#173b29;font-family:Arial,sans-serif}
-.v-container{max-width:1400px;margin:auto;padding:24px}
-.header,.panel-title{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
-.header{margin-bottom:24px}
-.header h1{margin:0;font-size:27px}
+body{
+  margin:0;
+  background:var(--bg);
+  color:#173b29;
+  font-family:Inter,Arial,sans-serif;
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.v-container{max-width:1450px;margin:auto;padding:25px}
+.header{
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:15px;margin-bottom:25px
+}
+.header h1{font-size:28px;margin:0 0 7px;color:var(--deep)}
 .subtitle,.note{color:var(--muted);font-size:13px;line-height:1.6}
-.btn{border:0;padding:11px 15px;border-radius:9px;cursor:pointer;font-weight:bold;font-size:13px}
-.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn{
+  border:0;padding:11px 16px;border-radius:10px;
+  font-size:13px;font-weight:700
+}
+.btn:disabled{opacity:.55;cursor:not-allowed}
 .btn-green{background:var(--green);color:white}
 .btn-dark{background:var(--dark);color:white}
 .btn-gold{background:#fff4d2;color:#8a6500}
 .btn-red{background:#fee2e2;color:#b91c1c}
-.btn-gray{background:#eef2ef;color:#405448}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
-.stat,.panel,.info-card{background:white;border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:0 3px 12px #173b2908}
-.stat small{display:block;color:var(--muted)}
-.stat h2{font-size:26px;margin:10px 0 0}
-.green{color:var(--green)}.gold{color:#b78613}.orange{color:#d97706}
-.panel{margin-bottom:18px}
-.panel-title{margin-bottom:16px}
-.panel-title h2{font-size:19px;margin:0}
-.tabs{display:flex;gap:8px;overflow-x:auto;margin:18px 0;padding-bottom:8px}
-.tab{white-space:nowrap;padding:11px 14px;border:1px solid var(--border);border-radius:9px;background:white;color:#45604e;cursor:pointer;font-weight:bold}
-.tab.active{background:var(--green);color:white}
-.section{display:none}.section.active{display:block}
+.btn-gray{background:#edf2ee;color:#405448}
+.stats{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:15px;margin-bottom:20px
+}
+.stat,.panel{
+  background:white;border:1px solid var(--border);
+  border-radius:16px;padding:19px;
+  box-shadow:0 5px 20px #173b2907
+}
+.stat small{color:var(--muted);font-size:12px;font-weight:600}
+.stat h2{font-size:29px;margin:12px 0 0;color:var(--deep)}
+.green{color:var(--green)!important}
+.gold{color:#b78613!important}
+.orange{color:#d97706!important}
+.panel{margin-bottom:19px}
+.panel-title{
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:12px;margin-bottom:17px
+}
+.panel-title h2{font-size:18px;margin:0}
+.tabs{
+  display:flex;gap:8px;overflow-x:auto;margin:20px 0;
+  padding:2px 0 10px
+}
+.tab{
+  white-space:nowrap;padding:11px 15px;
+  border:1px solid var(--border);border-radius:10px;
+  background:white;color:#45604e;font-size:12px;font-weight:700
+}
+.tab.active{background:var(--dark);color:white;border-color:var(--dark)}
+.section{display:none}
+.section.active{display:block}
 .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
-.filters input,.filters select,.form-control{padding:12px;border:1px solid #dce6df;border-radius:9px;background:white;min-width:140px;outline:none}
+.filters input,.filters select,.form-control{
+  padding:12px 13px;border:1px solid #dce6df;
+  border-radius:10px;background:white;min-width:140px;
+  outline:none;color:#173b29
+}
 .filters input{flex:1}
 .form-control{width:100%}
-.form-control:focus,.filters input:focus{border-color:var(--green)}
-.table-wrap{overflow-x:auto}
+.form-control:focus,.filters input:focus{
+  border-color:var(--green);box-shadow:0 0 0 3px #15803d12
+}
+.table-wrap{overflow-x:auto;border:1px solid #edf1ee;border-radius:12px}
 table{width:100%;min-width:850px;border-collapse:collapse}
-th,td{text-align:left;padding:13px 10px;border-bottom:1px solid #edf1ee;font-size:12px;vertical-align:middle}
-th{background:#f8faf8;color:var(--muted)}
-.badge{display:inline-block;padding:6px 10px;border-radius:20px;font-size:10px;font-weight:bold;white-space:nowrap}
+th,td{
+  text-align:left;padding:14px 11px;border-bottom:1px solid #edf1ee;
+  font-size:12px;vertical-align:middle
+}
+th{
+  background:#f7faf7;color:var(--muted);font-size:11px;
+  text-transform:uppercase;letter-spacing:.4px
+}
+tr:last-child td{border-bottom:0}
+.badge{
+  display:inline-block;padding:6px 10px;border-radius:20px;
+  font-size:10px;font-weight:800;white-space:nowrap
+}
 .badge-verified{background:#dcfce7;color:#15803d}
 .badge-pending{background:#fef3c7;color:#a16207}
 .badge-rejected{background:#fee2e2;color:#b91c1c}
 .badge-admin{background:#fff4cf;color:#926b0a}
-.zune-id{display:inline-block;background:#eaf7ee;color:#126b35;padding:6px 9px;border-radius:7px;font-weight:bold;letter-spacing:.5px;white-space:nowrap}
+.zune-id{
+  display:inline-block;background:#eaf7ee;color:#126b35;
+  padding:6px 9px;border-radius:7px;font-weight:800;
+  letter-spacing:.5px;white-space:nowrap
+}
 .empty{text-align:center;padding:28px;color:var(--muted)}
-.message{display:none;padding:13px;border-radius:9px;margin-bottom:16px;font-size:13px;overflow-wrap:anywhere}
-.message.show{display:block}.message.error{background:#fee2e2;color:#991b1b}
-.message.success{background:#dcfce7;color:#166534}.message.info{background:#e0f2fe;color:#075985}
+.message{
+  display:none;padding:14px 16px;border-radius:11px;
+  margin-bottom:17px;font-size:13px;overflow-wrap:anywhere
+}
+.message.show{display:block}
+.message.error{background:#fee2e2;color:#991b1b}
+.message.success{background:#dcfce7;color:#166534}
+.message.info{background:#e0f2fe;color:#075985}
 .manual-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.info-card{background:#f8fbf8;box-shadow:none}
+.info-card{
+  background:#f8fbf8;border:1px solid var(--border);
+  border-radius:13px;padding:18px
+}
 .info-card h3{margin-top:0}
 .form-group{margin-bottom:14px}
-.form-group label{display:block;font-size:12px;font-weight:bold;margin-bottom:7px}
-textarea.form-control{min-height:85px;resize:vertical}
-.user-result,.history-item{padding:14px;border:1px solid var(--border);border-radius:10px;margin-top:10px;background:white;overflow-wrap:anywhere}
-.history-item{border-left:3px solid var(--green);background:#f8faf8;margin-bottom:10px}
-.modal{display:none;position:fixed;inset:0;z-index:1000;background:#0008;align-items:center;justify-content:center;padding:15px}
+.form-group label{
+  display:block;font-size:12px;font-weight:800;margin-bottom:7px
+}
+textarea.form-control{min-height:90px;resize:vertical}
+.user-result,.history-item{
+  padding:14px;border:1px solid var(--border);
+  border-radius:11px;margin-top:10px;background:white;
+  overflow-wrap:anywhere
+}
+.history-item{
+  border-left:4px solid var(--green);
+  background:#f8faf8;margin-bottom:11px
+}
+.modal{
+  display:none;position:fixed;inset:0;z-index:1000;
+  background:#0009;align-items:center;justify-content:center;padding:15px
+}
 .modal.show{display:flex}
-.modal-box{background:white;border-radius:15px;padding:22px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
-.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.modal-box{
+  background:white;border-radius:17px;padding:22px;width:100%;
+  max-width:550px;max-height:90vh;overflow-y:auto;
+  box-shadow:0 20px 60px #0003
+}
+.modal-header{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:17px
+}
 .modal-header h2{margin:0;font-size:19px}
-.close{border:0;background:#eee;border-radius:50%;width:32px;height:32px;cursor:pointer}
-.action-row{display:flex;gap:8px;flex-wrap:wrap}
-@media(max-width:850px){.stats{grid-template-columns:repeat(2,1fr)}.manual-grid{grid-template-columns:1fr}}
-@media(max-width:480px){.v-container{padding:13px}.header h1{font-size:22px}.panel,.stat{padding:14px}.stat h2{font-size:22px}}
+.close{
+  border:0;background:#edf2ee;border-radius:50%;
+  width:34px;height:34px;font-size:16px
+}
+.action-row{display:flex;gap:9px;flex-wrap:wrap}
+.detail-row{padding:12px 0;border-bottom:1px solid #edf1ee}
+.detail-row small{color:var(--muted);font-size:11px}
+.detail-row div{margin-top:5px;overflow-wrap:anywhere}
+@media(max-width:850px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .manual-grid{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+  .v-container{padding:13px}
+  .header h1{font-size:23px}
+  .panel,.stat{padding:14px}
+  .stat h2{font-size:23px}
+  .tab{padding:10px 12px}
+}
 </style>
 </head>
+
 <body>
 <div class="v-container">
 
@@ -109,21 +211,26 @@ textarea.form-control{min-height:85px;resize:vertical}
 
 <section class="section active" id="overview">
   <div class="panel">
-    <div class="panel-title"><h2>Verification Overview</h2><span class="badge badge-admin">ADMIN CENTER</span></div>
-    <p class="note">Manage user identity verification, seller verification and submitted applications.</p>
+    <div class="panel-title">
+      <h2>Verification Overview</h2>
+      <span class="badge badge-admin">ADMIN CENTER</span>
+    </div>
+    <p class="note">Manage customer identity verification, seller verification and submitted applications.</p>
+
     <div class="manual-grid">
       <div class="info-card">
         <h3>Identity Verification</h3>
-        <p class="note">Review user applications and account status.</p>
+        <p class="note">Review and process customer verification applications.</p>
         <button class="btn btn-green" onclick="openSection('applications')">View Applications</button>
       </div>
       <div class="info-card">
         <h3>Manual Verification</h3>
-        <p class="note">Find a user by ZUNE ID, name or phone.</p>
+        <p class="note">Find a user using ZUNE ID, name or phone number.</p>
         <button class="btn btn-gold" onclick="openSection('manual')">Verify User</button>
       </div>
     </div>
   </div>
+
   <div class="panel">
     <div class="panel-title"><h2>Latest Verification Activity</h2></div>
     <div id="overviewHistory" class="empty">Loading activity...</div>
@@ -132,7 +239,11 @@ textarea.form-control{min-height:85px;resize:vertical}
 
 <section class="section" id="applications">
   <div class="panel">
-    <div class="panel-title"><h2>Verification Applications</h2><span id="applicationCount">0 applications</span></div>
+    <div class="panel-title">
+      <h2>Verification Applications</h2>
+      <span id="applicationCount" class="note">0 applications</span>
+    </div>
+
     <div class="filters">
       <input id="applicationSearch" placeholder="Search name or ZUNE ID...">
       <select id="applicationStatus">
@@ -147,21 +258,32 @@ textarea.form-control{min-height:85px;resize:vertical}
         <option value="request">Document request</option>
       </select>
     </div>
-    <div class="table-wrap"><table>
-      <thead><tr><th>Applicant</th><th>ZUNE ID</th><th>Type</th><th>Reason / Document</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
-      <tbody id="applicationsTable"><tr><td colspan="7" class="empty">Loading...</td></tr></tbody>
-    </table></div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Applicant</th><th>ZUNE ID</th><th>Type</th>
+          <th>Reason / Document</th><th>Status</th><th>Date</th><th>Action</th>
+        </tr></thead>
+        <tbody id="applicationsTable">
+          <tr><td colspan="7" class="empty">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </section>
 
 <section class="section" id="verified">
   <div class="panel">
-    <div class="panel-title"><h2>Verified Users</h2><span class="badge badge-verified">✓ VERIFIED</span></div>
+    <div class="panel-title">
+      <h2>Verified Users</h2><span class="badge badge-verified">✓ VERIFIED</span>
+    </div>
     <div class="filters"><input id="verifiedSearch" placeholder="Search name, phone or ZUNE ID..."></div>
-    <div class="table-wrap"><table>
-      <thead><tr><th>Full Name</th><th>Phone</th><th>Role</th><th>ZUNE ID</th><th>Status</th><th>Action</th></tr></thead>
-      <tbody id="verifiedTable"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody>
-    </table></div>
+    <div class="table-wrap">
+      <table><thead><tr>
+        <th>Full Name</th><th>Phone</th><th>Role</th><th>ZUNE ID</th><th>Status</th><th>Action</th>
+      </tr></thead><tbody id="verifiedTable"></tbody></table>
+    </div>
   </div>
 </section>
 
@@ -169,16 +291,20 @@ textarea.form-control{min-height:85px;resize:vertical}
   <div class="panel">
     <div class="panel-title"><h2>Unverified Users</h2></div>
     <div class="filters"><input id="unverifiedSearch" placeholder="Search name, phone or ZUNE ID..."></div>
-    <div class="table-wrap"><table>
-      <thead><tr><th>Full Name</th><th>Phone</th><th>Role</th><th>ZUNE ID</th><th>Status</th><th>Action</th></tr></thead>
-      <tbody id="unverifiedTable"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody>
-    </table></div>
+    <div class="table-wrap">
+      <table><thead><tr>
+        <th>Full Name</th><th>Phone</th><th>Role</th><th>ZUNE ID</th><th>Status</th><th>Action</th>
+      </tr></thead><tbody id="unverifiedTable"></tbody></table>
+    </div>
   </div>
 </section>
 
 <section class="section" id="manual">
   <div class="panel">
-    <div class="panel-title"><h2>Manual Verification</h2><span class="badge badge-admin">ADMIN ONLY</span></div>
+    <div class="panel-title">
+      <h2>Manual Verification</h2><span class="badge badge-admin">ADMIN ONLY</span>
+    </div>
+
     <div class="manual-grid">
       <div class="info-card">
         <h3>Find User</h3>
@@ -190,6 +316,7 @@ textarea.form-control{min-height:85px;resize:vertical}
         <button class="btn btn-green" id="searchUserBtn">Search Users</button>
         <div id="manualResults"></div>
       </div>
+
       <div class="info-card">
         <h3>Verification Decision</h3>
         <div id="selectedUser" class="user-result">No user selected.</div>
@@ -209,16 +336,19 @@ textarea.form-control{min-height:85px;resize:vertical}
   <div class="panel">
     <div class="panel-title"><h2>Seller Verification</h2></div>
     <div class="filters"><input id="sellerSearch" placeholder="Search seller name, phone or ZUNE ID..."></div>
-    <div class="table-wrap"><table>
-      <thead><tr><th>Seller Name</th><th>Phone</th><th>Role</th><th>ZUNE ID</th><th>Verification</th><th>Action</th></tr></thead>
-      <tbody id="sellerTable"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody>
-    </table></div>
+    <div class="table-wrap">
+      <table><thead><tr>
+        <th>Seller Name</th><th>Phone</th><th>Role</th><th>ZUNE ID</th><th>Verification</th><th>Action</th>
+      </tr></thead><tbody id="sellerTable"></tbody></table>
+    </div>
   </div>
 </section>
 
 <section class="section" id="history">
   <div class="panel">
-    <div class="panel-title"><h2>Verification History</h2><span class="badge badge-admin">AUDIT LOG</span></div>
+    <div class="panel-title">
+      <h2>Verification History</h2><span class="badge badge-admin">AUDIT LOG</span>
+    </div>
     <div class="filters"><input id="historySearch" placeholder="Search ZUNE ID, admin or reason..."></div>
     <div id="historyList"><div class="empty">Loading history...</div></div>
   </div>
@@ -228,7 +358,10 @@ textarea.form-control{min-height:85px;resize:vertical}
 
 <div class="modal" id="applicationModal">
   <div class="modal-box">
-    <div class="modal-header"><h2>Application Details</h2><button class="close" onclick="closeModal()">✕</button></div>
+    <div class="modal-header">
+      <h2>Application Details</h2>
+      <button class="close" onclick="closeModal()">✕</button>
+    </div>
     <div id="applicationDetails"></div>
     <div id="applicationActions" class="action-row" style="margin-top:20px"></div>
   </div>
@@ -236,7 +369,10 @@ textarea.form-control{min-height:85px;resize:vertical}
 
 <div class="modal" id="decisionModal">
   <div class="modal-box">
-    <div class="modal-header"><h2 id="decisionTitle">Confirm Decision</h2><button class="close" onclick="closeDecision()">✕</button></div>
+    <div class="modal-header">
+      <h2 id="decisionTitle">Confirm Decision</h2>
+      <button class="close" onclick="closeDecision()">✕</button>
+    </div>
     <p id="decisionDescription" class="note"></p>
     <div class="form-group">
       <label>Reason (required)</label>
@@ -249,9 +385,7 @@ textarea.form-control{min-height:85px;resize:vertical}
   </div>
 </div>
 
-<script>
-(() => {
-
+<script>(() => {
 "use strict";
 
 const $ = id => document.getElementById(id);
@@ -264,167 +398,143 @@ let history = [];
 let selectedUser = null;
 let selectedApplication = null;
 let pendingDecision = null;
+let processingApplication = false;
 
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
+function escapeHTML(value){
+  return String(value ?? "").replace(/[&<>"']/g,char=>({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
   })[char]);
 }
 
-function findUser(id) {
-  return users.find(user => user.id === id);
+function findUser(id){
+  return users.find(user=>user.id===id);
 }
 
-function getZuneId(userId) {
-  const user = findUser(userId);
-  return user?.zune_id || "ZUNE ID haipo";
+function getZuneId(userId){
+  return findUser(userId)?.zune_id || "Not assigned";
 }
 
-function zuneIdHTML(userId) {
-  return `<span class="zune-id">${escapeHTML(getZuneId(userId))}</span>`;
+function dateText(value){
+  if(!value)return "—";
+  const date=new Date(value);
+  return Number.isNaN(date.getTime())?"—":date.toLocaleString();
 }
 
-function dateText(value) {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleString("en-TZ",{dateStyle:"medium",timeStyle:"short"});
-}
-
-function showMessage(text,type="info") {
-  $("message").textContent = text;
-  $("message").className = "message show " + type;
+function showMessage(text,type="info"){
+  $("message").textContent=text;
+  $("message").className="message show "+type;
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
-function hideMessage() {
-  $("message").className = "message";
+function hideMessage(){
+  $("message").className="message";
 }
 
-function statusBadge(status) {
-  const value = String(status || "unknown").toLowerCase();
-  let css = "badge-pending";
-  if (value === "approved" || value === "verified") css = "badge-verified";
-  if (value === "rejected") css = "badge-rejected";
-  return `<span class="badge ${css}">${escapeHTML(status || "Unknown")}</span>`;
+function statusBadge(status){
+  const value=String(status||"unknown").toLowerCase();
+  const css=value==="approved"||value==="verified"
+    ?"badge-verified":value==="rejected"?"badge-rejected":"badge-pending";
+  return `<span class="badge ${css}">${escapeHTML(status||"Unknown")}</span>`;
 }
 
-function openSection(name) {
-  document.querySelectorAll(".section").forEach(section => {
-    section.classList.toggle("active",section.id === name);
+function openSection(name){
+  document.querySelectorAll(".section").forEach(section=>{
+    section.classList.toggle("active",section.id===name);
   });
-  document.querySelectorAll(".tab").forEach(tab => {
-    tab.classList.toggle("active",tab.dataset.section === name);
+  document.querySelectorAll(".tab").forEach(tab=>{
+    tab.classList.toggle("active",tab.dataset.section===name);
   });
 }
-window.openSection = openSection;
+window.openSection=openSection;
 
-document.querySelectorAll(".tab").forEach(tab => {
-  tab.addEventListener("click",() => openSection(tab.dataset.section));
+document.querySelectorAll(".tab").forEach(tab=>{
+  tab.addEventListener("click",()=>openSection(tab.dataset.section));
 });
 
-async function initialize() {
-  try {
-    if (!window.supabase || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+async function initialize(){
+  try{
+    if(!window.supabase||!window.SUPABASE_URL||!window.SUPABASE_ANON_KEY){
       throw new Error("Supabase configuration is missing.");
     }
 
-    db = window.supabase.createClient(
+    db=window.supabase.createClient(
       window.SUPABASE_URL,
       window.SUPABASE_ANON_KEY
     );
 
-    const {data:sessionData,error:sessionError} = await db.auth.getSession();
-    if (sessionError) throw sessionError;
+    const {data:sessionData,error:sessionError}=await db.auth.getSession();
+    if(sessionError)throw sessionError;
 
-    if (!sessionData.session) {
-      location.href = "../login.html";
+    if(!sessionData.session){
+      location.href="../login.html";
       return;
     }
 
-    currentUser = sessionData.session.user;
+    currentUser=sessionData.session.user;
 
-    const {data:profile,error:profileError} = await db
+    const {data:profile,error:profileError}=await db
       .from("profiles")
       .select("id,role")
       .eq("id",currentUser.id)
       .maybeSingle();
 
-    if (profileError) throw profileError;
+    if(profileError)throw profileError;
 
-    if (!profile || profile.role !== "admin") {
-      document.body.innerHTML =
-        "<h2 style='padding:40px'>Access denied. Admin only.</h2>";
+    if(!profile||profile.role!=="admin"){
+      document.body.innerHTML="<h2 style='padding:40px'>Access denied. Admin only.</h2>";
       return;
     }
 
     await loadAll();
-
-  } catch(error) {
+  }catch(error){
     console.error(error);
-    showMessage("Initialization error: " + error.message,"error");
+    showMessage("Initialization error: "+error.message,"error");
   }
 }
 
-async function loadUsers() {
-  const {data,error} = await db
-    .from("profiles")
+async function loadUsers(){
+  const {data,error}=await db.from("profiles")
     .select("id,zune_id,full_name,phone_number,role,is_verified,created_at")
     .order("created_at",{ascending:false});
 
-  if (error) throw error;
-  users = data || [];
+  if(error)throw error;
+  users=data||[];
 }
 
-async function loadApplications() {
-  applications = [];
+async function loadApplications(){
+  applications=[];
 
-  const results = await Promise.all([
+  const [general,requests]=await Promise.all([
     db.from("verification_applications")
       .select("id,user_id,full_name,reason,document_note,status,admin_note,reviewed_by,reviewed_at,created_at"),
-
     db.from("verification_requests")
       .select("id,user_id,full_name,document_type,document_number,document_url,status,admin_note,created_at,reason,role")
   ]);
 
-  if (results[0].error) {
-    console.error("verification_applications:",results[0].error);
-  } else {
-    (results[0].data || []).forEach(item => {
-      applications.push({...item,source:"application"});
-    });
-  }
+  if(general.error)console.error(general.error);
+  else (general.data||[]).forEach(item=>applications.push({...item,source:"application"}));
 
-  if (results[1].error) {
-    console.error("verification_requests:",results[1].error);
-  } else {
-    (results[1].data || []).forEach(item => {
-      applications.push({...item,source:"request"});
-    });
-  }
+  if(requests.error)console.error(requests.error);
+  else (requests.data||[]).forEach(item=>applications.push({...item,source:"request"}));
 
-  applications.sort((a,b) =>
-    new Date(b.created_at || 0) - new Date(a.created_at || 0)
-  );
+  applications.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
 }
 
-async function loadHistory() {
-  const {data,error} = await db
-    .from("verification_audit_logs")
+async function loadHistory(){
+  const {data,error}=await db.from("verification_audit_logs")
     .select("id,user_id,admin_id,action,reason,created_at")
-    .order("created_at",{ascending:false})
-    .limit(200);
+    .order("created_at",{ascending:false}).limit(200);
 
-  if (error) throw error;
-  history = data || [];
+  if(error)throw error;
+  history=data||[];
 }
 
-async function loadAll() {
+async function loadAll(){
   hideMessage();
-  $("refreshBtn").disabled = true;
-  $("refreshBtn").textContent = "Loading...";
+  $("refreshBtn").disabled=true;
+  $("refreshBtn").textContent="Loading...";
 
-  try {
+  try{
     await loadUsers();
     await loadApplications();
     await loadHistory();
@@ -435,477 +545,379 @@ async function loadAll() {
     renderSellers();
     renderHistory();
 
-    if (selectedUser) {
-      selectedUser = findUser(selectedUser.id) || null;
-      if (selectedUser) selectManualUser(selectedUser.id);
+    if(selectedUser){
+      selectedUser=findUser(selectedUser.id)||null;
+      renderSelectedUser();
     }
-
-  } catch(error) {
+  }catch(error){
     console.error(error);
-    showMessage("Unable to load verification data: " + error.message,"error");
-  } finally {
-    $("refreshBtn").disabled = false;
-    $("refreshBtn").textContent = "↻ Refresh";
+    showMessage("Could not load verification data: "+error.message,"error");
+  }finally{
+    $("refreshBtn").disabled=false;
+    $("refreshBtn").textContent="↻ Refresh";
   }
 }
 
-function updateOverview() {
-  const verified = users.filter(user => user.is_verified).length;
-  const pending = applications.filter(app =>
-    String(app.status || "").toLowerCase() === "pending"
-  ).length;
+function updateOverview(){
+  $("totalUsers").textContent=users.length;
+  $("verifiedUsers").textContent=users.filter(u=>u.is_verified).length;
+  $("unverifiedUsers").textContent=users.filter(u=>!u.is_verified).length;
+  $("pendingApplications").textContent=applications.filter(a=>a.status==="pending").length;
 
-  $("totalUsers").textContent = users.length;
-  $("verifiedUsers").textContent = verified;
-  $("unverifiedUsers").textContent = users.length - verified;
-  $("pendingApplications").textContent = pending;
-
-  const latest = history.slice(0,5);
-
-  $("overviewHistory").innerHTML = latest.length
-    ? latest.map(item => `
-      <div class="history-item">
-        <strong>${escapeHTML(String(item.action || "Activity").toUpperCase())}</strong>
-        <p>User ZUNE ID: ${zuneIdHTML(item.user_id)}</p>
-        <p>${escapeHTML(item.reason || "No reason provided")}</p>
-        <small>${dateText(item.created_at)}</small>
-      </div>
-    `).join("")
-    : '<div class="empty">No verification activity yet.</div>';
+  const recent=history.slice(0,5);
+  $("overviewHistory").innerHTML=recent.length?recent.map(item=>`
+    <div class="history-item">
+      <strong>${escapeHTML(item.action)}</strong>
+      <div>${escapeHTML(item.reason||"No reason supplied")}</div>
+      <small>${escapeHTML(dateText(item.created_at))}</small>
+    </div>
+  `).join(""):'<div class="empty">No verification activity yet.</div>';
 }
 
-function renderApplications() {
-  const search = $("applicationSearch").value.trim().toLowerCase();
-  const status = $("applicationStatus").value;
-  const type = $("applicationType").value;
+function renderApplications(){
+  const search=$("applicationSearch").value.trim().toLowerCase();
+  const status=$("applicationStatus").value;
+  const type=$("applicationType").value;
 
-  const filtered = applications.filter(app => {
-    const user = findUser(app.user_id);
-    const text = [
-      app.full_name,
-      user?.full_name,
-      user?.zune_id,
-      app.reason,
-      app.document_note,
-      app.document_type
-    ].join(" ").toLowerCase();
+  const filtered=applications.filter(app=>{
+    const user=findUser(app.user_id);
+    const name=app.full_name||user?.full_name||"";
+    const haystack=(name+" "+getZuneId(app.user_id)+" "+(app.reason||"")).toLowerCase();
 
-    return text.includes(search) &&
-      (status === "all" || String(app.status).toLowerCase() === status) &&
-      (type === "all" || app.source === type);
+    return (!search||haystack.includes(search))
+      &&(status==="all"||app.status===status)
+      &&(type==="all"||app.source===type);
   });
 
-  $("applicationCount").textContent = filtered.length + " applications";
+  $("applicationCount").textContent=filtered.length+" applications";
 
-  $("applicationsTable").innerHTML = filtered.length
-    ? filtered.map(app => `
-      <tr>
-        <td>${escapeHTML(app.full_name || findUser(app.user_id)?.full_name || "Unknown")}</td>
-        <td>${zuneIdHTML(app.user_id)}</td>
-        <td>${app.source === "request" ? "Document request" : "General application"}</td>
-        <td>${escapeHTML(app.reason || app.document_type || app.document_note || "—")}</td>
-        <td>${statusBadge(app.status)}</td>
-        <td>${dateText(app.created_at)}</td>
-        <td><button class="btn btn-green" onclick="viewApplication('${app.source}','${app.id}')">Review</button></td>
-      </tr>
-    `).join("")
-    : '<tr><td colspan="7" class="empty">No applications found.</td></tr>';
+  $("applicationsTable").innerHTML=filtered.length?filtered.map(app=>{
+    const user=findUser(app.user_id);
+    const name=app.full_name||user?.full_name||"Unknown user";
+    const description=app.source==="request"
+      ?(app.document_type||app.reason||"Document request")
+      :(app.reason||app.document_note||"General application");
+
+    return `<tr>
+      <td><strong>${escapeHTML(name)}</strong></td>
+      <td>${escapeHTML(getZuneId(app.user_id))}</td>
+      <td>${app.source==="request"?"Document request":"General application"}</td>
+      <td>${escapeHTML(description)}</td>
+      <td>${statusBadge(app.status)}</td>
+      <td>${escapeHTML(dateText(app.created_at))}</td>
+      <td><button class="btn btn-green" onclick="viewApplication('${app.source}','${app.id}')">Review</button></td>
+    </tr>`;
+  }).join(""):'<tr><td colspan="7" class="empty">No applications found.</td></tr>';
 }
 
-function renderUsers() {
-  const verified = users.filter(user => user.is_verified);
-  const unverified = users.filter(user => !user.is_verified);
+function renderUsers(){
+  const verified=users.filter(user=>user.is_verified);
+  const unverified=users.filter(user=>!user.is_verified);
 
-  function makeRows(list,tableId,searchId) {
-    const search = $(searchId).value.trim().toLowerCase();
-
-    const filtered = list.filter(user => [
-      user.full_name,user.phone_number,user.role,user.zune_id
-    ].join(" ").toLowerCase().includes(search));
-
-    $(tableId).innerHTML = filtered.length
-      ? filtered.map(user => `
-        <tr>
-          <td>${escapeHTML(user.full_name || "No name")}</td>
-          <td>${escapeHTML(user.phone_number || "—")}</td>
-          <td>${escapeHTML(user.role || "—")}</td>
-          <td>${zuneIdHTML(user.id)}</td>
-          <td>${user.is_verified
-            ? '<span class="badge badge-verified">✓ Verified</span>'
-            : '<span class="badge badge-pending">Not verified</span>'}</td>
-          <td>${user.is_verified
-            ? `<button class="btn btn-red" onclick="askVerification('${user.id}',false)">Revoke</button>`
-            : `<button class="btn btn-green" onclick="askVerification('${user.id}',true)">Verify</button>`}</td>
-        </tr>
-      `).join("")
-      : '<tr><td colspan="6" class="empty">No users found.</td></tr>';
-  }
-
-  makeRows(verified,"verifiedTable","verifiedSearch");
-  makeRows(unverified,"unverifiedTable","unverifiedSearch");
+  $("verifiedTable").innerHTML=renderUserRows(verified,"verifiedSearch");
+  $("unverifiedTable").innerHTML=renderUserRows(unverified,"unverifiedSearch");
 }
 
-function renderSellers() {
-  const search = $("sellerSearch").value.trim().toLowerCase();
-  const sellers = users.filter(user =>
-    String(user.role || "").toLowerCase() === "seller"
+function renderUserRows(list,searchId){
+  const search=$(searchId).value.trim().toLowerCase();
+
+  const filtered=list.filter(user=>
+    `${user.full_name||""} ${user.phone_number||""} ${user.zune_id||""}`
+      .toLowerCase().includes(search)
   );
 
-  const filtered = sellers.filter(user => [
-    user.full_name,user.phone_number,user.zune_id
-  ].join(" ").toLowerCase().includes(search));
-
-  $("sellerTable").innerHTML = filtered.length
-    ? filtered.map(user => `
-      <tr>
-        <td>${escapeHTML(user.full_name || "No name")}</td>
-        <td>${escapeHTML(user.phone_number || "—")}</td>
-        <td>${escapeHTML(user.role)}</td>
-        <td>${zuneIdHTML(user.id)}</td>
-        <td>${user.is_verified
-          ? '<span class="badge badge-verified">✓ Verified</span>'
-          : '<span class="badge badge-pending">Not verified</span>'}</td>
-        <td>${user.is_verified
-          ? `<button class="btn btn-red" onclick="askVerification('${user.id}',false)">Revoke</button>`
-          : `<button class="btn btn-green" onclick="askVerification('${user.id}',true)">Verify Seller</button>`}</td>
-      </tr>
-    `).join("")
-    : '<tr><td colspan="6" class="empty">No seller profiles found.</td></tr>';
+  return filtered.length?filtered.map(user=>`
+    <tr>
+      <td>${escapeHTML(user.full_name||"—")}</td>
+      <td>${escapeHTML(user.phone_number||"—")}</td>
+      <td>${escapeHTML(user.role||"user")}</td>
+      <td>${escapeHTML(user.zune_id||"—")}</td>
+      <td>${statusBadge(user.is_verified?"verified":"unverified")}</td>
+      <td><button class="btn btn-gray" onclick="selectUserForManual('${user.id}')">Manage</button></td>
+    </tr>
+  `).join(""):'<tr><td colspan="6" class="empty">No users found.</td></tr>';
 }
 
-function renderHistory() {
-  const search = $("historySearch").value.trim().toLowerCase();
+function renderSellers(){
+  const search=$("sellerSearch").value.trim().toLowerCase();
+  const sellers=users.filter(user=>
+    ["seller","vendor"].includes(String(user.role||"").toLowerCase())
+  ).filter(user=>
+    `${user.full_name||""} ${user.phone_number||""} ${user.zune_id||""}`
+      .toLowerCase().includes(search)
+  );
 
-  const filtered = history.filter(item => [
-    getZuneId(item.user_id),
-    getZuneId(item.admin_id),
-    item.reason,
-    item.action
-  ].join(" ").toLowerCase().includes(search));
-
-  $("historyList").innerHTML = filtered.length
-    ? filtered.map(item => `
-      <div class="history-item">
-        <strong>${escapeHTML(String(item.action || "Activity").toUpperCase())}</strong>
-        <p>User ZUNE ID: ${zuneIdHTML(item.user_id)}</p>
-        <p>Admin ZUNE ID: ${zuneIdHTML(item.admin_id)}</p>
-        <p>Reason: ${escapeHTML(item.reason || "—")}</p>
-        <small>${dateText(item.created_at)}</small>
-      </div>
-    `).join("")
-    : '<div class="empty">No history records found.</div>';
+  $("sellerTable").innerHTML=sellers.length?sellers.map(user=>`
+    <tr>
+      <td>${escapeHTML(user.full_name||"—")}</td>
+      <td>${escapeHTML(user.phone_number||"—")}</td>
+      <td>${escapeHTML(user.role)}</td>
+      <td>${escapeHTML(user.zune_id||"—")}</td>
+      <td>${statusBadge(user.is_verified?"verified":"unverified")}</td>
+      <td><button class="btn btn-gray" onclick="selectUserForManual('${user.id}')">Manage</button></td>
+    </tr>
+  `).join(""):'<tr><td colspan="6" class="empty">No seller profiles found.</td></tr>';
 }
 
-function selectManualUser(id) {
-  selectedUser = findUser(id);
-  if (!selectedUser) return;
+function renderHistory(){
+  const search=$("historySearch").value.trim().toLowerCase();
+  const filtered=history.filter(item=>{
+    const user=findUser(item.user_id);
+    const admin=findUser(item.admin_id);
+    return `${getZuneId(item.user_id)} ${user?.full_name||""} ${admin?.full_name||""} ${item.reason||""} ${item.action||""}`
+      .toLowerCase().includes(search);
+  });
 
-  $("selectedUser").innerHTML = `
-    <strong>${escapeHTML(selectedUser.full_name || "No name")}</strong>
-    <div>${escapeHTML(selectedUser.phone_number || "No phone")}</div>
-    <div>Role: ${escapeHTML(selectedUser.role || "—")}</div>
-    <div style="margin-top:8px">ZUNE ID: ${zuneIdHTML(selectedUser.id)}</div>
-    <div style="margin-top:8px">
-      ${selectedUser.is_verified
-        ? '<span class="badge badge-verified">✓ Verified</span>'
-        : '<span class="badge badge-pending">Not verified</span>'}
-    </div>
-  `;
+  $("historyList").innerHTML=filtered.length?filtered.map(item=>{
+    const user=findUser(item.user_id);
+    const admin=findUser(item.admin_id);
 
-  $("manualVerifyBtn").disabled =
-    selectedUser.is_verified || selectedUser.id === currentUser.id;
-
-  $("manualRevokeBtn").disabled =
-    !selectedUser.is_verified || selectedUser.id === currentUser.id;
-}
-window.selectManualUser = selectManualUser;
-
-function searchManualUsers() {
-  const search = $("manualSearch").value.trim().toLowerCase();
-
-  if (search.length < 2) {
-    showMessage("Enter at least two characters to search.","error");
-    return;
-  }
-
-  const matches = users.filter(user => [
-    user.full_name,user.phone_number,user.zune_id
-  ].some(value => String(value || "").toLowerCase().includes(search))).slice(0,20);
-
-  $("manualResults").innerHTML = matches.length
-    ? matches.map(user => `
-      <div class="user-result">
-        <strong>${escapeHTML(user.full_name || "No name")}</strong>
-        <div class="note">${escapeHTML(user.phone_number || "No phone")} · ${escapeHTML(user.role || "—")}</div>
-        <div style="margin:8px 0">ZUNE ID: ${zuneIdHTML(user.id)}</div>
-        <div style="margin:8px 0">
-          ${user.is_verified
-            ? '<span class="badge badge-verified">Verified</span>'
-            : '<span class="badge badge-pending">Not verified</span>'}
-        </div>
-        <button class="btn btn-dark" onclick="selectManualUser('${user.id}')">Select User</button>
-      </div>
-    `).join("")
-    : '<div class="empty">No matching user found.</div>';
+    return `<div class="history-item">
+      <strong>${escapeHTML(item.action)}</strong>
+      <div>${escapeHTML(user?.full_name||"User")} · ${escapeHTML(getZuneId(item.user_id))}</div>
+      <div class="note">Admin: ${escapeHTML(admin?.full_name||"Administrator")}</div>
+      <p>${escapeHTML(item.reason||"No reason supplied")}</p>
+      <small>${escapeHTML(dateText(item.created_at))}</small>
+    </div>`;
+  }).join(""):'<div class="empty">No history found.</div>';
 }
 
-function askDecision(userId,verified,application=null) {
-  const user = findUser(userId);
-
-  if (!user) {
-    showMessage("User not found.","error");
-    return;
-  }
-
-  if (user.id === currentUser.id) {
-    showMessage("You cannot change your own verification status.","error");
-    return;
-  }
-
-  pendingDecision = {userId,verified,application};
-
-  $("decisionTitle").textContent =
-    verified ? "Verify User" : "Revoke Verification";
-
-  $("decisionDescription").textContent =
-    `${verified ? "Verify" : "Revoke verification for"} ZUNE ID ${user.zune_id || "Unavailable"}?`;
-
-  $("decisionReason").value = "";
-  $("decisionModal").classList.add("show");
+function findApplication(source,id){
+  return applications.find(app=>app.source===source&&app.id===id);
 }
-window.askVerification = askDecision;
 
-function closeDecision() {
-  $("decisionModal").classList.remove("show");
-  pendingDecision = null;
-}
-window.closeDecision = closeDecision;
-
-function closeModal() {
+function closeModal(){
   $("applicationModal").classList.remove("show");
-  selectedApplication = null;
 }
-window.closeModal = closeModal;
+window.closeModal=closeModal;
 
-async function confirmDecision() {
-  if (!pendingDecision) return;
+function closeDecision(){
+  $("decisionModal").classList.remove("show");
+  pendingDecision=null;
+}
+window.closeDecision=closeDecision;
 
-  // Copy decision before closing modal clears pendingDecision.
-  const decision = {...pendingDecision};
-  const reason = $("decisionReason").value.trim();
-
-  if (reason.length < 5) {
-    alert("Please enter a reason of at least 5 characters.");
-    return;
-  }
-
-  const button = $("confirmDecisionBtn");
-  button.disabled = true;
-  button.textContent = "Processing...";
-
-  try {
-    const {data,error} = await db.rpc(
-      "admin_set_user_verification",
-      {
-        p_user_id:decision.userId,
-        p_verified:decision.verified,
-        p_reason:reason
-      }
-    );
-
-    if (error) throw error;
-
-    if (!data || data.success !== true) {
-      throw new Error("Verification operation was not confirmed.");
-    }
-
-    // Update application only after the verification RPC succeeds.
-    if (decision.application) {
-      const app = decision.application;
-      const table = app.source === "application"
-        ? "verification_applications"
-        : "verification_requests";
-
-      const update = {
-        status:"approved",
-        admin_note:reason
-      };
-
-      if (app.source === "application") {
-        update.reviewed_by = currentUser.id;
-        update.reviewed_at = new Date().toISOString();
-      }
-
-      const {error:updateError} = await db
-        .from(table)
-        .update(update)
-        .eq("id",app.id);
-
-      if (updateError) {
-        throw new Error(
-          "User was verified, but application status update failed: " +
-          updateError.message
-        );
-      }
-    }
-
-    closeDecision();
-    closeModal();
-
-    selectedUser = null;
-    $("selectedUser").textContent = "No user selected.";
-    $("manualVerifyBtn").disabled = true;
-    $("manualRevokeBtn").disabled = true;
-
-    showMessage(
-      decision.verified
-        ? "User verification completed successfully."
-        : "User verification revoked successfully.",
-      "success"
-    );
-
-    await loadAll();
-
-  } catch(error) {
-    console.error(error);
-    showMessage("Verification error: " + error.message,"error");
-  } finally {
-    button.disabled = false;
-    button.textContent = "Confirm";
-  }
+function detail(label,value){
+  return `<div class="detail-row">
+    <small>${escapeHTML(label)}</small>
+    <div>${escapeHTML(value||"—")}</div>
+  </div>`;
 }
 
-function askManual(verified) {
-  if (!selectedUser) return;
+function viewApplication(source,id){
+  const app=findApplication(source,id);
+  if(!app)return showMessage("Application not found.","error");
 
-  const reason = $("manualReason").value.trim();
-  if (reason.length < 5) {
-    showMessage("Please enter a reason of at least 5 characters.","error");
-    return;
+  selectedApplication=app;
+  const user=findUser(app.user_id);
+
+  let html="";
+  html+=detail("Applicant",app.full_name||user?.full_name);
+  html+=detail("ZUNE ID",getZuneId(app.user_id));
+  html+=detail("Phone",user?.phone_number);
+  html+=detail("Application type",source==="request"?"Document request":"General application");
+  html+=detail("Reason",app.reason);
+  html+=detail("Document type",app.document_type);
+  html+=detail("Document number",app.document_number);
+  html+=detail("Document note",app.document_note);
+  html+=detail("Status",app.status);
+  html+=detail("Admin note",app.admin_note);
+  html+=detail("Submitted",dateText(app.created_at));
+
+  if(app.document_url){
+    html+=`<div class="detail-row">
+      <small>Submitted document</small>
+      <div><a href="${escapeHTML(app.document_url)}" target="_blank" rel="noopener">Open document</a></div>
+    </div>`;
   }
 
-  askDecision(selectedUser.id,verified);
-  $("decisionReason").value = reason;
-}
+  $("applicationDetails").innerHTML=html;
 
-function viewApplication(source,id) {
-  const app = applications.find(item =>
-    item.source === source && item.id === id
-  );
-
-  if (!app) return;
-
-  selectedApplication = app;
-  const user = findUser(app.user_id);
-
-  const details = [
-    ["Applicant",app.full_name || user?.full_name || "Unknown"],
-    ["ZUNE ID",user?.zune_id || "ZUNE ID haipo"],
-    ["Application type",source === "request" ? "Document request" : "General application"],
-    ["Reason",app.reason],
-    ["Document note",app.document_note],
-    ["Document type",app.document_type],
-    ["Document number",app.document_number],
-    ["Role",app.role || user?.role],
-    ["Admin note",app.admin_note],
-    ["Status",app.status],
-    ["Submitted",dateText(app.created_at)]
-  ];
-
-  $("applicationDetails").innerHTML = details
-    .filter(item => item[1] !== null && item[1] !== undefined && item[1] !== "")
-    .map(item => `
-      <div style="padding:10px 0;border-bottom:1px solid #eee">
-        <small style="color:#718078">${escapeHTML(item[0])}</small>
-        <div style="margin-top:5px;overflow-wrap:anywhere">${escapeHTML(item[1])}</div>
-      </div>
-    `).join("");
-
-  if (app.document_url) {
-    $("applicationDetails").innerHTML += `
-      <p><a href="${escapeHTML(app.document_url)}" target="_blank" rel="noopener noreferrer">
-        View submitted document
-      </a></p>
+  if(app.status==="pending"){
+    $("applicationActions").innerHTML=`
+      <button class="btn btn-green" onclick="reviewApplication('approved')">✓ Approve</button>
+      <button class="btn btn-red" onclick="reviewApplication('rejected')">✕ Reject</button>
     `;
+  }else{
+    $("applicationActions").innerHTML=statusBadge(app.status);
   }
-
-  const isPending = String(app.status || "").toLowerCase() === "pending";
-
-  $("applicationActions").innerHTML = isPending
-    ? `
-      <button class="btn btn-green" onclick="reviewApplication('approved')">Approve</button>
-      <button class="btn btn-red" onclick="reviewApplication('rejected')">Reject</button>
-    `
-    : '<span class="note">This application has already been reviewed.</span>';
 
   $("applicationModal").classList.add("show");
 }
-window.viewApplication = viewApplication;
+window.viewApplication=viewApplication;
 
-async function reviewApplication(decision) {
-  const app = selectedApplication;
-  if (!app) return;
+function reviewApplication(decision){
+  if(processingApplication)return;
 
-  const user = findUser(app.user_id);
+  const app=selectedApplication;
+  if(!app)return showMessage("No application selected.","error");
 
-  if (!user) {
-    showMessage("Applicant profile was not found.","error");
+  if(app.status!=="pending"){
+    return showMessage("This application has already been reviewed.","error");
+  }
+
+  pendingDecision={type:"application",decision,app};
+
+  $("decisionTitle").textContent=decision==="approved"?"Approve Application":"Reject Application";
+  $("decisionDescription").textContent=decision==="approved"
+    ?"This will approve the application and mark the user as verified."
+    :"This will reject the application. The user's existing verification status will not be changed.";
+
+  $("decisionReason").value="";
+  $("decisionModal").classList.add("show");
+}
+window.reviewApplication=reviewApplication;
+
+async function confirmApplicationDecision(reason){
+  const {decision,app}=pendingDecision;
+
+  const {data,error}=await db.rpc("admin_review_verification_application",{
+    p_application_id:app.id,
+    p_source:app.source,
+    p_decision:decision,
+    p_reason:reason
+  });
+
+  if(error)throw error;
+  if(!data||data.success!==true){
+    throw new Error(data?.message||"The application review was not completed.");
+  }
+
+  return data;
+}
+
+function selectUserForManual(id){
+  const user=findUser(id);
+  if(!user)return;
+
+  selectedUser=user;
+  openSection("manual");
+  renderSelectedUser();
+}
+window.selectUserForManual=selectUserForManual;
+
+function renderSelectedUser(){
+  const user=selectedUser;
+
+  if(!user){
+    $("selectedUser").textContent="No user selected.";
+    $("manualVerifyBtn").disabled=true;
+    $("manualRevokeBtn").disabled=true;
     return;
   }
 
-  if (decision === "approved") {
-    if (user.is_verified) {
-      showMessage("This user is already verified.","info");
-      return;
-    }
+  $("selectedUser").innerHTML=`
+    <strong>${escapeHTML(user.full_name||"Unnamed user")}</strong>
+    <div>${escapeHTML(user.phone_number||"No phone number")}</div>
+    <div>${escapeHTML(user.zune_id||"No ZUNE ID")}</div>
+    <div style="margin-top:8px">${statusBadge(user.is_verified?"verified":"unverified")}</div>
+  `;
 
-    closeModal();
-    askDecision(app.user_id,true,app);
-    return;
+  const isSelf=user.id===currentUser.id;
+  $("manualVerifyBtn").disabled=!!user.is_verified||isSelf;
+  $("manualRevokeBtn").disabled=!user.is_verified||isSelf;
+}
+
+async function searchManualUsers(){
+  const query=$("manualSearch").value.trim().toLowerCase();
+
+  if(query.length<2){
+    return showMessage("Enter at least two characters to search.","error");
   }
 
-  const note = prompt("Enter admin note for rejection (at least 5 characters):");
-  if (!note || note.trim().length < 5) return;
+  const results=users.filter(user=>
+    `${user.full_name||""} ${user.phone_number||""} ${user.zune_id||""}`
+      .toLowerCase().includes(query)
+  ).slice(0,20);
 
-  try {
-    const table = app.source === "application"
-      ? "verification_applications"
-      : "verification_requests";
+  $("manualResults").innerHTML=results.length?results.map(user=>`
+    <div class="user-result">
+      <strong>${escapeHTML(user.full_name||"Unnamed user")}</strong>
+      <div>${escapeHTML(user.zune_id||"No ZUNE ID")}</div>
+      <div>${escapeHTML(user.phone_number||"No phone number")}</div>
+      <div style="margin:8px 0">${statusBadge(user.is_verified?"verified":"unverified")}</div>
+      <button class="btn btn-gray" onclick="selectUserForManual('${user.id}')">Select User</button>
+    </div>
+  `).join(""):'<div class="empty">No matching users found.</div>';
+}
 
-    const update = {
-      status:"rejected",
-      admin_note:note.trim()
-    };
+async function manualDecision(verified){
+  if(!selectedUser)return;
 
-    if (app.source === "application") {
-      update.reviewed_by = currentUser.id;
-      update.reviewed_at = new Date().toISOString();
-    }
+  if(selectedUser.id===currentUser.id){
+    return showMessage("You cannot change your own verification status.","error");
+  }
 
-    const {error} = await db
-      .from(table)
-      .update(update)
-      .eq("id",app.id);
+  const reason=$("manualReason").value.trim();
+  if(reason.length<5){
+    return showMessage("Please enter a reason of at least 5 characters.","error");
+  }
 
-    if (error) throw error;
+  const button=verified?$("manualVerifyBtn"):$("manualRevokeBtn");
+  button.disabled=true;
+  button.textContent="Processing...";
 
-    closeModal();
-    showMessage("Application marked as rejected.","success");
+  try{
+    const {data,error}=await db.rpc("admin_set_user_verification",{
+      p_user_id:selectedUser.id,
+      p_verified:verified,
+      p_reason:reason
+    });
+
+    if(error)throw error;
+    if(!data||data.success!==true)throw new Error("Verification update failed.");
+
+    showMessage(verified?"User verified successfully.":"Verification revoked successfully.","success");
+    $("manualReason").value="";
+    selectedUser=null;
+    renderSelectedUser();
     await loadAll();
-
-  } catch(error) {
+  }catch(error){
     console.error(error);
-    showMessage("Application review error: " + error.message,"error");
+    showMessage("Manual verification failed: "+error.message,"error");
+  }finally{
+    button.textContent=verified?"✓ Verify User":"Revoke Verification";
+    renderSelectedUser();
   }
 }
-window.reviewApplication = reviewApplication;
 
-// Event listeners
-$("confirmDecisionBtn").addEventListener("click",confirmDecision);
-$("searchUserBtn").addEventListener("click",searchManualUsers);
-$("manualVerifyBtn").addEventListener("click",() => askManual(true));
-$("manualRevokeBtn").addEventListener("click",() => askManual(false));
+$("confirmDecisionBtn").addEventListener("click",async()=>{
+  if(!pendingDecision||processingApplication)return;
+
+  const reason=$("decisionReason").value.trim();
+  if(reason.length<5){
+    return showMessage("Please enter a reason of at least 5 characters.","error");
+  }
+
+  const button=$("confirmDecisionBtn");
+  processingApplication=true;
+  button.disabled=true;
+  button.textContent="Processing...";
+
+  try{
+    if(pendingDecision.type==="application"){
+      await confirmApplicationDecision(reason);
+      closeDecision();
+      closeModal();
+      selectedApplication=null;
+      showMessage("Application "+pendingDecision?.decision+" successfully.","success");
+      pendingDecision=null;
+      await loadAll();
+    }
+  }catch(error){
+    console.error(error);
+    showMessage("Decision failed: "+error.message,"error");
+  }finally{
+    processingApplication=false;
+    button.disabled=false;
+    button.textContent="Confirm";
+  }
+});
+
 $("refreshBtn").addEventListener("click",loadAll);
+$("searchUserBtn").addEventListener("click",searchManualUsers);
+$("manualVerifyBtn").addEventListener("click",()=>manualDecision(true));
+$("manualRevokeBtn").addEventListener("click",()=>manualDecision(false));
 
 [
   ["applicationSearch",renderApplications],
@@ -915,12 +927,13 @@ $("refreshBtn").addEventListener("click",loadAll);
   ["unverifiedSearch",renderUsers],
   ["sellerSearch",renderSellers],
   ["historySearch",renderHistory]
-].forEach(([id,callback]) => {
+].forEach(([id,callback])=>{
   $(id).addEventListener("input",callback);
   $(id).addEventListener("change",callback);
 });
 
 initialize();
+
 })();
 </script>
 </body>
