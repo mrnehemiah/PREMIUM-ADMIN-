@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,97 +10,108 @@
 <script src="../js/config.js"></script>
 
 <style>
-:root {
+:root{
     --green:#15803d;
     --dark:#14532d;
     --light:#f0fdf4;
-    --gold:#d4a017;
     --border:#e5ebe6;
     --muted:#718078;
+    --red:#dc2626;
+    --orange:#d97706;
 }
-* {box-sizing:border-box}
-body {
+*{box-sizing:border-box}
+body{
     margin:0;
     background:#f5f7f5;
     color:#17231b;
     font-family:Arial,sans-serif;
 }
-.page-wrap {
-    max-width:1250px;
+.page-wrap{
+    max-width:1400px;
     margin:auto;
     padding:24px;
 }
-.page-heading {
+.page-heading{
     display:flex;
     justify-content:space-between;
     align-items:center;
     flex-wrap:wrap;
     gap:15px;
-    margin-bottom:23px;
+    margin-bottom:22px;
 }
-.back-link {
+.back-link{
     color:var(--green);
     text-decoration:none;
     font-weight:700;
     font-size:13px;
 }
-h1 {
+h1{
     margin:12px 0 6px;
     color:var(--dark);
     font-size:27px;
 }
-.subtitle {
+.subtitle{
     color:var(--muted);
-    margin:0;
     font-size:14px;
+    margin:0;
 }
-.stats {
+.btn{
+    border:0;
+    border-radius:8px;
+    padding:10px 14px;
+    font-weight:700;
+    font-size:12px;
+    cursor:pointer;
+}
+.btn:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+}
+.primary{background:var(--green);color:white}
+.secondary{background:#f0fdf4;color:var(--dark)}
+.danger{background:#fee2e2;color:#991b1b}
+.warning{background:#fff7ed;color:#9a3412}
+.stats{
     display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:15px;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
     margin-bottom:20px;
 }
-.stat {
+.stat{
     background:white;
     padding:19px;
     border:1px solid var(--border);
     border-radius:13px;
 }
-.stat small {
-    color:var(--muted);
-    font-size:12px;
-}
-.stat h2 {
+.stat small{color:var(--muted);font-size:12px}
+.stat h2{
     color:var(--dark);
     font-size:27px;
     margin:9px 0 0;
 }
-.panel {
+.panel{
     background:white;
     padding:20px;
     border:1px solid var(--border);
     border-radius:13px;
+    margin-bottom:20px;
 }
-.toolbar {
+.toolbar{
     display:flex;
     justify-content:space-between;
     align-items:center;
     flex-wrap:wrap;
     gap:12px;
-    margin-bottom:18px;
+    margin-bottom:17px;
 }
-.toolbar h2 {
-    margin:0;
-    font-size:18px;
-}
-.filters {
+.toolbar h2{margin:0;font-size:18px}
+.filters{
     display:flex;
     gap:9px;
     flex-wrap:wrap;
-    width:100%;
     margin-bottom:17px;
 }
-.filters input,.filters select {
+.filters input,.filters select{
     padding:11px;
     border:1px solid #dce5dd;
     border-radius:8px;
@@ -110,42 +120,69 @@ h1 {
     min-width:140px;
     flex:1;
 }
-.btn {
-    border:0;
-    border-radius:8px;
-    padding:10px 14px;
-    font-weight:700;
-    font-size:12px;
-    cursor:pointer;
-}
-.primary {
-    background:var(--green);
-    color:white;
-}
-.secondary {
-    background:#f0fdf4;
-    color:var(--dark);
-}
-.table-wrap {
-    overflow-x:auto;
-}
-table {
+.table-wrap{overflow-x:auto}
+table{
     width:100%;
-    min-width:850px;
+    min-width:1050px;
     border-collapse:collapse;
 }
-th,td {
-    padding:14px 12px;
+th,td{
+    padding:13px 11px;
     text-align:left;
     border-bottom:1px solid var(--border);
     font-size:13px;
 }
-th {
+th{
     color:var(--muted);
     background:#f8faf8;
     font-size:12px;
 }
-.zune-id {
+.role,.status{
+    display:inline-block;
+    padding:6px 9px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:700;
+}
+.role{background:#f1f5f9;color:#334155}
+.role.admin{background:#fff7df;color:#946500}
+.status.active{background:#dcfce7;color:#166534}
+.status.suspended{background:#fff7ed;color:#9a3412}
+.status.removed{background:#fee2e2;color:#991b1b}
+.status.verified{background:#dcfce7;color:#166534}
+.status.unverified{background:#f1f5f9;color:#475569}
+.action-buttons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+}
+.action-buttons button{
+    border:0;
+    border-radius:6px;
+    padding:7px 9px;
+    font-size:11px;
+    font-weight:700;
+    cursor:pointer;
+}
+.view-btn{background:#e0f2fe;color:#075985}
+.suspend-btn{background:#fff7ed;color:#9a3412}
+.restore-btn{background:#dcfce7;color:#166534}
+.remove-btn{background:#fee2e2;color:#991b1b}
+.message{
+    padding:12px;
+    margin-bottom:15px;
+    border-radius:8px;
+    background:#f0fdf4;
+    color:#166534;
+    font-size:13px;
+}
+.error{background:#fee2e2;color:#991b1b}
+.empty{
+    text-align:center;
+    padding:30px;
+    color:var(--muted);
+}
+.zune-id{
     display:inline-flex;
     align-items:center;
     gap:7px;
@@ -157,7 +194,7 @@ th {
     letter-spacing:1px;
     white-space:nowrap;
 }
-.copy-btn {
+.copy-btn{
     border:0;
     background:white;
     color:var(--green);
@@ -165,61 +202,99 @@ th {
     font-size:11px;
     font-weight:700;
     padding:5px;
-    border-radius:5px;
 }
-.role {
-    display:inline-block;
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:1000;
+    background:rgba(0,0,0,.55);
+    padding:18px;
+    overflow-y:auto;
+    align-items:center;
+    justify-content:center;
+}
+.modal.show{display:flex}
+.modal-content{
+    width:100%;
+    max-width:620px;
+    background:white;
+    border-radius:16px;
+    padding:23px;
+    box-shadow:0 20px 60px rgba(0,0,0,.2);
+    max-height:90vh;
+    overflow-y:auto;
+}
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:18px;
+}
+.modal-header h2{margin:0;color:var(--dark);font-size:20px}
+.close-btn{
+    border:0;
     background:#f1f5f9;
-    color:#334155;
-    padding:6px 9px;
-    border-radius:20px;
-    font-size:11px;
-    text-transform:capitalize;
-    font-weight:700;
+    border-radius:50%;
+    width:34px;
+    height:34px;
+    cursor:pointer;
+    font-size:18px;
 }
-.role.admin {
-    background:#fff7df;
-    color:#946500;
+.detail-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
 }
-.status {
-    display:inline-block;
-    padding:6px 9px;
-    border-radius:20px;
-    font-size:11px;
-    font-weight:700;
+.detail-item{
+    padding:13px;
+    background:#f8faf8;
+    border:1px solid var(--border);
+    border-radius:9px;
+    min-width:0;
 }
-.verified {
-    background:#dcfce7;
-    color:#166534;
+.detail-item small{
+    color:var(--muted);
+    display:block;
+    margin-bottom:7px;
 }
-.unverified {
-    background:#fff7ed;
-    color:#9a3412;
+.detail-item strong{
+    font-size:13px;
+    overflow-wrap:anywhere;
 }
-.message {
-    padding:12px;
-    margin-bottom:15px;
-    border-radius:8px;
-    background:#f0fdf4;
-    color:#166534;
+.modal-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:18px;
+}
+.history-row{
+    padding:13px;
+    border-bottom:1px solid var(--border);
     font-size:13px;
 }
-.error {
-    background:#fee2e2;
-    color:#991b1b;
-}
-.empty {
-    text-align:center;
-    padding:30px;
+.history-row small{
+    display:block;
     color:var(--muted);
+    margin-top:5px;
 }
-@media(max-width:650px) {
-    .page-wrap {padding:15px}
-    .stats {grid-template-columns:1fr 1fr}
-    h1 {font-size:23px}
+.notice{
+    background:#fff7ed;
+    color:#9a3412;
+    padding:13px;
+    border-radius:9px;
+    font-size:13px;
+    line-height:1.6;
 }
-@media(max-width:380px) {
-    .stats {grid-template-columns:1fr}
+@media(max-width:750px){
+    .page-wrap{padding:15px}
+    .stats{grid-template-columns:1fr 1fr}
+    h1{font-size:23px}
+}
+@media(max-width:420px){
+    .stats{grid-template-columns:1fr 1fr}
+    .detail-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -228,96 +303,152 @@ th {
 
 <main class="page-wrap">
 
-    <div class="page-heading">
-        <div>
-            <a class="back-link" href="../index.html">
-                ← Back to Dashboard
-            </a>
-            <h1>Users Management</h1>
-            <p class="subtitle">
-                Manage registered ZUNE Marketplace accounts.
-            </p>
-        </div>
+<div class="page-heading">
+    <div>
+        <a class="back-link" href="../index.html">
+            ← Back to Dashboard
+        </a>
+        <h1>Users Management</h1>
+        <p class="subtitle">
+            Manage ZUNE Marketplace accounts.
+        </p>
+    </div>
 
-        <button class="btn primary" onclick="loadUsers()">
-            ↻ Refresh Users
+    <div class="action-buttons">
+        <button class="btn secondary" onclick="loadUsers()">
+            ↻ Refresh
+        </button>
+        <button class="btn primary" onclick="showAddUserInfo()">
+            + Add User
+        </button>
+    </div>
+</div>
+
+<div id="message" class="message">
+    Connecting to ZUNE database...
+</div>
+
+<section class="stats">
+    <div class="stat">
+        <small>Total Users</small>
+        <h2 id="totalUsers">0</h2>
+    </div>
+    <div class="stat">
+        <small>Active Users</small>
+        <h2 id="activeUsers">0</h2>
+    </div>
+    <div class="stat">
+        <small>Suspended Users</small>
+        <h2 id="suspendedUsers">0</h2>
+    </div>
+    <div class="stat">
+        <small>Removed Users</small>
+        <h2 id="removedUsers">0</h2>
+    </div>
+</section>
+
+<section class="panel">
+
+    <div class="toolbar">
+        <h2>Registered Users</h2>
+        <span id="resultCount" style="font-size:12px;color:#718078">
+            0 records
+        </span>
+    </div>
+
+    <div class="filters">
+        <input id="userSearch" type="search"
+            placeholder="Search name, email or ZUNE ID...">
+
+        <select id="roleFilter">
+            <option value="all">All Roles</option>
+            <option value="admin">Admin</option>
+            <option value="buyer">Buyer</option>
+            <option value="seller">Seller</option>
+        </select>
+
+        <select id="statusFilter">
+            <option value="all">All Account Status</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="removed">Removed</option>
+        </select>
+
+        <select id="verificationFilter">
+            <option value="all">All Verification</option>
+            <option value="verified">Verified</option>
+            <option value="unverified">Not Verified</option>
+        </select>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>ZUNE ID</th>
+                    <th>Role</th>
+                    <th>Verification</th>
+                    <th>Account Status</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="usersTable">
+                <tr>
+                    <td colspan="7" class="empty">Loading users...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="toolbar">
+        <h2>Admin Action History</h2>
+        <button class="btn secondary" onclick="loadHistory()">
+            ↻ Refresh History
         </button>
     </div>
 
-    <div id="message" class="message">
-        Connecting to ZUNE database...
+    <div id="historyList">
+        <div class="empty">Loading action history...</div>
     </div>
+</section>
 
-    <section class="stats">
-        <div class="stat">
-            <small>Total Users</small>
-            <h2 id="totalUsers">0</h2>
-        </div>
-        <div class="stat">
-            <small>Verified Users</small>
-            <h2 id="verifiedUsers">0</h2>
-        </div>
-        <div class="stat">
-            <small>Unverified Users</small>
-            <h2 id="unverifiedUsers">0</h2>
-        </div>
-    </section>
-
-    <section class="panel">
-
-        <div class="toolbar">
-            <h2>Registered Users</h2>
-            <span id="resultCount"
-                style="font-size:12px;color:#718078">
-                0 records
-            </span>
-        </div>
-
-        <div class="filters">
-            <input
-                id="userSearch"
-                type="search"
-                placeholder="Search name or ZUNE ID..."
-            >
-
-            <select id="roleFilter">
-                <option value="all">All Roles</option>
-                <option value="admin">Admin</option>
-                <option value="buyer">Buyer</option>
-                <option value="seller">Seller</option>
-            </select>
-
-            <select id="verificationFilter">
-                <option value="all">All Verification</option>
-                <option value="verified">Verified</option>
-                <option value="unverified">Not Verified</option>
-            </select>
-        </div>
-
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Full Name</th>
-                        <th>ZUNE ID</th>
-                        <th>Role</th>
-                        <th>Verification</th>
-                        <th>Joined</th>
-                    </tr>
-                </thead>
-
-                <tbody id="usersTable">
-                    <tr>
-                        <td colspan="5" class="empty">
-                            Loading users...
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-    </section>
 </main>
+
+<!-- USER DETAILS MODAL -->
+<div class="modal" id="detailsModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>User Details</h2>
+            <button class="close-btn" onclick="closeModal('detailsModal')">×</button>
+        </div>
+
+        <div id="userDetails"></div>
+    </div>
+</div>
+
+<!-- ADD USER INFORMATION MODAL -->
+<div class="modal" id="addUserModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Add New User</h2>
+            <button class="close-btn" onclick="closeModal('addUserModal')">×</button>
+        </div>
+
+        <div class="notice">
+            Creating a real ZUNE login account requires the Supabase Auth
+            Admin API. This feature must be connected through a secure
+            server-side function before an account can be created.
+
+            <br><br>
+            Do not enter passwords or private credentials into this page.
+            Existing users and their data will not be affected.
+        </div>
+    </div>
+</div>
 
 <script>
 const client = window.supabase.createClient(
@@ -328,9 +459,10 @@ const client = window.supabase.createClient(
 const $ = id => document.getElementById(id);
 
 let users = [];
+let currentAdminId = null;
 
-function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, char => ({
+function escapeHTML(value){
+    return String(value ?? "").replace(/[&<>"']/g,char=>({
         "&":"&amp;",
         "<":"&lt;",
         ">":"&gt;",
@@ -339,33 +471,43 @@ function escapeHTML(value) {
     })[char]);
 }
 
-function showMessage(text, isError=false) {
-    const box = $("message");
-    box.textContent = text;
-    box.className = isError ? "message error" : "message";
+function showMessage(text,isError=false){
+    $("message").textContent=text;
+    $("message").className=isError?"message error":"message";
 }
 
-async function checkAdmin() {
+function closeModal(id){
+    $(id).classList.remove("show");
+}
+
+function showAddUserInfo(){
+    $("addUserModal").classList.add("show");
+}
+
+async function checkAdmin(){
+
     const {data:{session},error} =
         await client.auth.getSession();
 
-    if (error) throw error;
+    if(error) throw error;
 
-    if (!session) {
-        location.href = "../login.html";
+    if(!session){
+        location.href="../login.html";
         return false;
     }
 
-    const {data:profile,error:profileError} = await client
+    currentAdminId=session.user.id;
+
+    const {data:profile,error:profileError}=await client
         .from("profiles")
         .select("role")
-        .eq("id",session.user.id)
+        .eq("id",currentAdminId)
         .single();
 
-    if (profileError) throw profileError;
+    if(profileError) throw profileError;
 
-    if (profile?.role !== "admin") {
-        document.body.innerHTML = `
+    if(profile?.role!=="admin"){
+        document.body.innerHTML=`
             <div style="padding:40px;text-align:center;font-family:Arial">
                 <h2>Access Denied</h2>
                 <p>Admin permission is required.</p>
@@ -377,132 +519,176 @@ async function checkAdmin() {
     return true;
 }
 
-async function loadUsers() {
-    $("usersTable").innerHTML = `
-        <tr><td colspan="5" class="empty">
-            Loading users...
-        </td></tr>`;
+async function loadUsers(){
 
-    try {
-        const {data,error} = await client
+    $("usersTable").innerHTML=`
+        <tr><td colspan="7" class="empty">Loading users...</td></tr>`;
+
+    try{
+
+        const {data,error}=await client
             .from("profiles")
             .select(`
                 id,
                 full_name,
+                email,
+                phone_number,
                 zune_id,
                 role,
                 is_verified,
-                created_at
+                account_status,
+                created_at,
+                suspended_at,
+                removed_at
             `)
             .order("created_at",{ascending:false});
 
-        if (error) throw error;
+        if(error) throw error;
 
-        users = data || [];
+        users=data||[];
 
         updateStats();
         renderUsers();
 
         showMessage("Users loaded successfully.");
 
-    } catch(error) {
-        console.error("Users loading error:",error);
+    }catch(error){
 
-        $("usersTable").innerHTML = `
-            <tr><td colspan="5" class="empty">
-                Could not load user records.
+        console.error(error);
+
+        $("usersTable").innerHTML=`
+            <tr><td colspan="7" class="empty">
+                Could not load users.
             </td></tr>`;
 
-        showMessage(
-            "Unable to load users: " + error.message,
-            true
-        );
+        showMessage("Unable to load users: "+error.message,true);
     }
 }
 
-function updateStats() {
-    $("totalUsers").textContent = users.length;
+function updateStats(){
 
-    $("verifiedUsers").textContent =
-        users.filter(u => u.is_verified === true).length;
+    $("totalUsers").textContent=users.length;
 
-    $("unverifiedUsers").textContent =
-        users.filter(u => u.is_verified !== true).length;
+    $("activeUsers").textContent=
+        users.filter(u=>(u.account_status||"active")==="active").length;
+
+    $("suspendedUsers").textContent=
+        users.filter(u=>u.account_status==="suspended").length;
+
+    $("removedUsers").textContent=
+        users.filter(u=>u.account_status==="removed").length;
 }
 
-function renderUsers() {
-    const term = $("userSearch").value.trim().toLowerCase();
-    const role = $("roleFilter").value;
-    const verification = $("verificationFilter").value;
+function renderUsers(){
 
-    const filtered = users.filter(user => {
-        const name = (user.full_name || "").toLowerCase();
-        const id = (user.zune_id || "").toLowerCase();
-        const userRole = (user.role || "").toLowerCase();
+    const term=$("userSearch").value.trim().toLowerCase();
+    const role=$("roleFilter").value;
+    const status=$("statusFilter").value;
+    const verification=$("verificationFilter").value;
 
-        const matchesSearch =
-            name.includes(term) || id.includes(term);
+    const filtered=users.filter(user=>{
 
-        const matchesRole =
-            role === "all" || userRole === role;
+        const name=(user.full_name||"").toLowerCase();
+        const email=(user.email||"").toLowerCase();
+        const id=(user.zune_id||"").toLowerCase();
+        const userRole=(user.role||"").toLowerCase();
+        const userStatus=user.account_status||"active";
 
-        const matchesVerification =
-            verification === "all" ||
-            (verification === "verified" && user.is_verified) ||
-            (verification === "unverified" && !user.is_verified);
-
-        return matchesSearch &&
-            matchesRole &&
-            matchesVerification;
+        return (
+            (name.includes(term)||email.includes(term)||id.includes(term)) &&
+            (role==="all"||userRole===role) &&
+            (status==="all"||userStatus===status) &&
+            (verification==="all"||
+                (verification==="verified"&&user.is_verified===true)||
+                (verification==="unverified"&&user.is_verified!==true))
+        );
     });
 
-    $("resultCount").textContent =
-        filtered.length + " records";
+    $("resultCount").textContent=filtered.length+" records";
 
-    if (!filtered.length) {
-        $("usersTable").innerHTML = `
-            <tr><td colspan="5" class="empty">
+    if(!filtered.length){
+        $("usersTable").innerHTML=`
+            <tr><td colspan="7" class="empty">
                 No matching users found.
             </td></tr>`;
         return;
     }
 
-    $("usersTable").innerHTML = filtered.map(user => {
-        const role = (user.role || "buyer").toLowerCase();
+    $("usersTable").innerHTML=filtered.map(user=>{
+
+        const role=(user.role||"buyer").toLowerCase();
+        const status=user.account_status||"active";
+        const isAdmin=role==="admin";
+        const isSelf=user.id===currentAdminId;
+
+        let actionButtons=`
+            <button class="view-btn"
+                onclick="viewUser('${escapeHTML(user.id)}')">
+                View Details
+            </button>`;
+
+        if(!isAdmin&&!isSelf){
+
+            if(status==="active"){
+                actionButtons+=`
+                    <button class="suspend-btn"
+                        onclick="changeUserStatus('${escapeHTML(user.id)}','suspended')">
+                        Suspend
+                    </button>`;
+            }else{
+                actionButtons+=`
+                    <button class="restore-btn"
+                        onclick="changeUserStatus('${escapeHTML(user.id)}','active')">
+                        Reactivate
+                    </button>`;
+            }
+
+            if(status!=="removed"){
+                actionButtons+=`
+                    <button class="remove-btn"
+                        onclick="changeUserStatus('${escapeHTML(user.id)}','removed')">
+                        Remove
+                    </button>`;
+            }
+        }
 
         return `
         <tr>
             <td>
-                <strong>${escapeHTML(user.full_name || "Unnamed user")}</strong>
+                <strong>${escapeHTML(user.full_name||"Unnamed user")}</strong>
+                <br>
+                <small style="color:#718078">
+                    ${escapeHTML(user.email||"No email")}
+                </small>
             </td>
 
             <td>
-                ${
-                    user.zune_id
+                ${user.zune_id
                     ? `<span class="zune-id">
                         ${escapeHTML(user.zune_id)}
-                        <button
-                            class="copy-btn"
-                            data-copy-id="${escapeHTML(user.zune_id)}"
-                            title="Copy ZUNE ID">
+                        <button class="copy-btn"
+                            data-copy-id="${escapeHTML(user.zune_id)}">
                             Copy
                         </button>
                     </span>`
-                    : `<span style="color:#999">Not assigned</span>`
-                }
+                    : "—"}
             </td>
 
             <td>
-                <span class="role ${role === "admin" ? "admin" : ""}">
+                <span class="role ${role==="admin"?"admin":""}">
                     ${escapeHTML(role)}
                 </span>
             </td>
 
             <td>
-                <span class="status ${
-                    user.is_verified ? "verified" : "unverified"
-                }">
-                    ${user.is_verified ? "Verified" : "Not verified"}
+                <span class="status ${user.is_verified?"verified":"unverified"}">
+                    ${user.is_verified?"Verified":"Not verified"}
+                </span>
+            </td>
+
+            <td>
+                <span class="status ${escapeHTML(status)}">
+                    ${escapeHTML(status)}
                 </span>
             </td>
 
@@ -511,41 +697,261 @@ function renderUsers() {
                     ? escapeHTML(new Date(user.created_at).toLocaleDateString())
                     : "—"}
             </td>
+
+            <td>
+                <div class="action-buttons">
+                    ${actionButtons}
+                </div>
+            </td>
         </tr>`;
     }).join("");
 }
 
+function viewUser(id){
+
+    const user=users.find(u=>u.id===id);
+    if(!user) return;
+
+    const status=user.account_status||"active";
+
+    $("userDetails").innerHTML=`
+        <div class="detail-grid">
+
+            <div class="detail-item">
+                <small>Full Name</small>
+                <strong>${escapeHTML(user.full_name||"Not provided")}</strong>
+            </div>
+
+            <div class="detail-item">
+                <small>Email</small>
+                <strong>${escapeHTML(user.email||"Not provided")}</strong>
+            </div>
+
+            <div class="detail-item">
+                <small>Phone Number</small>
+                <strong>${escapeHTML(user.phone_number||"Not provided")}</strong>
+            </div>
+
+            <div class="detail-item">
+                <small>ZUNE ID</small>
+                <strong>${escapeHTML(user.zune_id||"Not assigned")}</strong>
+            </div>
+
+            <div class="detail-item">
+                <small>Account Role</small>
+                <strong>${escapeHTML(user.role||"buyer")}</strong>
+            </div>
+
+            <div class="detail-item">
+                <small>Verification</small>
+                <strong>${user.is_verified?"Verified":"Not verified"}</strong>
+            </div>
+
+            <div class="detail-item">
+                <small>Account Status</small>
+                <strong>${escapeHTML(status)}</strong>
+            </div>
+
+            <div class="detail-item">
+                <small>Registration Date</small>
+                <strong>${user.created_at
+                    ?escapeHTML(new Date(user.created_at).toLocaleString())
+                    :"—"}</strong>
+            </div>
+
+            <div class="detail-item">
+                <small>Suspended At</small>
+                <strong>${user.suspended_at
+                    ?escapeHTML(new Date(user.suspended_at).toLocaleString())
+                    :"—"}</strong>
+            </div>
+
+            <div class="detail-item">
+                <small>Removed At</small>
+                <strong>${user.removed_at
+                    ?escapeHTML(new Date(user.removed_at).toLocaleString())
+                    :"—"}</strong>
+            </div>
+
+        </div>
+    `;
+
+    $("detailsModal").classList.add("show");
+}
+
+async function changeUserStatus(userId,newStatus){
+
+    const user=users.find(u=>u.id===userId);
+    if(!user) return;
+
+    const name=user.full_name||"this user";
+
+    let reason=prompt(
+        "Enter the reason for this action:"
+    );
+
+    if(reason===null) return;
+
+    reason=reason.trim();
+
+    if(!reason){
+        alert("Please provide a reason.");
+        return;
+    }
+
+    let confirmation;
+
+    if(newStatus==="suspended"){
+        confirmation=confirm(
+            "Suspend "+name+"? This changes the profile status only; login blocking must also be configured."
+        );
+    }else if(newStatus==="removed"){
+        confirmation=confirm(
+            "Remove "+name+" from active use? This is a soft removal and does not delete Auth credentials or history."
+        );
+    }else{
+        confirmation=confirm(
+            "Reactivate "+name+"?"
+        );
+    }
+
+    if(!confirmation) return;
+
+    try{
+
+        showMessage("Updating account status...");
+
+        const {data,error}=await client.rpc(
+            "admin_set_user_status",
+            {
+                target_user_id:userId,
+                new_status:newStatus,
+                action_reason:reason
+            }
+        );
+
+        if(error) throw error;
+
+        if(!data?.success){
+            throw new Error("The status update was not confirmed.");
+        }
+
+        showMessage("Account status updated successfully.");
+
+        await loadUsers();
+        await loadHistory();
+
+    }catch(error){
+
+        console.error("Account update error:",error);
+
+        showMessage(
+            "Could not update account: "+error.message,
+            true
+        );
+    }
+}
+
+async function loadHistory(){
+
+    $("historyList").innerHTML=
+        `<div class="empty">Loading history...</div>`;
+
+    try{
+
+        const {data,error}=await client.rpc(
+            "admin_get_user_actions"
+        );
+
+        if(error) throw error;
+
+        if(!data||!data.length){
+            $("historyList").innerHTML=
+                `<div class="empty">No admin actions recorded yet.</div>`;
+            return;
+        }
+
+        $("historyList").innerHTML=data.map(item=>{
+
+            const target=users.find(u=>u.id===item.target_user_id);
+            const admin=users.find(u=>u.id===item.admin_id);
+
+            return `
+                <div class="history-row">
+                    <strong>${escapeHTML(item.action.toUpperCase())}</strong>
+                    <br>
+                    User: ${escapeHTML(target?.full_name||item.target_user_id)}
+                    <br>
+                    Admin: ${escapeHTML(admin?.full_name||item.admin_id)}
+                    <br>
+                    Reason: ${escapeHTML(item.reason||"Not provided")}
+                    <small>
+                        ${item.created_at
+                            ?escapeHTML(new Date(item.created_at).toLocaleString())
+                            :"—"}
+                    </small>
+                </div>
+            `;
+        }).join("");
+
+    }catch(error){
+
+        console.error("History error:",error);
+
+        $("historyList").innerHTML=
+            `<div class="empty">Unable to load action history.</div>`;
+
+        showMessage("History error: "+error.message,true);
+    }
+}
+
 // Copy ZUNE ID
-$("usersTable").addEventListener("click", async event => {
-    const button = event.target.closest("[data-copy-id]");
-    if (!button) return;
+$("usersTable").addEventListener("click",async event=>{
 
-    const id = button.dataset.copyId;
+    const button=event.target.closest("[data-copy-id]");if(!button) return;
 
-    try {
-        await navigator.clipboard.writeText(id);
-        button.textContent = "Copied!";
-        setTimeout(() => button.textContent = "Copy",1500);
-    } catch(error) {
-        showMessage("Could not copy ID. Please copy it manually.",true);
+    try{
+        await navigator.clipboard.writeText(button.dataset.copyId);
+        button.textContent="Copied!";
+    }catch(error){
+        showMessage("Copy failed. Please copy manually.",true);
     }
 });
 
-// Search and filters
+// Filters
 $("userSearch").addEventListener("input",renderUsers);
 $("roleFilter").addEventListener("change",renderUsers);
+$("statusFilter").addEventListener("change",renderUsers);
 $("verificationFilter").addEventListener("change",renderUsers);
 
-async function initialize() {
-    try {
-        const allowed = await checkAdmin();
-        if (!allowed) return;
+// Close modal by clicking outside
+document.querySelectorAll(".modal").forEach(modal=>{
+    modal.addEventListener("click",event=>{
+        if(event.target===modal){
+            modal.classList.remove("show");
+        }
+    });
+});
+
+async function initialize(){
+
+    try{
+
+        const allowed=await checkAdmin();
+
+        if(!allowed) return;
 
         await loadUsers();
+        await loadHistory();
 
-    } catch(error) {
+    }catch(error){
+
         console.error(error);
-        showMessage("Admin access error: " + error.message,true);
+
+        showMessage(
+            "Admin initialization error: "+error.message,
+            true
+        );
     }
 }
 
