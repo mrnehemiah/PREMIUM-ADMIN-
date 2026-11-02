@@ -926,3 +926,210 @@ function renderTickets() {
   );
 
   if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * pageSize;
+  const visible = filtered.slice(start, start + pageSize);
+
+  if (!visible.length) {
+    body.innerHTML = `
+      <tr>
+        <td colspan="5" class="empty">
+          No support tickets found.
+        </td>
+      </tr>`;
+  } else {
+
+    body.innerHTML = visible.map(ticket => `
+      <tr>
+        <td>
+          <div class="ticket-name">
+            ${escapeHTML(ticket.customer_name)}
+          </div>
+          <div class="ticket-category">
+            ${escapeHTML(ticket.id)}
+          </div>
+        </td>
+
+        <td>${escapeHTML(ticket.category)}</td>
+
+        <td>${escapeHTML(formatDate(ticket.created_at))}</td>
+
+        <td>
+          <span class="status ${escapeHTML(ticket.status)}">
+            ${escapeHTML(statusLabel(ticket.status))}
+          </span>
+        </td>
+
+        <td>
+          <button
+            class="view-btn"
+            data-ticket-id="${escapeHTML(ticket.id)}"
+          >
+            View Ticket
+          </button>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  document.getElementById("pageInfo").textContent =
+    `Page ${currentPage} of ${totalPages} · ${filtered.length} tickets`;
+
+  document.getElementById("previousBtn").disabled =
+    currentPage <= 1;
+
+  document.getElementById("nextBtn").disabled =
+    currentPage >= totalPages;
+}
+
+/* OPEN TICKET */
+function openTicket(id) {
+
+  const ticket = tickets.find(item => item.id === id);
+
+  if (!ticket) return;
+
+  selectedTicket = ticket;
+
+  document.getElementById("detailName").textContent =
+    ticket.customer_name || "—";
+
+  document.getElementById("detailCategory").textContent =
+    ticket.category || "—";
+
+  document.getElementById("detailDate").textContent =
+    formatDate(ticket.created_at);
+
+  document.getElementById("detailMessage").textContent =
+    ticket.message || "—";
+
+  document.getElementById("ticketStatus").value =
+    ticket.status || "open";
+
+  document.getElementById("adminReply").value =
+    ticket.admin_reply || "";
+
+  const replyBox = document.getElementById("existingReplyBox");
+
+  if (ticket.admin_reply) {
+    replyBox.style.display = "block";
+    document.getElementById("existingReply").textContent =
+      ticket.admin_reply;
+  } else {
+    replyBox.style.display = "none";
+  }
+
+  modal.classList.add("show");
+}
+
+/* SAVE STATUS AND REPLY */
+document.getElementById("ticketUpdateForm")
+.addEventListener("submit", async function(event) {
+
+  event.preventDefault();
+
+  if (!selectedTicket) return;
+
+  const button = document.getElementById("saveTicketBtn");
+
+  const status = document.getElementById("ticketStatus").value;
+  const reply = document.getElementById("adminReply").value.trim();
+
+  button.disabled = true;
+  button.textContent = "Saving...";
+
+  try {
+
+    const { error } = await db
+      .from("support_tickets")
+      .update({
+        status:status,
+        admin_reply:reply || null,
+        updated_at:new Date().toISOString()
+      })
+      .eq("id", selectedTicket.id);
+
+    if (error) throw error;
+
+    modal.classList.remove("show");
+
+    showNotice("Ticket updated successfully.", "success");
+
+    selectedTicket = null;
+
+    await loadTickets();
+
+  } catch (error) {
+
+    console.error("Ticket update error:", error);
+
+    showNotice(
+      error.message || "Could not update ticket.",
+      "error"
+    );
+
+  } finally {
+
+    button.disabled = false;
+    button.textContent = "Save Changes";
+
+  }
+
+});
+
+/* EVENTS */
+body.addEventListener("click", event => {
+  const button = event.target.closest("[data-ticket-id]");
+
+  if (button) {
+    openTicket(button.dataset.ticketId);
+  }
+});
+
+document.getElementById("searchInput")
+.addEventListener("input", () => {
+  currentPage = 1;
+  renderTickets();
+});
+
+document.getElementById("statusFilter")
+.addEventListener("change", () => {
+  currentPage = 1;
+  renderTickets();
+});
+
+document.getElementById("refreshBtn")
+.addEventListener("click", loadTickets);
+
+document.getElementById("previousBtn")
+.addEventListener("click", () => {
+  if (currentPage > 1) {
+    currentPage--;
+    renderTickets();
+  }
+});
+
+document.getElementById("nextBtn")
+.addEventListener("click", () => {
+  currentPage++;
+  renderTickets();
+});
+
+document.getElementById("closeModal")
+.addEventListener("click", () => {
+  modal.classList.remove("show");
+  selectedTicket = null;
+});
+
+modal.addEventListener("click", event => {
+  if (event.target === modal) {modal.classList.remove("show");
+    selectedTicket = null;
+  }
+});
+
+/* START */
+initialize();
+
+</script>
+
+</body>
+</html>
