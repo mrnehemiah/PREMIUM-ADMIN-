@@ -1,99 +1,178 @@
-/* =========================================
+/* ==========================================
    ZUNE ADMIN - DELIVERY PRICING
-========================================= */
+   Supabase Integration
+========================================== */
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", async function () {
 
-  const db =
-    window.zuneSupabase ||
-    window.supabaseClient ||
-    window.adminSupabase;
+  "use strict";
 
-  const form = document.getElementById("pricingForm");
-  const tableBody = document.getElementById("pricingTableBody");
-  const formMessage = document.getElementById("formMessage");
-  const listMessage = document.getElementById("listMessage");
+  const $ = id => document.getElementById(id);
 
+  const form = $("pricingForm");
+  const tableBody = $("pricingTableBody");
+
+  let db = null;
   let pricingRecords = [];
-  let currentAdmin = null;
+  let busy = false;
 
-  if (!db || typeof db.from !== "function") {
+  /* ========================================
+     1. SUPABASE CONNECTION
+  ======================================== */
+
+  function connectSupabase() {
+
+    if (window.zuneSupabase) {
+      return window.zuneSupabase;
+    }
+
+    if (window.supabaseClient) {
+      return window.supabaseClient;
+    }
+
+    if (
+      window.supabase &&
+      typeof window.supabase.createClient === "function" &&
+      window.SUPABASE_URL &&
+      window.SUPABASE_ANON_KEY
+    ) {
+      window.zuneSupabase = window.supabase.createClient(
+        window.SUPABASE_URL,
+        window.SUPABASE_ANON_KEY
+      );
+
+      return window.zuneSupabase;
+    }
+
+    return null;
+  }
+
+  db = connectSupabase();
+
+  if (!db) {
+
     showFormMessage(
-      "Supabase haijaunganishwa. Kagua ../js/config.js",
+      "Supabase haijaunganishwa. Kagua CDN na config.js.",
       "error"
     );
+
+    if (tableBody) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="7" class="empty-state">
+            Supabase connection haijapatikana.
+          </td>
+        </tr>
+      `;
+    }
+
     return;
   }
 
+  /* ========================================
+     2. MESSAGE FUNCTIONS
+  ======================================== */
+
   function showFormMessage(message, type = "success") {
-    formMessage.textContent = message;
-    formMessage.style.color =
+
+    const element = $("formMessage");
+    if (!element) return;
+
+    element.textContent = message;
+    element.style.color =
       type === "error" ? "#dc2626" : "#15803d";
   }
 
   function showListMessage(message, type = "success") {
-    listMessage.textContent = message;
-    listMessage.style.color =
+
+    const element = $("listMessage");
+    if (!element) return;
+
+    element.textContent = message;
+    element.style.color =
       type === "error" ? "#dc2626" : "#15803d";
   }
 
-  function formatMoney(amount, currency) {
-    return `${Number(amount).toLocaleString()} ${currency}`;
+  function showError(error) {
+
+    console.error("ZUNE Delivery Pricing:", error);
+
+    return error?.message ||
+      error?.details ||
+      "Hitilafu isiyojulikana imetokea.";
   }
 
-  /* AUTHENTICATION + ADMIN CHECK */
+  /* ========================================
+     3. AUTHENTICATION AND ADMIN CHECK
+  ======================================== */
 
   async function verifyAdmin() {
 
-    const { data: authData, error: authError } =
-      await db.auth.getUser();
+    const { data, error } = await db.auth.getUser();
 
-    if (authError || !authData.user) {
-      window.location.href = "../login.html";
+    if (error || !data?.user) {
+      window.location.replace("../login.html");
       return false;
     }
 
-    const { data: profile, error } = await db
+    const { data: profile, error: profileError } = await db
       .from("profiles")
       .select("id, role")
-      .eq("id", authData.user.id)
-      .single();
+      .eq("id", data.user.id)
+      .maybeSingle();
 
-    if (error || !profile || profile.role !== "admin") {
+    if (profileError) {
+
+      showFormMessage(
+        "Imeshindikana kuthibitisha Admin: " +
+        showError(profileError),
+        "error"
+      );
+
+      return false;
+    }
+
+    if (!profile || profile.role !== "admin") {
+
       document.body.innerHTML = `
         <div style="
           max-width:500px;
           margin:80px auto;
           padding:25px;
           text-align:center;
-          font-family:Arial;
+          font-family:Arial,sans-serif;
         ">
           <h2 style="color:#dc2626">Access Denied</h2>
-          <p>Unaruhusiwa kufungua ukurasa huu.</p>
+          <p>Unahitaji ruhusa ya Admin kufungua ukurasa huu.</p>
           <a href="../index.html">Rudi Dashboard</a>
         </div>
       `;
+
       return false;
     }
 
-    currentAdmin = profile;
     return true;
   }
 
   const authorized = await verifyAdmin();
 
-  if (!authorized) return;
-  /* LOAD PRICING RECORDS */
+  if (!authorized) return;  /* ========================================
+     4. LOAD PRICING
+  ======================================== */
 
   async function loadPricing() {
 
-    tableBody.innerHTML = `
-      <tr>
-        <td colspan="7" class="empty-state">
-          Inapakia...
-        </td>
-      </tr>
-    `;
+    if (busy) return;
+
+    if (tableBody) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="7" class="empty-state">
+            Inapakia taarifa...
+          </td>
+        </tr>
+      `;
+    }
 
     const { data, error } = await db
       .from("delivery_pricing")
@@ -102,14 +181,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       .order("region", { ascending: true });
 
     if (error) {
-      tableBody.innerHTML = `
-        <tr>
-          <td colspan="7" class="empty-state">
-            Imeshindikana kupakia taarifa.
-          </td>
-        </tr>
-      `;
-      showListMessage(error.message, "error");
+
+      pricingRecords = [];
+
+      if (tableBody) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="7" class="empty-state">
+              ${escapeHTML(showError(error))}
+            </td>
+          </tr>
+        `;
+      }
+
+      showListMessage(showError(error), "error");
+      updateStats();
+
       return;
     }
 
@@ -117,65 +204,104 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     updateStats();
     renderPricing();
+    showListMessage("");
   }
 
-  /* UPDATE STATISTICS */
+  /* ========================================
+     5. STATISTICS
+  ======================================== */
 
   function updateStats() {
 
     const total = pricingRecords.length;
+
     const active = pricingRecords.filter(
-      item => item.is_active
+      item => item.is_active === true
     ).length;
 
-    document.getElementById("totalPricing").textContent = total;
+    if ($("totalPricing")) {
+      $("totalPricing").textContent = total;
+    }
 
-    document.getElementById("activePricing").textContent = active;
+    if ($("activePricing")) {
+      $("activePricing").textContent = active;
+    }
 
-    document.getElementById("inactivePricing").textContent =
-      total - active;
+    if ($("inactivePricing")) {
+      $("inactivePricing").textContent = total - active;
+    }
 
-    document.getElementById("recordCount").textContent =
-      `${total} Records`;
+    if ($("recordCount")) {
+      $("recordCount").textContent = total + " Records";
+    }
   }
 
-  /* DISPLAY RECORDS */
+  /* ========================================
+     6. FORMAT AND SECURITY
+  ======================================== */
+
+  function escapeHTML(value) {
+
+    return String(value ?? "").replace(
+      /[&<>"']/g,
+      character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      })[character]
+    );
+  }
+
+  function formatMoney(amount, currency) {
+
+    const number = Number(amount);
+
+    return number.toLocaleString("en-US") +
+      " " + escapeHTML(currency);
+  }
+
+  /* ========================================
+     7. DISPLAY PRICING RECORDS
+  ======================================== */
 
   function renderPricing() {
 
-    const search = document
-      .getElementById("searchPricing")
-      .value.toLowerCase()
-      .trim();
+    const search = $("searchPricing")?.value
+      ?.toLowerCase()
+      .trim() || "";
 
-    const status = document
-      .getElementById("statusFilter")
-      .value;
+    const status = $("statusFilter")?.value || "all";
 
     const filtered = pricingRecords.filter(item => {
 
-      const matchesSearch = [
+      const area = [
         item.country,
         item.region,
         item.district || ""
-      ].join(" ").toLowerCase().includes(search);
+      ].join(" ").toLowerCase();
+
+      const matchesSearch = area.includes(search);
 
       const matchesStatus =
         status === "all" ||
-        (status === "active" && item.is_active) ||
-        (status === "inactive" && !item.is_active);
+        (status === "active" && item.is_active === true) ||
+        (status === "inactive" && item.is_active === false);
 
       return matchesSearch && matchesStatus;
     });
 
     if (!filtered.length) {
+
       tableBody.innerHTML = `
         <tr>
           <td colspan="7" class="empty-state">
-            Hakuna delivery pricing iliyopatikana.
+            Hakuna taarifa zilizopatikana.
           </td>
         </tr>
       `;
+
       return;
     }
 
@@ -189,9 +315,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       return `
         <tr>
-          <td>
-            <strong>${escapeHTML(area)}</strong>
-          </td>
+          <td><strong>${escapeHTML(area)}</strong></td>
 
           <td>${formatMoney(item.base_fee, item.currency)}</td>
 
@@ -203,133 +327,220 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           <td>
             <span class="${
-              item.is_active
-                ? "status-active"
-                : "status-inactive"
+              item.is_active ? "status-active" : "status-inactive"
             }">
               ${item.is_active ? "Active" : "Inactive"}
             </span>
           </td>
 
           <td>
-            <button
-              class="action-btn edit-btn"
+            <button class="action-btn edit-btn"
               data-action="edit"
-              data-id="${item.id}">
+              data-id="${escapeHTML(item.id)}">
               Edit
             </button>
 
-            <button
-              class="action-btn toggle-btn"
+            <button class="action-btn toggle-btn"
               data-action="toggle"
-              data-id="${item.id}">
+              data-id="${escapeHTML(item.id)}">
               ${item.is_active ? "Zima" : "Washa"}
             </button>
 
-            <button
-              class="action-btn delete-btn"
+            <button class="action-btn delete-btn"
               data-action="delete"
-              data-id="${item.id}">
+              data-id="${escapeHTML(item.id)}">
               Futa
             </button>
           </td>
         </tr>
       `;
+
     }).join("");
   }
 
-  /* SAFE HTML */
+  /* ========================================
+     8. RESET FORM
+  ======================================== */
 
-  function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, char => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;"
-    })[char]);
+  function resetForm() {
+
+    form.reset();
+
+    $("pricingId").value = "";
+
+    $("formTitle").textContent =
+      "Ongeza Delivery Pricing";
+
+    $("savePricingBtn").textContent =
+      "+ Hifadhi Bei";
+
+    $("cancelEditBtn").hidden = true;
+
+    showFormMessage("");
   }
 
-  /* SAVE OR UPDATE */
+  /* ========================================
+     9. EDIT RECORD
+  ======================================== */
 
-  form.addEventListener("submit", async event => {
+  function editPricing(item) {
+
+    $("pricingId").value = item.id;
+    $("country").value = item.country;
+    $("region").value = item.region;
+    $("district").value = item.district || "";
+    $("currency").value = item.currency;
+
+    $("baseFee").value = item.base_fee;
+    $("pricePerKm").value = item.price_per_km;
+    $("minimumFee").value = item.minimum_fee;
+
+    $("maximumDistance").value =
+      item.maximum_distance_km;
+
+    $("formTitle").textContent =
+      "Hariri Delivery Pricing";
+
+    $("savePricingBtn").textContent =
+      "Sasisha Bei";
+
+    $("cancelEditBtn").hidden = false;
+
+    form.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }  /* ========================================
+     10. SAVE AND UPDATE PRICING
+  ======================================== */
+
+  form.addEventListener("submit", async function(event) {
 
     event.preventDefault();
 
-    const id = document.getElementById("pricingId").value;
+    if (busy) return;
+
+    const id = $("pricingId").value;
 
     const payload = {
-      country: document.getElementById("country").value.trim(),
-      region: document.getElementById("region").value.trim(),
-      district:
-        document.getElementById("district").value.trim() || null,
-      currency: document.getElementById("currency").value,
-      base_fee: Number(document.getElementById("baseFee").value),
-      price_per_km: Number(document.getElementById("pricePerKm").value),
-      minimum_fee: Number(document.getElementById("minimumFee").value),
+
+      country: $("country").value.trim(),
+
+      region: $("region").value.trim(),
+
+      district: $("district").value.trim() || null,
+
+      currency: $("currency").value,
+
+      base_fee: Number($("baseFee").value),
+
+      price_per_km: Number($("pricePerKm").value),
+
+      minimum_fee: Number($("minimumFee").value),
+
       maximum_distance_km:
-        Number(document.getElementById("maximumDistance").value)
+        Number($("maximumDistance").value)
     };
+
+    const values = [
+      payload.base_fee,
+      payload.price_per_km,
+      payload.minimum_fee
+    ];
 
     if (
       !payload.country ||
       !payload.region ||
-      !Number.isFinite(payload.base_fee) ||
-      !Number.isFinite(payload.price_per_km) ||
-      !Number.isFinite(payload.minimum_fee) ||
+      values.some(value =>
+        !Number.isFinite(value) || value < 0
+      ) ||
       !Number.isFinite(payload.maximum_distance_km) ||
-      payload.base_fee < 0 ||
-      payload.price_per_km < 0 ||
-      payload.minimum_fee < 0 ||
       payload.maximum_distance_km <= 0
     ) {
-      showFormMessage("Tafadhali hakiki taarifa zote.", "error");
+
+      showFormMessage(
+        "Tafadhali jaza taarifa zote kwa usahihi.",
+        "error"
+      );
+
       return;
     }
 
-    const saveButton = document.getElementById("savePricingBtn");
+    busy = true;
 
-    saveButton.disabled = true;
-    saveButton.textContent = "Inahifadhi...";
+    const button = $("savePricingBtn");
 
-    let result;
+    button.disabled = true;
+    button.textContent = "Inahifadhi...";
 
-    if (id) {
+    try {
 
-      result = await db
-        .from("delivery_pricing")
-        .update(payload)
-        .eq("id", id);
+      let result;
 
-    } else {
+      if (id) {
 
-      result = await db
-        .from("delivery_pricing")
-        .insert(payload);
+        result = await db
+          .from("delivery_pricing")
+          .update(payload)
+          .eq("id", id)
+          .select();
+
+      } else {
+
+        result = await db
+          .from("delivery_pricing")
+          .insert(payload)
+          .select();
+
+      }
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      if (!result.data || result.data.length === 0) {
+        throw new Error(
+          "Hakuna taarifa iliyorejeshwa. Kagua ruhusa za database."
+        );
+      }
+
+      showFormMessage(
+        id
+          ? "Delivery pricing imesasishwa."
+          : "Delivery pricing imehifadhiwa."
+      );
+
+      resetForm();
+
+      await loadPricing();
+
+    } catch (error) {
+
+      showFormMessage(showError(error), "error");
+
+    } finally {
+
+      busy = false;
+      button.disabled = false;
+
+      button.textContent = $("pricingId").value
+        ? "Sasisha Bei"
+        : "+ Hifadhi Bei";
     }
 
-    saveButton.disabled = false;
-    saveButton.textContent = id ? "Sasisha Bei" : "+ Hifadhi Bei";
+  });
 
-    if (result.error) {
-      showFormMessage(result.error.message, "error");
-      return;
-    }
+  /* ========================================
+     11. TABLE ACTIONS
+  ======================================== */
 
-    showFormMessage(
-      id ? "Bei imesasishwa kikamilifu." : "Bei imehifadhiwa kikamilifu."
+  tableBody.addEventListener("click", async function(event) {
+
+    const button = event.target.closest(
+      "button[data-action]"
     );
 
-    resetForm();
-    await loadPricing();
-  });
-  /* EDIT, ACTIVATE, DEACTIVATE AND DELETE */
-
-  tableBody.addEventListener("click", async event => {
-
-    const button = event.target.closest("button[data-action]");
-
-    if (!button) return;
+    if (!button || busy) return;
 
     const id = button.dataset.id;
     const action = button.dataset.action;
@@ -341,30 +552,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!item) return;
 
     if (action === "edit") {
-
-      document.getElementById("pricingId").value = item.id;
-      document.getElementById("country").value = item.country;
-      document.getElementById("region").value = item.region;
-      document.getElementById("district").value = item.district || "";
-      document.getElementById("currency").value = item.currency;
-      document.getElementById("baseFee").value = item.base_fee;
-      document.getElementById("pricePerKm").value = item.price_per_km;
-      document.getElementById("minimumFee").value = item.minimum_fee;
-      document.getElementById("maximumDistance").value =
-        item.maximum_distance_km;
-
-      document.getElementById("formTitle").textContent =
-        "Hariri Delivery Pricing";
-
-      document.getElementById("savePricingBtn").textContent =
-        "Sasisha Bei";
-
-      document.getElementById("cancelEditBtn").hidden = false;
-
-      document.getElementById("pricingForm").scrollIntoView({
-        behavior: "smooth"
-      });
-
+      editPricing(item);
       return;
     }
 
@@ -380,22 +568,33 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (!confirmed) return;
 
+      busy = true;
       button.disabled = true;
 
-      const { error } = await db
-        .from("delivery_pricing")
-        .update({ is_active: nextStatus })
-        .eq("id", item.id);
+      try {
 
-      button.disabled = false;
+        const { error } = await db
+          .from("delivery_pricing")
+          .update({ is_active: nextStatus })
+          .eq("id", item.id);
 
-      if (error) {
-        showListMessage(error.message, "error");
-        return;
+        if (error) throw error;
+
+        showListMessage("Status imebadilishwa.");
+
+        await loadPricing();
+
+      } catch (error) {
+
+        showListMessage(showError(error), "error");
+
+      } finally {
+
+        busy = false;
+        button.disabled = false;
+
       }
 
-      showListMessage("Status imebadilishwa kikamilifu.");
-      await loadPricing();
       return;
     }
 
@@ -407,58 +606,68 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (!confirmed) return;
 
+      busy = true;
       button.disabled = true;
 
-      const { error } = await db
-        .from("delivery_pricing")
-        .delete()
-        .eq("id", item.id);
+      try {
 
-      button.disabled = false;
+        const { error } = await db
+          .from("delivery_pricing")
+          .delete()
+          .eq("id", item.id);
 
-      if (error) {
-        showListMessage(error.message, "error");
-        return;
+        if (error) throw error;
+
+        showListMessage("Bei imefutwa.");
+
+        await loadPricing();
+
+      } catch (error) {
+
+        showListMessage(showError(error), "error");
+
+      } finally {
+
+        busy = false;
+        button.disabled = false;
+
       }
-
-      showListMessage("Delivery pricing imefutwa.");
-      await loadPricing();
     }
+
   });
 
-  /* RESET FORM */
+  /* ========================================
+     12. FILTERS AND BUTTONS
+  ======================================== */
 
-  function resetForm() {
+  $("cancelEditBtn").addEventListener(
+    "click",
+    resetForm
+  );
 
-    form.reset();
+  $("searchPricing").addEventListener(
+    "input",
+    renderPricing
+  );
 
-    document.getElementById("pricingId").value = "";
+  $("statusFilter").addEventListener(
+    "change",
+    renderPricing
+  );
 
-    document.getElementById("formTitle").textContent =
-      "Ongeza Delivery Pricing";
+  $("refreshPricing").addEventListener(
+    "click",
+    loadPricing
+  );
 
-    document.getElementById("savePricingBtn").textContent =
-      "+ Hifadhi Bei";
-
-    document.getElementById("cancelEditBtn").hidden = true;
-  }
-
-  /* FILTERS AND BUTTONS */
-
-  document.getElementById("cancelEditBtn")
-    .addEventListener("click", resetForm);
-
-  document.getElementById("searchPricing")
-    .addEventListener("input", renderPricing);
-
-  document.getElementById("statusFilter")
-    .addEventListener("change", renderPricing);
-
-  document.getElementById("refreshPricing")
-    .addEventListener("click", loadPricing);
-
-  /* INITIAL LOAD */
+  /* ========================================
+     13. INITIAL LOAD
+  ======================================== */
 
   await loadPricing();
+
+  console.log(
+    "ZUNE Delivery Pricing initialized successfully."
+  );
 
 });
