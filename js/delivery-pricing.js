@@ -1,33 +1,37 @@
-/* ==========================================
-   ZUNE ADMIN - DELIVERY PRICING
-   Supabase Integration
-========================================== */
+// ============================================
+// ZUNE ADMIN - DELIVERY PRICING
+// ============================================
 
-document.addEventListener("DOMContentLoaded", async function () {
-
-  "use strict";
+document.addEventListener("DOMContentLoaded", async () => {
 
   const $ = id => document.getElementById(id);
 
   const form = $("pricingForm");
+  const regionSelect = $("region");
+  const districtSelect = $("district");
+  const wardSelect = $("ward");
   const tableBody = $("pricingTableBody");
 
   let db = null;
   let pricingRecords = [];
-  let busy = false;
+  let regions = [];
+  let districts = [];
+  let wards = [];
 
-  /* ========================================
-     1. SUPABASE CONNECTION
-  ======================================== */
+  // ------------------------------------------
+  // SUPABASE CONNECTION
+  // ------------------------------------------
 
   function connectSupabase() {
 
     if (window.zuneSupabase) {
-      return window.zuneSupabase;
+      db = window.zuneSupabase;
+      return true;
     }
 
     if (window.supabaseClient) {
-      return window.supabaseClient;
+      db = window.supabaseClient;
+      return true;
     }
 
     if (
@@ -36,638 +40,680 @@ document.addEventListener("DOMContentLoaded", async function () {
       window.SUPABASE_URL &&
       window.SUPABASE_ANON_KEY
     ) {
-      window.zuneSupabase = window.supabase.createClient(
+      db = window.supabase.createClient(
         window.SUPABASE_URL,
         window.SUPABASE_ANON_KEY
       );
 
-      return window.zuneSupabase;
+      window.zuneSupabase = db;
+      return true;
     }
 
-    return null;
+    return false;
   }
 
-  db = connectSupabase();
+  function showFormMessage(message, success = false) {
+    $("formMessage").textContent = message;
+    $("formMessage").style.color =
+      success ? "#15803d" : "#dc2626";
+  }
 
-  if (!db) {
+  function showListMessage(message, error = false) {
+    $("listMessage").textContent = message;
+    $("listMessage").style.color =
+      error ? "#dc2626" : "#77857b";
+  }
 
-    showFormMessage(
-      "Supabase haijaunganishwa. Kagua CDN na config.js.",
-      "error"
+  function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    })[char]);
+  }
+
+  function formatMoney(value) {
+    return Number(value || 0).toLocaleString("en-TZ");
+  }
+
+  // ------------------------------------------
+  // ADMIN ACCESS CHECK
+  // ------------------------------------------
+
+  async function checkAdmin() {
+
+    const { data: authData, error: authError } =
+      await db.auth.getUser();
+
+    if (authError || !authData.user) {
+      throw new Error("Tafadhali ingia kwenye akaunti ya admin.");
+    }
+
+    const { data: profile, error } = await db
+      .from("profiles")
+      .select("role")
+      .eq("id", authData.user.id)
+      .single();
+
+    if (error) throw error;
+
+    if (profile.role !== "admin") {
+      throw new Error("Admin access required.");
+    }
+  }
+
+  // ------------------------------------------
+  // TANZANIA LOCATION DATA
+  // ------------------------------------------
+
+  async function loadLocations() {
+
+    regionSelect.disabled = true;
+    regionSelect.innerHTML =
+      '<option value="">Inapakia mikoa...</option>';
+
+    const response = await fetch(
+      "https://api.openadmindata.org/api/v1/countries/tz.json"
     );
 
-    if (tableBody) {
-      tableBody.innerHTML = `
-        <tr>
-          <td colspan="7" class="empty-state">
-            Supabase connection haijapatikana.
-          </td>
-        </tr>
-      `;
+    if (!response.ok) {
+      throw new Error("Imeshindwa kupakua orodha ya maeneo.");
     }
 
-    return;
-  }
+    const result = await response.json();
 
-  /* ========================================
-     2. MESSAGE FUNCTIONS
-  ======================================== */
+    regions = result.data?.region || [];
+    districts = result.data?.district || [];
+    wards = result.data?.ward || [];
 
-  function showFormMessage(message, type = "success") {
-
-    const element = $("formMessage");
-    if (!element) return;
-
-    element.textContent = message;
-    element.style.color =
-      type === "error" ? "#dc2626" : "#15803d";
-  }
-
-  function showListMessage(message, type = "success") {
-
-    const element = $("listMessage");
-    if (!element) return;
-
-    element.textContent = message;
-    element.style.color =
-      type === "error" ? "#dc2626" : "#15803d";
-  }
-
-  function showError(error) {
-
-    console.error("ZUNE Delivery Pricing:", error);
-
-    return error?.message ||
-      error?.details ||
-      "Hitilafu isiyojulikana imetokea.";
-  }
-
-  /* ========================================
-     3. AUTHENTICATION AND ADMIN CHECK
-  ======================================== */
-
-  async function verifyAdmin() {
-
-    const { data, error } = await db.auth.getUser();
-
-    if (error || !data?.user) {
-      window.location.replace("../login.html");
-      return false;
+    if (!regions.length) {
+      throw new Error("Orodha ya mikoa haijapatikana.");
     }
 
-    const { data: profile, error: profileError } = await db
-      .from("profiles")
-      .select("id, role")
-      .eq("id", data.user.id)
-      .maybeSingle();
+    regionSelect.innerHTML =
+      '<option value="">Chagua mkoa</option>';
 
-    if (profileError) {
+    regions
+      .sort((a, b) => a.name_en.localeCompare(b.name_en))
+      .forEach(item => {
+        const option = document.createElement("option");
+        option.value = item.id;
+        option.textContent = item.name_local || item.name_en;
+        regionSelect.appendChild(option);
+      });
 
-      showFormMessage(
-        "Imeshindikana kuthibitisha Admin: " +
-        showError(profileError),
-        "error"
-      );
-
-      return false;
-    }
-
-    if (!profile || profile.role !== "admin") {
-
-      document.body.innerHTML = `
-        <div style="
-          max-width:500px;
-          margin:80px auto;
-          padding:25px;
-          text-align:center;
-          font-family:Arial,sans-serif;
-        ">
-          <h2 style="color:#dc2626">Access Denied</h2>
-          <p>Unahitaji ruhusa ya Admin kufungua ukurasa huu.</p>
-          <a href="../index.html">Rudi Dashboard</a>
-        </div>
-      `;
-
-      return false;
-    }
-
-    return true;
+    regionSelect.disabled = false;
   }
 
-  const authorized = await verifyAdmin();
+  function resetDistricts() {
+    districtSelect.innerHTML =
+      '<option value="">Chagua mkoa kwanza</option>';
+    districtSelect.disabled = true;
+  }
 
-  if (!authorized) return;  /* ========================================
-     4. LOAD PRICING
-  ======================================== */
+  function resetWards() {
+    wardSelect.innerHTML =
+      '<option value="">Chagua wilaya kwanza</option>';
+    wardSelect.disabled = true;
+  }
+
+  regionSelect.addEventListener("change", () => {
+
+    const regionId = regionSelect.value;
+
+    resetDistricts();
+    resetWards();
+
+    if (!regionId) return;
+
+    const matches = districts
+      .filter(item => item.parent_id === regionId)
+      .sort((a, b) => a.name_en.localeCompare(b.name_en));
+
+    districtSelect.innerHTML =
+      '<option value="">Chagua wilaya</option>';
+
+    matches.forEach(item => {
+      const option = document.createElement("option");
+      option.value = item.id;
+      option.textContent = item.name_local || item.name_en;
+      districtSelect.appendChild(option);
+    });
+
+    districtSelect.disabled = false;
+  });
+
+  districtSelect.addEventListener("change", () => {
+
+    const districtId = districtSelect.value;
+
+    resetWards();
+
+    if (!districtId) return;
+
+    const matches = wards
+      .filter(item => item.parent_id === districtId)
+      .sort((a, b) => a.name_en.localeCompare(b.name_en));
+
+    wardSelect.innerHTML =
+      '<option value="">Wilaya nzima / Kata zote</option>';
+
+    matches.forEach(item => {
+      const option = document.createElement("option");
+      option.value = item.id;
+      option.textContent = item.name_local || item.name_en;
+      wardSelect.appendChild(option);
+    });
+
+    wardSelect.disabled = false;
+  });
+
+  // ------------------------------------------
+  // LOCATION NAME HELPERS
+  // ------------------------------------------
+
+  function selectedName(select) {
+    return select.selectedOptions[0]?.textContent || "";
+  }
+
+  function findLocationName(list, id) {
+    const item = list.find(entry => entry.id === id);
+    return item ? (item.name_local || item.name_en) : "";
+  }
+
+  function getLocationRecord(record) {
+    return {
+      region: record.region || "",
+      district: record.district || "",
+      ward: record.ward || ""
+    };
+  }
+
+  // ------------------------------------------
+  // LOAD PRICING RECORDS
+  // ------------------------------------------
 
   async function loadPricing() {
 
-    if (busy) return;
-
-    if (tableBody) {
-      tableBody.innerHTML = `
-        <tr>
-          <td colspan="7" class="empty-state">
-            Inapakia taarifa...
-          </td>
-        </tr>
-      `;
-    }
+    showListMessage("Inapakia bei za delivery...");
 
     const { data, error } = await db
       .from("delivery_pricing")
       .select("*")
-      .order("country", { ascending: true })
-      .order("region", { ascending: true });
+      .order("created_at", { ascending: false });
 
-    if (error) {
-
-      pricingRecords = [];
-
-      if (tableBody) {
-        tableBody.innerHTML = `
-          <tr>
-            <td colspan="7" class="empty-state">
-              ${escapeHTML(showError(error))}
-            </td>
-          </tr>
-        `;
-      }
-
-      showListMessage(showError(error), "error");
-      updateStats();
-
-      return;
-    }
+    if (error) throw error;
 
     pricingRecords = data || [];
 
-    updateStats();
     renderPricing();
-    showListMessage("");
+    updateStats();
   }
-
-  /* ========================================
-     5. STATISTICS
-  ======================================== */
+  // ------------------------------------------
+  // UPDATE STATISTICS
+  // ------------------------------------------
 
   function updateStats() {
 
-    const total = pricingRecords.length;
+    $("totalPricing").textContent =
+      pricingRecords.length;
 
-    const active = pricingRecords.filter(
-      item => item.is_active === true
-    ).length;
+    $("activePricing").textContent =
+      pricingRecords.filter(item => item.is_active).length;
 
-    if ($("totalPricing")) {
-      $("totalPricing").textContent = total;
-    }
+    $("inactivePricing").textContent =
+      pricingRecords.filter(item => !item.is_active).length;
 
-    if ($("activePricing")) {
-      $("activePricing").textContent = active;
-    }
-
-    if ($("inactivePricing")) {
-      $("inactivePricing").textContent = total - active;
-    }
-
-    if ($("recordCount")) {
-      $("recordCount").textContent = total + " Records";
-    }
+    $("recordCount").textContent =
+      document.querySelectorAll("#pricingTableBody tr[data-id]").length;
   }
 
-  /* ========================================
-     6. FORMAT AND SECURITY
-  ======================================== */
-
-  function escapeHTML(value) {
-
-    return String(value ?? "").replace(
-      /[&<>"']/g,
-      character => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;"
-      })[character]
-    );
-  }
-
-  function formatMoney(amount, currency) {
-
-    const number = Number(amount);
-
-    return number.toLocaleString("en-US") +
-      " " + escapeHTML(currency);
-  }
-
-  /* ========================================
-     7. DISPLAY PRICING RECORDS
-  ======================================== */
+  // ------------------------------------------
+  // RENDER PRICING TABLE
+  // ------------------------------------------
 
   function renderPricing() {
 
-    const search = $("searchPricing")?.value
-      ?.toLowerCase()
-      .trim() || "";
+    const search = $("searchPricing").value
+      .trim()
+      .toLowerCase();
 
-    const status = $("statusFilter")?.value || "all";
+    const status = $("statusFilter").value;
 
     const filtered = pricingRecords.filter(item => {
 
-      const area = [
+      const text = [
         item.country,
         item.region,
-        item.district || ""
+        item.district,
+        item.ward
       ].join(" ").toLowerCase();
 
-      const matchesSearch = area.includes(search);
+      const matchesSearch = text.includes(search);
 
       const matchesStatus =
         status === "all" ||
-        (status === "active" && item.is_active === true) ||
-        (status === "inactive" && item.is_active === false);
+        (status === "active" && item.is_active) ||
+        (status === "inactive" && !item.is_active);
 
       return matchesSearch && matchesStatus;
     });
 
     if (!filtered.length) {
-
       tableBody.innerHTML = `
         <tr>
-          <td colspan="7" class="empty-state">
-            Hakuna taarifa zilizopatikana.
+          <td colspan="7"
+            style="padding:25px;text-align:center;color:#77857b">
+            Hakuna bei zilizopatikana.
           </td>
         </tr>
       `;
 
+      updateStats();
       return;
     }
 
     tableBody.innerHTML = filtered.map(item => {
 
       const area = [
-        item.country,
         item.region,
-        item.district
-      ].filter(Boolean).join(" / ");
+        item.district || "Wilaya zote",
+        item.ward || "Kata zote"
+      ].filter(Boolean).map(escapeHTML).join(" / ");
 
       return `
-        <tr>
-          <td><strong>${escapeHTML(area)}</strong></td>
+        <tr data-id="${escapeHTML(item.id)}"
+            style="border-bottom:1px solid #e8eee9">
 
-          <td>${formatMoney(item.base_fee, item.currency)}</td>
+          <td style="padding:13px;font-size:12px">
+            <strong>${area}</strong>
+          </td>
 
-          <td>${formatMoney(item.price_per_km, item.currency)}</td>
+          <td style="padding:13px">
+            ${formatMoney(item.base_fee)}
+          </td>
 
-          <td>${formatMoney(item.minimum_fee, item.currency)}</td>
+          <td style="padding:13px">
+            ${formatMoney(item.price_per_km)}
+          </td>
 
-          <td>${Number(item.maximum_distance_km)} KM</td>
+          <td style="padding:13px">
+            ${formatMoney(item.minimum_fee)}
+          </td>
 
-          <td>
-            <span class="${
-              item.is_active ? "status-active" : "status-inactive"
-            }">
+          <td style="padding:13px">
+            ${escapeHTML(item.maximum_distance_km)}
+          </td>
+
+          <td style="padding:13px">
+            <span style="
+              display:inline-block;
+              padding:6px 10px;
+              border-radius:20px;
+              font-size:11px;
+              font-weight:700;
+              background:${item.is_active ? '#eaf7ee' : '#feecec'};
+              color:${item.is_active ? '#15803d' : '#dc2626'}
+            ">
               ${item.is_active ? "Active" : "Inactive"}
             </span>
           </td>
 
-          <td>
-            <button class="action-btn edit-btn"
+          <td style="padding:13px;white-space:nowrap">
+
+            <button
+              type="button"
               data-action="edit"
-              data-id="${escapeHTML(item.id)}">
+              data-id="${escapeHTML(item.id)}"
+              style="border:0;background:#eaf7ee;color:#15803d;padding:8px 10px;border-radius:8px;cursor:pointer">
               Edit
             </button>
 
-            <button class="action-btn toggle-btn"
+            <button
+              type="button"
               data-action="toggle"
-              data-id="${escapeHTML(item.id)}">
-              ${item.is_active ? "Zima" : "Washa"}
+              data-id="${escapeHTML(item.id)}"
+              style="border:0;background:#fff7d6;color:#805b00;padding:8px 10px;border-radius:8px;cursor:pointer">
+              ${item.is_active ? "Disable" : "Enable"}
             </button>
 
-            <button class="action-btn delete-btn"
+            <button
+              type="button"
               data-action="delete"
-              data-id="${escapeHTML(item.id)}">
-              Futa
+              data-id="${escapeHTML(item.id)}"
+              style="border:0;background:#feecec;color:#dc2626;padding:8px 10px;border-radius:8px;cursor:pointer">
+              Delete
             </button>
+
           </td>
         </tr>
       `;
-
     }).join("");
+
+    updateStats();
   }
 
-  /* ========================================
-     8. RESET FORM
-  ======================================== */
+  // ------------------------------------------
+  // RESET FORM
+  // ------------------------------------------
 
   function resetForm() {
 
     form.reset();
 
     $("pricingId").value = "";
+    $("country").value = "Tanzania";
 
-    $("formTitle").textContent =
-      "Ongeza Delivery Pricing";
+    resetDistricts();
+    resetWards();
 
-    $("savePricingBtn").textContent =
-      "+ Hifadhi Bei";
-
-    $("cancelEditBtn").hidden = true;
+    $("formTitle").textContent = "Weka Delivery Pricing";
+    $("savePricingBtn").textContent = "Save Pricing";
+    $("cancelEditBtn").style.display = "none";
 
     showFormMessage("");
   }
 
-  /* ========================================
-     9. EDIT RECORD
-  ======================================== */
+  // ------------------------------------------
+  // SAVE OR UPDATE PRICING
+  // ------------------------------------------
 
-  function editPricing(item) {
-
-    $("pricingId").value = item.id;
-    $("country").value = item.country;
-    $("region").value = item.region;
-    $("district").value = item.district || "";
-    $("currency").value = item.currency;
-
-    $("baseFee").value = item.base_fee;
-    $("pricePerKm").value = item.price_per_km;
-    $("minimumFee").value = item.minimum_fee;
-
-    $("maximumDistance").value =
-      item.maximum_distance_km;
-
-    $("formTitle").textContent =
-      "Hariri Delivery Pricing";
-
-    $("savePricingBtn").textContent =
-      "Sasisha Bei";
-
-    $("cancelEditBtn").hidden = false;
-
-    form.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
-  }  /* ========================================
-     10. SAVE AND UPDATE PRICING
-  ======================================== */
-
-  form.addEventListener("submit", async function(event) {
+  form.addEventListener("submit", async event => {
 
     event.preventDefault();
 
-    if (busy) return;
+    const region = selectedName(regionSelect);
+    const district = selectedName(districtSelect);
+    const ward = wardSelect.value
+      ? selectedName(wardSelect)
+      : null;
 
-    const id = $("pricingId").value;
-
-    const payload = {
-
-      country: $("country").value.trim(),
-
-      region: $("region").value.trim(),
-
-      district: $("district").value.trim() || null,
-
-      currency: $("currency").value,
-
-      base_fee: Number($("baseFee").value),
-
-      price_per_km: Number($("pricePerKm").value),
-
-      minimum_fee: Number($("minimumFee").value),
-
-      maximum_distance_km:
-        Number($("maximumDistance").value)
-    };
-
-    const values = [
-      payload.base_fee,
-      payload.price_per_km,
-      payload.minimum_fee
-    ];
-
-    if (
-      !payload.country ||
-      !payload.region ||
-      values.some(value =>
-        !Number.isFinite(value) || value < 0
-      ) ||
-      !Number.isFinite(payload.maximum_distance_km) ||
-      payload.maximum_distance_km <= 0
-    ) {
-
-      showFormMessage(
-        "Tafadhali jaza taarifa zote kwa usahihi.",
-        "error"
-      );
-
+    if (!region || !district) {
+      showFormMessage("Chagua mkoa na wilaya.");
       return;
     }
 
-    busy = true;
+    const baseFee = Number($("baseFee").value);
+    const pricePerKm = Number($("pricePerKm").value);
+    const minimumFee = Number($("minimumFee").value);
+    const maximumDistance = Number($("maximumDistance").value);
 
-    const button = $("savePricingBtn");
+    if (
+      !Number.isFinite(baseFee) ||
+      !Number.isFinite(pricePerKm) ||
+      !Number.isFinite(minimumFee) ||
+      !Number.isFinite(maximumDistance) ||
+      baseFee < 0 ||
+      pricePerKm < 0 ||
+      minimumFee < 0 ||
+      maximumDistance <= 0
+    ) {
+      showFormMessage("Tafadhali hakiki gharama na umbali ulioingiza.");
+      return;
+    }
 
-    button.disabled = true;
-    button.textContent = "Inahifadhi...";
+    const payload = {
+      country: "Tanzania",
+      region,
+      district: district === "Wilaya nzima / Kata zote" ? null : district,
+      ward,
+      currency: "TZS",
+      base_fee: baseFee,
+      price_per_km: pricePerKm,
+      minimum_fee: minimumFee,
+      maximum_distance_km: maximumDistance,
+      updated_at: new Date().toISOString()
+    };
+
+    const id = $("pricingId").value;
+    const saveButton = $("savePricingBtn");
+
+    saveButton.disabled = true;
+    saveButton.textContent = "Saving...";
 
     try {
 
       let result;
 
       if (id) {
-
         result = await db
           .from("delivery_pricing")
           .update(payload)
           .eq("id", id)
           .select();
-
       } else {
-
         result = await db
           .from("delivery_pricing")
           .insert(payload)
           .select();
-
       }
 
-      if (result.error) {
-        throw result.error;
-      }
+      if (result.error) throw result.error;
 
-      if (!result.data || result.data.length === 0) {
-        throw new Error(
-          "Hakuna taarifa iliyorejeshwa. Kagua ruhusa za database."
-        );
+      if (!result.data || !result.data.length) {
+        throw new Error("Hakuna rekodi iliyohifadhiwa. Hakiki ruhusa za database.");
       }
 
       showFormMessage(
-        id
-          ? "Delivery pricing imesasishwa."
-          : "Delivery pricing imehifadhiwa."
+        id ? "Bei imebadilishwa kikamilifu." : "Bei imehifadhiwa kikamilifu.",
+        true
       );
 
       resetForm();
-
       await loadPricing();
 
     } catch (error) {
 
-      showFormMessage(showError(error), "error");
+      console.error("Save pricing error:", error);
+      showFormMessage(error.message || "Imeshindwa kuhifadhi bei.");
 
     } finally {
 
-      busy = false;
-      button.disabled = false;
-
-      button.textContent = $("pricingId").value
-        ? "Sasisha Bei"
-        : "+ Hifadhi Bei";
+      saveButton.disabled = false;
+      saveButton.textContent = "Save Pricing";
     }
-
   });
 
-  /* ========================================
-     11. TABLE ACTIONS
-  ======================================== */
+  // ------------------------------------------
+  // EDIT LOCATION HELPER
+  // ------------------------------------------
 
-  tableBody.addEventListener("click", async function(event) {
+  function selectByName(select, list, name) {
 
-    const button = event.target.closest(
-      "button[data-action]"
+    const item = list.find(entry =>
+      (entry.name_local || entry.name_en) === name ||
+      entry.name_en === name ||
+      entry.name_local === name
     );
 
-    if (!button || busy) return;
+    if (!item) return false;
+
+    select.value = item.id;
+    return true;
+  }
+
+  async function editPricing(id) {
+
+    const item = pricingRecords.find(record => record.id === id);
+    if (!item) return;
+
+    resetForm();
+
+    const regionFound = selectByName(
+      regionSelect,
+      regions,
+      item.region
+    );
+
+    if (!regionFound) {
+      showFormMessage("Mkoa wa rekodi hii haujapatikana kwenye orodha.");
+      return;
+    }
+
+    regionSelect.dispatchEvent(new Event("change"));
+
+    const districtFound = selectByName(
+      districtSelect,
+      districts.filter(entry =>
+        entry.parent_id === regionSelect.value
+      ),
+      item.district
+    );
+
+    if (!districtFound) {
+      showFormMessage("Wilaya ya rekodi hii haijapatikana.");
+      return;
+    }
+
+    districtSelect.dispatchEvent(new Event("change"));
+
+    if (item.ward) {
+      selectByName(
+        wardSelect,
+        wards.filter(entry =>
+          entry.parent_id === districtSelect.value
+        ),
+        item.ward
+      );
+    }
+
+    $("pricingId").value = item.id;
+    $("baseFee").value = item.base_fee;
+    $("pricePerKm").value = item.price_per_km;
+    $("minimumFee").value = item.minimum_fee;
+    $("maximumDistance").value = item.maximum_distance_km;
+    $("currency").value = item.currency || "TZS";
+
+    $("formTitle").textContent = "Hariri Delivery Pricing";
+    $("savePricingBtn").textContent = "Update Pricing";
+    $("cancelEditBtn").style.display = "inline-block";
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // ------------------------------------------
+  // TOGGLE ACTIVE STATUS
+  // ------------------------------------------
+
+  async function togglePricing(id) {
+
+    const item = pricingRecords.find(record => record.id === id);
+    if (!item) return;
+
+    const { error } = await db
+      .from("delivery_pricing")
+      .update({
+        is_active: !item.is_active,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", id);
+
+    if (error) throw error;
+
+    await loadPricing();
+  }
+
+  // ------------------------------------------
+  // DELETE PRICING
+  // ------------------------------------------
+
+  async function deletePricing(id) {
+
+    const confirmed = confirm(
+      "Una uhakika unataka kufuta bei hii?"
+    );
+
+    if (!confirmed) return;
+
+    const { error } = await db
+      .from("delivery_pricing")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+
+    await loadPricing();
+  }
+
+  // ------------------------------------------
+  // TABLE ACTIONS
+  // ------------------------------------------
+
+  tableBody.addEventListener("click", async event => {
+
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
 
     const id = button.dataset.id;
     const action = button.dataset.action;
 
-    const item = pricingRecords.find(
-      record => String(record.id) === String(id)
-    );
+    button.disabled = true;
 
-    if (!item) return;
+    try {
 
-    if (action === "edit") {
-      editPricing(item);
-      return;
-    }
-
-    if (action === "toggle") {
-
-      const nextStatus = !item.is_active;
-
-      const confirmed = confirm(
-        nextStatus
-          ? "Unataka kuwasha bei hii?"
-          : "Unataka kuzima bei hii?"
-      );
-
-      if (!confirmed) return;
-
-      busy = true;
-      button.disabled = true;
-
-      try {
-
-        const { error } = await db
-          .from("delivery_pricing")
-          .update({ is_active: nextStatus })
-          .eq("id", item.id);
-
-        if (error) throw error;
-
-        showListMessage("Status imebadilishwa.");
-
-        await loadPricing();
-
-      } catch (error) {
-
-        showListMessage(showError(error), "error");
-
-      } finally {
-
-        busy = false;
-        button.disabled = false;
-
+      if (action === "edit") {
+        await editPricing(id);
       }
 
-      return;
-    }
-
-    if (action === "delete") {
-
-      const confirmed = confirm(
-        "Una uhakika unataka kufuta bei hii? Kitendo hiki hakiwezi kurejeshwa."
-      );
-
-      if (!confirmed) return;
-
-      busy = true;
-      button.disabled = true;
-
-      try {
-
-        const { error } = await db
-          .from("delivery_pricing")
-          .delete()
-          .eq("id", item.id);
-
-        if (error) throw error;
-
-        showListMessage("Bei imefutwa.");
-
-        await loadPricing();
-
-      } catch (error) {
-
-        showListMessage(showError(error), "error");
-
-      } finally {
-
-        busy = false;
-        button.disabled = false;
-
+      if (action === "toggle") {
+        await togglePricing(id);
       }
-    }
 
+      if (action === "delete") {
+        await deletePricing(id);
+      }
+
+    } catch (error) {
+
+      console.error("Pricing action error:", error);
+      showListMessage(error.message || "Kitendo kimeshindwa.", true);
+
+    } finally {
+
+      button.disabled = false;
+    }
   });
 
-  /* ========================================
-     12. FILTERS AND BUTTONS
-  ======================================== */
+  // ------------------------------------------
+  // SEARCH AND FILTER
+  // ------------------------------------------
 
-  $("cancelEditBtn").addEventListener(
-    "click",
-    resetForm
-  );
+  $("searchPricing").addEventListener("input", renderPricing);
+  $("statusFilter").addEventListener("change", renderPricing);
 
-  $("searchPricing").addEventListener(
-    "input",
-    renderPricing
-  );
+  // ------------------------------------------
+  // CANCEL EDIT
+  // ------------------------------------------
 
-  $("statusFilter").addEventListener(
-    "change",
-    renderPricing
-  );
+  $("cancelEditBtn").addEventListener("click", resetForm);
 
-  $("refreshPricing").addEventListener(
-    "click",
-    loadPricing
-  );
+  // ------------------------------------------
+  // START SYSTEM
+  // ------------------------------------------
 
-  /* ========================================
-     13. INITIAL LOAD
-  ======================================== */
+  try {
 
-  await loadPricing();
+    if (!connectSupabase()) {
+      throw new Error("Supabase haijaunganishwa. Hakiki config.js.");
+    }
 
-  console.log(
-    "ZUNE Delivery Pricing initialized successfully."
-  );
+    await checkAdmin();
+    await loadLocations();
+    await loadPricing();
+
+    showListMessage("Delivery Pricing imeunganishwa kikamilifu.");
+
+  } catch (error) {
+
+    console.error("ZUNE Delivery Pricing:", error);
+
+    showListMessage(error.message || "Imeshindwa kuanzisha mfumo.", true);
+
+    regionSelect.innerHTML =
+      '<option value="">Orodha haijapatikana</option>';
+
+  }
 
 });
