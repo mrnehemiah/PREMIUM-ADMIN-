@@ -3,589 +3,462 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>ZUNE Admin | Delivery Pricing</title>
 
-<link rel="stylesheet" href="../css/admin.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-
-<script src="../js/config.js?v=3"></script>
+<script src="../js/config.js?v=5"></script>
 
 <style>
 :root {
-  --green:#15803d;
-  --green-dark:#166534;
-  --green-light:#f0fdf4;
-  --yellow:#facc15;
-  --bg:#f5f7f6;
-  --white:#ffffff;
-  --text:#17211b;
-  --muted:#718078;
-  --border:#e5ebe7;
-  --red:#dc2626;
+  --green: #15803d;
+  --dark-green: #14532d;
+  --light-green: #eaf7ee;
+  --yellow: #facc15;
+  --background: #f5f8f5;
+  --white: #ffffff;
+  --text: #183b25;
+  --muted: #77857b;
+  --border: #e3ebe5;
+  --danger: #dc2626;
+  --shadow: 0 8px 28px rgba(20,83,45,.07);
 }
 
 * {
-  box-sizing:border-box;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:Arial, sans-serif;
+  background: var(--background);
+  color: var(--text);
+  font-family: Arial, sans-serif;
 }
 
-.delivery-page {
-  width:100%;
-  max-width:1200px;
-  margin:auto;
-  padding:22px;
+button, input, select {
+  font: inherit;
 }
 
-.page-header {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:15px;
-  flex-wrap:wrap;
-  margin-bottom:25px;
+.page {
+  width: 100%;
+  max-width: 1200px;
+  margin: auto;
+  padding: 22px;
 }
 
-.header-title h1 {
-  font-size:25px;
-  margin:0 0 7px;
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 24px;
 }
 
-.header-title p {
-  color:var(--muted);
-  margin:0;
-  font-size:14px;
+.topbar h1 {
+  color: var(--dark-green);
+  font-size: 25px;
+}
+
+.topbar p {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 6px;
 }
 
 .back-link {
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  color:var(--green);
-  text-decoration:none;
-  font-weight:700;
-  margin-bottom:18px;
+  color: var(--green);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 15px;
 }
 
-.refresh-btn {
-  border:1px solid var(--border);
-  background:white;
-  color:var(--green-dark);
-  padding:11px 16px;
-  border-radius:10px;
-  font-weight:700;
-  cursor:pointer;
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
 }
 
-.refresh-btn:active {
-  transform:scale(.97);
+.stat-card {
+  background: var(--white);
+  padding: 18px;
+  border-radius: 17px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.stat-card small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.stat-card h2 {
+  color: var(--dark-green);
+  font-size: 25px;
+  margin-top: 10px;
+}
+
+.panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 19px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+  margin-bottom: 22px;
+}
+
+.panel-title {
+  color: var(--dark-green);
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+.panel-description {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.form-group {
+  min-width: 0;
+}
+
+.form-group.full {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  display: block;
+  color: #385442;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fbfefb;
+  color: var(--text);
+  padding: 0 13px;
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(21,128,61,.09);
+}
+
+.form-group select:disabled {
+  background: #f0f3f1;
+  color: #9aa69d;
 }
 </style>
 </head>
 
 <body>
+<div class="page">
 
-<main class="delivery-page">
-
-<a href="../index.html" class="back-link">
-  ← Rudi Dashboard
-</a>
-
-<header class="page-header">
-  <div class="header-title">
-    <h1>Delivery Pricing</h1>
-    <p>Simamia gharama za usafirishaji za ZUNE Marketplace.</p>
-  </div>
-
-  <button class="refresh-btn" id="refreshPricing">
-    ↻ Refresh
-  </button>
-</header>
-<section class="stats-grid">
-
-  <div class="stat-card">
-    <span>Jumla ya Bei</span>
-    <strong id="totalPricing">0</strong>
-    <small>Delivery pricing records</small>
-  </div>
-
-  <div class="stat-card">
-    <span>Bei Zinazotumika</span>
-    <strong id="activePricing">0</strong>
-    <small>Active pricing records</small>
-  </div>
-
-  <div class="stat-card">
-    <span>Bei Zilizozimwa</span>
-    <strong id="inactivePricing">0</strong>
-    <small>Inactive pricing records</small>
-  </div>
-
-</section>
-
-<section class="pricing-form-card">
-
-  <div class="section-heading">
+  <header class="topbar">
     <div>
-      <h2 id="formTitle">Ongeza Delivery Pricing</h2>
-      <p>Weka gharama kulingana na eneo la mnunuzi.</p>
+      <h1>Delivery Pricing</h1>
+      <p>Simamia gharama za delivery za ZUNE Marketplace</p>
     </div>
 
-    <span class="form-icon">🚚</span>
-  </div>
+    <a class="back-link" href="../index.html">← Dashboard</a>
+  </header>
+  <section class="stats">
 
-  <form id="pricingForm">
+    <div class="stat-card">
+      <small>Jumla ya bei</small>
+      <h2 id="totalPricing">0</h2>
+    </div>
 
-    <input type="hidden" id="pricingId">
+    <div class="stat-card">
+      <small>Bei zinazotumika</small>
+      <h2 id="activePricing">0</h2>
+    </div>
 
-    <div class="form-grid">
+    <div class="stat-card">
+      <small>Bei zilizozimwa</small>
+      <h2 id="inactivePricing">0</h2>
+    </div>
+
+    <div class="stat-card">
+      <small>Rekodi zinazoonekana</small>
+      <h2 id="recordCount">0</h2>
+    </div>
+
+  </section>
+
+  <section class="panel">
+
+    <h2 class="panel-title" id="formTitle">
+      Weka Delivery Pricing
+    </h2>
+
+    <p class="panel-description">
+      Chagua eneo na weka gharama za kusafirisha bidhaa.
+    </p>
+
+    <form id="pricingForm">
+
+      <input type="hidden" id="pricingId">
+
+      <div class="form-grid">
+
+        <div class="form-group full">
+          <label>Nchi</label>
+          <input
+            type="text"
+            value="Tanzania"
+            readonly
+            style="background:#eaf7ee;color:#166534;font-weight:700"
+          >
+          <input type="hidden" id="country" value="Tanzania">
+        </div>
+
+        <div class="form-group">
+          <label for="region">Mkoa</label>
+          <select id="region" required disabled>
+            <option value="">Inapakia mikoa...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="district">Wilaya</label>
+          <select id="district" required disabled>
+            <option value="">Chagua mkoa kwanza</option>
+          </select>
+        </div>
+
+        <div class="form-group full">
+          <label for="ward">Kata</label>
+          <select id="ward" disabled>
+            <option value="">Chagua wilaya kwanza</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="currency">Sarafu</label>
+          <select id="currency" required>
+            <option value="TZS">Tanzanian Shilling (TZS)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="baseFee">Base Fee (TZS)</label>
+          <input
+            type="number"
+            id="baseFee"
+            min="0"
+            step="1"
+            placeholder="Mfano: 2000"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="pricePerKm">Bei kwa kila KM (TZS)</label>
+          <input
+            type="number"
+            id="pricePerKm"
+            min="0"
+            step="1"
+            placeholder="Mfano: 500"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="minimumFee">Minimum Fee (TZS)</label>
+          <input
+            type="number"
+            id="minimumFee"
+            min="0"
+            step="1"
+            placeholder="Mfano: 3000"
+            required
+          >
+        </div>
+
+        <div class="form-group full">
+          <label for="maximumDistance">
+            Maximum Distance (KM)
+          </label>
+          <input
+            type="number"
+            id="maximumDistance"
+            min="0"
+            step="0.1"
+            placeholder="Mfano: 50"
+            required
+          >
+        </div>
+
+      </div>
+
+      <div id="formMessage"
+        style="margin-top:15px;font-size:13px"
+        role="status">
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+
+        <button
+          type="submit"
+          id="savePricingBtn"
+          style="background:#15803d;color:white;border:0;border-radius:12px;padding:14px 22px;font-weight:700;cursor:pointer"
+        >
+          Save Pricing
+        </button>
+
+        <button
+          type="button"
+          id="cancelEditBtn"
+          style="display:none;background:#f1f5f2;color:#385442;border:1px solid #dce8df;border-radius:12px;padding:14px 20px;cursor:pointer"
+        >
+          Cancel Edit
+        </button>
+
+      </div>
+
+    </form>
+  </section>
+  <section class="panel">
+
+    <h2 class="panel-title">Delivery Pricing Records</h2>
+
+    <p class="panel-description">
+      Tafuta, hariri au badilisha hali ya bei zilizohifadhiwa.
+    </p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px">
 
       <div class="form-group">
-        <label for="country">Nchi *</label>
-        <select id="country" required>
-          <option value="">Chagua nchi</option>
-          <option value="Tanzania">Tanzania</option>
-          <option value="Kenya">Kenya</option>
-          <option value="Uganda">Uganda</option>
+        <label for="searchPricing">Tafuta eneo</label>
+        <input
+          type="search"
+          id="searchPricing"
+          placeholder="Mkoa, wilaya au kata..."
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="statusFilter">Hali ya bei</label>
+        <select id="statusFilter">
+          <option value="all">Bei zote</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
         </select>
       </div>
 
-      <div class="form-group">
-        <label for="region">Mkoa *</label>
-        <input
-          type="text"
-          id="region"
-          placeholder="Mfano: Dar es Salaam"
-          required
-        >
-      </div>
+    </div>
 
-      <div class="form-group">
-        <label for="district">Wilaya</label>
-        <input
-          type="text"
-          id="district"
-          placeholder="Mfano: Kinondoni"
-        >
-        <small>Acha wazi ikiwa bei ni ya mkoa mzima.</small>
-      </div>
+    <div id="listMessage"
+      style="font-size:13px;color:#77857b;margin-bottom:12px"
+      role="status">
+      Inapakia bei...
+    </div>
 
-      <div class="form-group">
-        <label for="currency">Sarafu *</label>
-        <select id="currency" required>
-          <option value="TZS">TZS - Tanzanian Shilling</option>
-          <option value="KES">KES - Kenyan Shilling</option>
-          <option value="UGX">UGX - Ugandan Shilling</option>
-        </select>
-      </div>
+    <div style="overflow-x:auto">
 
-      <div class="form-group">
-        <label for="baseFee">Base Fee *</label>
-        <input
-          type="number"
-          id="baseFee"
-          min="0"
-          step="1"
-          placeholder="Mfano: 2000"
-          required
-        >
-      </div>
+      <table style="width:100%;border-collapse:collapse;min-width:850px">
 
-      <div class="form-group">
-        <label for="pricePerKm">Price per KM *</label>
-        <input
-          type="number"
-          id="pricePerKm"
-          min="0"
-          step="1"
-          placeholder="Mfano: 500"
-          required
-        >
-      </div>
+        <thead>
+          <tr style="background:#eaf7ee;color:#14532d;text-align:left">
 
-      <div class="form-group">
-        <label for="minimumFee">Minimum Fee *</label>
-        <input
-          type="number"
-          id="minimumFee"
-          min="0"
-          step="1"
-          placeholder="Mfano: 3000"
-          required
-        >
-      </div>
+            <th style="padding:13px">Eneo</th>
+            <th style="padding:13px">Base Fee</th>
+            <th style="padding:13px">Per KM</th>
+            <th style="padding:13px">Minimum</th>
+            <th style="padding:13px">Max KM</th>
+            <th style="padding:13px">Hali</th>
+            <th style="padding:13px">Vitendo</th>
 
-      <div class="form-group">
-        <label for="maximumDistance">Maximum Distance (KM) *</label>
-        <input
-          type="number"
-          id="maximumDistance"
-          min="0.1"
-          step="0.1"
-          placeholder="Mfano: 30"
-          required
-        >
-      </div>
+          </tr>
+        </thead>
+
+        <tbody id="pricingTableBody">
+          <tr>
+            <td colspan="7" style="padding:20px;text-align:center">
+              Inapakia...
+            </td>
+          </tr>
+        </tbody>
+
+      </table>
 
     </div>
 
-    <div class="form-actions">
-      <button type="submit" id="savePricingBtn">
-        + Hifadhi Bei
-      </button>
+  </section>
 
-      <button type="button" id="cancelEditBtn" hidden>
-        Ghairi
-      </button>
-    </div>
-
-    <div id="formMessage" role="status"></div>
-
-  </form>
-</section>
-<section class="pricing-list-card">
-
-  <div class="list-heading">
-    <div>
-      <h2>Delivery Pricing Records</h2>
-      <p>Orodha ya gharama zote zilizowekwa.</p>
-    </div>
-
-    <span class="record-count" id="recordCount">0 Records</span>
-  </div>
-
-  <div class="filter-row">
-
-    <input
-      type="search"
-      id="searchPricing"
-      placeholder="Tafuta nchi, mkoa au wilaya..."
-    >
-
-    <select id="statusFilter">
-      <option value="all">Status zote</option>
-      <option value="active">Active</option>
-      <option value="inactive">Inactive</option>
-    </select>
-
-  </div>
-
-  <div class="table-wrapper">
-
-    <table>
-      <thead>
-        <tr>
-          <th>Eneo</th>
-          <th>Base Fee</th>
-          <th>Price/KM</th>
-          <th>Minimum</th>
-          <th>Max KM</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-
-      <tbody id="pricingTableBody">
-        <tr>
-          <td colspan="7" class="empty-state">
-            Inapakia delivery pricing...
-          </td>
-        </tr>
-      </tbody>
-
-    </table>
-
-  </div>
-
-  <div id="listMessage" role="status"></div>
-
-</section>
-
-<div class="pricing-note">
-  <strong>Jinsi gharama inavyohesabiwa</strong>
-  <p>
-    Delivery Fee = Base Fee + (Distance × Price per KM).
-    Ikiwa hesabu ni chini ya Minimum Fee, Minimum Fee ndiyo itatumika.
-  </p>
-  <small>
-    Gharama halisi itategemea umbali unaoweza kuthibitishwa na mfumo
-    wa kupima njia. Hakuna umbali utakaobuniwa.
-  </small>
 </div>
 
-</main>
 <style>
-.stats-grid {
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:15px;
-  margin-bottom:22px;
-}
+@media (max-width: 700px) {
 
-.stat-card,
-.pricing-form-card,
-.pricing-list-card {
-  background:white;
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:20px;
-}
-
-.stat-card span {
-  display:block;
-  color:var(--muted);
-  font-size:13px;
-}
-
-.stat-card strong {
-  display:block;
-  font-size:27px;
-  color:var(--green);
-  margin:10px 0 5px;
-}
-
-.stat-card small,
-.form-group small {
-  color:var(--muted);
-  font-size:12px;
-}
-
-.section-heading,
-.list-heading {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  margin-bottom:20px;
-}
-
-.section-heading h2,
-.list-heading h2 {
-  font-size:19px;
-  margin:0 0 6px;
-}
-
-.section-heading p,
-.list-heading p {
-  font-size:13px;
-  color:var(--muted);
-  margin:0;
-}
-
-.form-icon {
-  font-size:30px;
-}
-
-.form-grid {
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:17px;
-}
-
-.form-group {
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-
-.form-group label {
-  font-size:13px;
-  font-weight:700;
-}
-
-.form-group input,
-.form-group select,
-.filter-row input,
-.filter-row select {
-  width:100%;
-  padding:13px;
-  border:1px solid var(--border);
-  border-radius:10px;
-  background:white;
-  outline:none;
-  font-size:14px;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-  border-color:var(--green);
-}
-
-.form-actions {
-  display:flex;
-  gap:10px;
-  margin-top:22px;
-}
-
-.form-actions button {
-  padding:13px 20px;
-  border:0;
-  border-radius:10px;
-  background:var(--green);
-  color:white;
-  font-weight:700;
-  cursor:pointer;
-}
-
-#cancelEditBtn {
-  background:#64748b;
-}
-
-#formMessage,
-#listMessage {
-  margin-top:14px;
-  font-size:13px;
-}
-
-.filter-row {
-  display:flex;
-  gap:12px;
-  margin-bottom:18px;
-}
-
-.filter-row input {
-  flex:1;
-}
-
-.filter-row select {
-  max-width:160px;
-}
-
-.record-count {
-  background:var(--green-light);
-  color:var(--green-dark);
-  padding:8px 12px;
-  border-radius:20px;
-  font-size:12px;
-  font-weight:700;
-}
-
-.table-wrapper {
-  width:100%;
-  overflow-x:auto;
-}
-
-table {
-  width:100%;
-  border-collapse:collapse;
-  min-width:850px;
-}
-
-th, td {
-  padding:14px 12px;
-  border-bottom:1px solid var(--border);
-  text-align:left;
-  font-size:13px;
-}
-
-th {
-  background:#f8faf9;
-  color:#526158;
-  font-weight:700;
-}
-
-.empty-state {
-  text-align:center;
-  color:var(--muted);
-  padding:30px;
-}
-
-.status-active {
-  color:var(--green);
-  background:var(--green-light);
-  padding:6px 10px;
-  border-radius:20px;
-  font-weight:700;
-}
-
-.status-inactive {
-  color:var(--red);
-  background:#fef2f2;
-  padding:6px 10px;
-  border-radius:20px;
-  font-weight:700;
-}
-
-.action-btn {
-  border:0;
-  padding:8px 10px;
-  border-radius:7px;
-  margin:2px;
-  cursor:pointer;
-  font-weight:700;
-}
-
-.edit-btn {
-  background:#eff6ff;
-  color:#1d4ed8;
-}
-
-.toggle-btn {
-  background:#f0fdf4;
-  color:#15803d;
-}
-
-.delete-btn {
-  background:#fef2f2;
-  color:#dc2626;
-}
-
-.pricing-note {
-  margin-top:20px;
-  padding:18px;
-  background:#fffbeb;
-  border:1px solid #fde68a;
-  border-radius:13px;
-}
-
-.pricing-note strong {
-  color:#92400e;
-}
-
-.pricing-note p {
-  font-size:14px;
-  line-height:1.6;
-}
-
-.pricing-note small {
-  color:#92400e;
-  line-height:1.5;
-}
-
-@media(max-width:650px) {
-  .delivery-page {
-    padding:14px;
+  .page {
+    padding: 14px;
   }
 
-  .stats-grid {
-    grid-template-columns:1fr;
+  .topbar {
+    align-items: flex-start;
+  }
+
+  .topbar h1 {
+    font-size: 21px;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 14px;
+  }
+
+  .stat-card h2 {
+    font-size: 22px;
+  }
+
+  .panel {
+    padding: 16px;
+    border-radius: 16px;
   }
 
   .form-grid {
-    grid-template-columns:1fr;
+    grid-template-columns: 1fr;
   }
 
-  .filter-row {
-    flex-direction:column;
+  .form-group.full {
+    grid-column: auto;
   }
 
-  .filter-row select {
-    max-width:none;
-  }
-
-  .section-heading,
-  .list-heading {
-    align-items:flex-start;
+  .back-link {
+    white-space: nowrap;
+    padding: 10px;
   }
 }
 </style>
 
-<script src="../js/delivery-pricing.js"></script>
+<script src="../js/delivery-pricing.js?v=5"></script>
 
 </body>
 </html>
