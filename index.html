@@ -1,8 +1,59 @@
-<!DOCTYPE html><html lang="sw"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Dashboard · ZUNE Admin</title><link rel="stylesheet" href="css/admin.css"></head><body>
-<main id="content"><div class="ph"><h2>Dashboard</h2><p class="mu">Overview of your marketplace</p></div><div id="st"></div></main>
+<!DOCTYPE html><html lang="sw"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Dashboard · ZUNE Admin</title><link rel="stylesheet" href="css/admin.css">
+<style>
+.row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}.act{display:flex;gap:6px;align-items:center}.act select{width:auto}
+.dg{display:grid;gap:10px;grid-template-columns:repeat(2,1fr)}.dg>.card{margin:0;min-width:0}.w2{grid-column:span 2}.w4{grid-column:1/-1}
+@media(min-width:900px){.dg{grid-template-columns:repeat(4,1fr)}}
+.qa{display:inline-block;margin:3px;padding:7px 11px;border:1px solid var(--bd);border-radius:8px;color:var(--tx);text-decoration:none;font-size:13px}.qa:hover{border-color:var(--ac)}
+.li{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd);font-size:14px}.li:last-child{border:0}
+.donut{width:100px;height:100px;border-radius:50%;display:grid;place-items:center;flex:none}.donut>div{width:70px;height:70px;border-radius:50%;background:var(--sf);display:grid;place-items:center;text-align:center;font-size:11px;align-content:center}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.sc table{min-width:380px}
+</style></head><body>
+<main id="content">
+<div class="ph row"><div><h2>Dashboard</h2><p class="mu" id="up">Overview of your marketplace</p></div>
+<div class="act"><select id="rg" aria-label="Kipindi"><option value="7">Siku 7</option><option value="30" selected>Siku 30</option><option value="90">Siku 90</option></select><button id="rf" aria-label="Onyesha upya">↻</button><button id="cu">Customize</button></div></div>
+<div id="cz" class="card" hidden></div>
+<div class="dg" id="dg"></div>
+</main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script><script src="js/config.js"></script><script src="js/layout.js"></script>
 <script>
-(async()=>{const N=async t=>(await ZUNE.sb.from(t).select('*',{count:'exact',head:true})).count||0;await ZUNE.ready;const s={users:await N('profiles'),sellers:0,products:await N('products'),orders:await N('orders'),sales:0,pending:0};
-const c=(i,col,v,l)=>`<div class="card sc2"><span class="ic" style="background:${col}22;color:${col}">${i}</span><div><b>${v}</b><span class="mu">${l}</span></div></div>`,f=n=>Number(n).toLocaleString('en-US');
-document.getElementById('st').innerHTML=`<div class="g4">${c('👥','#2563eb',f(s.users),'Total Users')}${c('🏪','#16a34a',f(s.sellers),'Verified Sellers')}${c('📦','#f97316',f(s.products),'Products')}${c('🛒','#9333ea',f(s.orders),'Orders')}</div><div class="g3">${c('💵','#16a34a',f(s.sales)+' TZS','Total Sales')}${c('⏱','#6366f1',f(s.pending),'Pending Approvals')}</div>`})();
+/* ===== 1. SETUP: badilisha majina ya tables hapa kama ni tofauti ===== */
+const TB={users:'profiles',vendors:'vendors',products:'products',orders:'orders',tx:'transactions',wd:'withdrawals',disputes:'disputes',tickets:'support_tickets',audit:'admin_audit_logs'};
+const esc=ZUNE.esc,money=n=>Number(n||0).toLocaleString('en-US'),day=d=>String(d||'').slice(0,10);
+let days=30,cache={};const since=()=>new Date(Date.now()-days*864e5).toISOString();
+const sb=()=>{if(!ZUNE.sb)throw new Error('Supabase haijapakiwa');return ZUNE.sb};
+const cnt=async(t,fn)=>{let q=sb().from(TB[t]).select('*',{count:'exact',head:true});if(fn)q=fn(q);const r=await q;if(r.error)throw new Error(TB[t]+': '+r.error.message);return r.count||0};
+const rows=async(t,cols,fn,n=5)=>{let q=sb().from(TB[t]).select(cols);if(fn)q=fn(q);const r=await q.limit(n);if(r.error)throw new Error(TB[t]+': '+r.error.message);return r.data||[]};
+const txs=()=>cache.tx??=rows('tx','reference,type,amount,currency,status,created_at',q=>q.order('created_at',{ascending:false}),1000);
+const sum=a=>a.reduce((s,x)=>s+(+x.amount||0),0);
+const tbl=(h,r)=>`<div class="sc"><table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${r||`<tr><td colspan="${h.length}">Hakuna data.</td></tr>`}</tbody></table></div>`;
+const stat=(id,i,col,label,fn)=>({id,title:label,cls:'',stat:1,run:async()=>{const v=await fn();return `<div class="sc2"><span class="ic" style="background:${col}22;color:${col}">${i}</span><div><b>${typeof v=='number'?money(v):v}</b><span class="mu">${label}</span></div></div>`}});
+const PG=f=>'pages/'+f;
+/* ===== 2. WIDGETS: kuongeza kipengele kipya, ongeza kitu kimoja hapa ===== */
+const W=[
+stat('users','👥','#2563eb','Total Users',()=>cnt('users')),
+stat('sellers','🏪','#16a34a','Verified Sellers',()=>cnt('vendors',q=>q.eq('verification_status','verified'))),
+stat('products','📦','#f97316','Products',()=>cnt('products')),
+stat('orders','🛒','#9333ea','Orders (kipindi)',()=>cnt('orders',q=>q.gte('created_at',since()))),
+stat('sales','💵','#16a34a','Sales TZS (kipindi)',async()=>sum((await txs()).filter(x=>x.type=='credit'&&x.status=='completed'&&x.created_at>=since()))),
+stat('comm','％','#f97316','Commission (kipindi)',async()=>sum((await txs()).filter(x=>x.type=='commission'&&x.created_at>=since()))),
+stat('pend','⏱','#6366f1','Pending Approvals',async()=>(await Promise.all([cnt('vendors',q=>q.eq('verification_status','pending')),cnt('products',q=>q.eq('status','pending')),cnt('wd',q=>q.eq('status','pending'))])).reduce((a,b)=>a+b,0)),
+stat('disp','⚖️','#dc2626','Open Disputes',()=>cnt('disputes',q=>q.eq('status','open'))),
+{id:'chart',title:'Revenue Overview',cls:'w2',run:async()=>{const m={};(await txs()).filter(x=>x.type=='credit'&&x.status=='completed'&&x.created_at>=since()).forEach(x=>m[day(x.created_at)]=(m[day(x.created_at)]||0)+(+x.amount||0));const k=Object.keys(m).sort();if(k.length<2)return '<p class="mu">Data haitoshi kuchora grafu kwa kipindi hiki.</p>';const mx=Math.max(...k.map(d=>m[d])),p=k.map((d,i)=>`${10+i*280/(k.length-1)},${110-m[d]/mx*95}`).join(' ');return `<svg viewBox="0 0 300 120" width="100%" role="img" aria-label="Revenue"><polygon points="10,115 ${p} 290,115" style="fill:var(--ac);opacity:.12"/><polyline points="${p}" style="fill:none;stroke:var(--ac);stroke-width:3"/></svg><div class="row mu"><span>${k[0]}</span><span>${k[k.length-1]}</span></div>`}},
+{id:'pipe',title:'Order Pipeline',cls:'w2',run:async()=>{const S=[['pending','var(--wr)'],['processing','#2563eb'],['shipped','#9333ea'],['delivered','var(--ok)'],['cancelled','var(--bad)']],c=await Promise.all(S.map(s=>cnt('orders',q=>q.eq('status',s[0])))),t=c.reduce((a,b)=>a+b,0)||1,p=Math.round(c[3]/t*100);return `<div class="row" style="align-items:center"><div>${S.map((s,i)=>`<div><span class="dot" style="background:${s[1]}"></span>${s[0]} <b>${money(c[i])}</b></div>`).join('')}</div><div class="donut" style="background:conic-gradient(var(--ok) 0 ${p}%,var(--bd) ${p}% 100%)"><div><b>${p}%</b><span class="mu">Delivered</span></div></div></div>`}},
+{id:'wallet',title:'Wallet Summary',cls:'w2',run:async()=>{const a=(await txs()).filter(x=>x.status=='completed'),g=t=>sum(a.filter(x=>x.type==t)),cr=g('credit'),de=g('debit'),po=g('payout'),pe=(await txs()).filter(x=>x.status=='pending').length,L=(l,v)=>`<div class="li"><span>${l}</span><b>${money(v)}</b></div>`;return L('Jumla ya credits',cr)+L('Jumla ya debits',de)+L('Malipo kwa wauzaji',po)+L('Kamisheni',g('commission'))+L('Salio la mfumo',cr-de-po)+L('Miamala inayosubiri',pe)+'<p class="mu">Inatokana na miamala 1,000 ya karibuni.</p>'}},
+{id:'alerts',title:'Urgent Alerts',cls:'w2',run:async()=>{const A=[['Wauzaji wanasubiri uthibitisho',cnt('vendors',q=>q.eq('verification_status','pending')),'verification.html'],['Migogoro iliyo wazi',cnt('disputes',q=>q.eq('status','open')),'disputes.html'],['Tiketi za support wazi',cnt('tickets',q=>q.eq('status','open')),'support-tickets.html'],['Withdrawals zinasubiri',cnt('wd',q=>q.eq('status','pending')),'wallet.html'],['Bidhaa zinasubiri idhini',cnt('products',q=>q.eq('status','pending')),'products.html']],v=await Promise.allSettled(A.map(a=>a[1]));return A.map((a,i)=>`<div class="li"><a href="${PG(a[2])}" style="color:inherit">⚠ ${a[0]}</a><b class="${v[i].value>0?'':'mu'}">${v[i].status=='fulfilled'?money(v[i].value):'—'}</b></div>`).join('')}},
+{id:'orders',title:'Recent Orders',cls:'w2',run:async()=>tbl(['Order','Hali','Kiasi','Tarehe'],(await rows('orders','id,status,total_amount,created_at',q=>q.order('created_at',{ascending:false}))).map(o=>`<tr><td>${esc(String(o.id).slice(0,8))}</td><td>${ZUNE.pill(o.status)}</td><td>${money(o.total_amount)}</td><td>${day(o.created_at)}</td></tr>`).join(''))},
+{id:'txs',title:'Recent Transactions',cls:'w2',run:async()=>tbl(['Ref','Aina','Kiasi','Hali'],(await txs()).slice(0,5).map(t=>`<tr><td>${esc(t.reference)}</td><td>${esc(t.type)}</td><td>${money(t.amount)} ${esc(t.currency||'')}</td><td>${ZUNE.pill(t.status)}</td></tr>`).join(''))},
+{id:'activity',title:'Recent Admin Activity',cls:'w2',run:async()=>(await rows('audit','action,created_at',q=>q.order('created_at',{ascending:false}))).map(a=>`<div class="li"><span>${esc(a.action)}</span><span class="mu">${day(a.created_at)}</span></div>`).join('')||'<p class="mu">Bado hakuna vitendo.</p>'},
+{id:'quick',title:'Quick Actions',cls:'w2',run:async()=>[['Users','users'],['Wauzaji','sellers'],['Verification','verification'],['Products','products'],['Orders','orders'],['Payments','payments'],['Wallet','wallet'],['Coupons','coupons'],['Announcements','announcements'],['Support','support-tickets'],['Disputes','disputes'],['Reports','reports']].map(a=>`<a class="qa" href="${PG(a[1])}.html">${a[0]}</a>`).join('')},
+{id:'health',title:'System Checklist',cls:'w2',run:async()=>{const ck=async(n,fn)=>{try{await fn();return `<div class="li"><span>${n}</span><span class="pill ok">Sawa</span></div>`}catch(e){return `<div class="li"><span>${n}</span><span class="pill bad">Tatizo</span></div>`}};return (await Promise.all([ck('Database (Supabase)',()=>cnt('users')),ck('Session ya admin',async()=>{if(!(await sb().auth.getSession()).data.session)throw 0}),ck('Miamala inasomeka',()=>txs())])).join('')}}
+];
+/* ===== 3. ENGINE ===== */
+const HK='zune_dash_hidden';let hidden=[];try{hidden=JSON.parse(localStorage.getItem(HK)||'[]')}catch(e){}
+const mount=async(w,el)=>{el.innerHTML='<span class="mu">Inapakia...</span>';try{const h=await w.run();el.innerHTML=(w.stat?'':`<b>${w.title}</b>`)+h}catch(e){el.innerHTML=`<b>${w.title}</b><div class="mu">⚠ ${esc(e.message)}</div>`}};
+async function render(){cache={};const g=document.getElementById('dg');g.innerHTML='';await ZUNE.ready;const jobs=W.filter(w=>!hidden.includes(w.id)).map(w=>{const el=document.createElement('div');el.className='card '+w.cls;g.appendChild(el);return mount(w,el)});await Promise.all(jobs);document.getElementById('up').textContent='Imesasishwa '+new Date().toLocaleTimeString('sw-TZ')}
+document.getElementById('rg').onchange=e=>{days=+e.target.value;render()};
+document.getElementById('rf').onclick=render;
+document.getElementById('cu').onclick=()=>{const z=document.getElementById('cz');z.hidden=!z.hidden;z.innerHTML='<b>Chagua vipengele vya kuonyesha</b><div>'+W.map(w=>`<label style="display:inline-flex;gap:6px;margin:6px 12px 0 0;align-items:center"><input type="checkbox" style="width:auto" data-id="${w.id}" ${hidden.includes(w.id)?'':'checked'}>${w.title}</label>`).join('')+'</div>';z.querySelectorAll('input').forEach(i=>i.onchange=()=>{hidden=W.map(w=>w.id).filter(id=>!z.querySelector(`[data-id="${id}"]`).checked);try{localStorage.setItem(HK,JSON.stringify(hidden))}catch(e){}render()})};
+render();
 </script></body></html>
