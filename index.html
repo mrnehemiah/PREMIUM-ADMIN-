@@ -1,344 +1,396 @@
 <!DOCTYPE html>
 <html lang="sw">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Dashboard · ZUNE Admin</title>
-<link rel="stylesheet" href="css/admin.css">
-<!-- Font ya Kisasa -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZUNE Admin Dashboard</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        :root {
+            --sidebar-bg: #0a3d22;
+            --sidebar-hover: #0f5c33;
+            --primary: #10b981;
+            --bg-body: #f4f7f6;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --card-bg: #ffffff;
+            --border: #e5e7eb;
+        }
 
-<style>
-/* =========================================
-   ULTRA-MODERN SAAS DASHBOARD (BENTO GRID)
-   ========================================= */
-:root {
-  --font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --bg-body: #f3f4f6; /* Rangi ya background nzuri isiyochosha macho */
-  --glass-bg: rgba(255, 255, 255, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.9);
-  --text-main: #111827;
-  --text-muted: #6b7280;
-  --shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
-  --shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.08);
-  --radius-lg: 24px;
-  --radius-md: 16px;
-  --primary: #4f46e5;
-}
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg-body); display: flex; min-height: 100vh; color: var(--text-main); }
 
-* { box-sizing: border-box; }
+        /* ================= SIDEBAR ================= */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+        .brand { padding: 24px; display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 800; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .brand i { font-size: 28px; color: var(--primary); }
+        .admin-profile { padding: 20px 24px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .admin-profile img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); }
+        .admin-profile .info h4 { font-size: 14px; margin-bottom: 2px; }
+        .admin-profile .info p { font-size: 12px; color: var(--primary); display: flex; align-items: center; gap: 4px; }
+        .admin-profile .info p::before { content: ''; width: 6px; height: 6px; background: var(--primary); border-radius: 50%; }
 
-body { 
-  font-family: var(--font); 
-  background-color: var(--bg-body); 
-  /* Mesh gradient ndogo kwa background */
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.05) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.05) 0px, transparent 50%);
-  color: var(--text-main); 
-  margin: 0; 
-  padding: 24px; 
-  min-height: 100vh;
-}
+        .nav-menu { list-style: none; padding: 20px 12px; flex: 1; }
+        .nav-menu li { margin-bottom: 4px; }
+        .nav-menu a {
+            display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+            color: #a7c4b5; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 500;
+            transition: all 0.2s;
+        }
+        .nav-menu a:hover, .nav-menu a.active { background-color: var(--sidebar-hover); color: white; }
+        .nav-menu a i { font-size: 20px; }
+        .nav-menu a .arrow { margin-left: auto; font-size: 12px; }
+        .sidebar-footer { padding: 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; color: #a7c4b5; }
 
-/* Header & Controls */
-.ph { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; }
-.ph h2 { font-weight: 800; font-size: 28px; letter-spacing: -0.8px; margin: 0 0 6px 0; color: #111827; }
-.ph .mu { font-size: 14px; font-weight: 500; }
+        /* ================= MAIN CONTENT ================= */
+        .main-content { margin-left: 260px; flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+        
+        /* Topbar */
+        .topbar { display: flex; justify-content: space-between; align-items: center; background: white; padding: 16px 24px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .search-box { display: flex; align-items: center; background: var(--bg-body); padding: 10px 16px; border-radius: 8px; width: 400px; gap: 10px; }
+        .search-box input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; }
+        .topbar-actions { display: flex; align-items: center; gap: 16px; }
+        .icon-btn { background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; position: relative; }
+        .badge-dot { position: absolute; top: 0; right: 0; width: 8px; height: 8px; background: red; border-radius: 50%; border: 2px solid white; }
 
-.act { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.act select, .act button { 
-  font-family: var(--font); font-weight: 600; font-size: 13px;
-  padding: 10px 16px; border-radius: 12px; 
-  border: 1px solid rgba(0,0,0,0.05); 
-  background: var(--glass-bg); color: var(--text-main); 
-  cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-  backdrop-filter: blur(10px);
-}
-.act select:hover, .act button:hover { 
-  background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transform: translateY(-1px);
-}
-.act button#rf { padding: 10px 14px; font-size: 16px; }
-.act button#cu { background: var(--text-main); color: white; border: none; }
-.act button#cu:hover { background: #000000; }
+        /* Welcome Banner */
+        .welcome-banner {
+            background: linear-gradient(135deg, #0f9d58, var(--sidebar-bg));
+            border-radius: 16px; padding: 32px; color: white;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 10px 20px rgba(10, 61, 34, 0.15);
+        }
+        .welcome-banner h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+        .welcome-banner h1 span { color: #fbbf24; }
+        .welcome-banner p { font-size: 15px; opacity: 0.9; }
+        .welcome-banner .icon-box { font-size: 80px; opacity: 0.2; }
 
-/* Bento Grid System */
-.dg { 
-  display: grid; 
-  gap: 16px; 
-  grid-template-columns: repeat(1, 1fr); 
-}
-@media(min-width: 640px) { .dg { grid-template-columns: repeat(2, 1fr); } }
-@media(min-width: 1024px) { .dg { grid-template-columns: repeat(4, 1fr); } }
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .stat-card { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 12px; }
+        .stat-card .icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 8px; }
+        .stat-card h3 { font-size: 24px; font-weight: 800; }
+        .stat-card p { color: var(--text-muted); font-size: 14px; }
+        .stat-card .trend { font-size: 13px; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 4px; margin-top: 8px; }
 
-.dg > .card { 
-  background: var(--glass-bg); 
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border); 
-  border-radius: var(--radius-lg); 
-  padding: 24px; 
-  box-shadow: var(--shadow); 
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex; flex-direction: column;
-  position: relative; overflow: hidden;
-}
-.dg > .card:hover { 
-  transform: translateY(-4px); 
-  box-shadow: var(--shadow-hover);
-  background: rgba(255, 255, 255, 0.85);
-}
-.dg > .card::before {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,1), transparent);
-  opacity: 0.5;
-}
+        /* Charts & Bottom Grid */
+        .bottom-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+        .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-header h3 { font-size: 18px; font-weight: 700; }
 
-/* Grid Spans */
-.w2 { grid-column: span 1; }
-@media(min-width: 640px) { .w2 { grid-column: span 2; } }
-.w4 { grid-column: 1 / -1; }
+        /* Chart Placeholder */
+        .chart-container { width: 100%; height: 250px; background: #f9fafb; border-radius: 8px; position: relative; overflow: hidden; display: flex; align-items: flex-end; }
+        .chart-svg { width: 100%; height: 100%; }
 
-/* Stat Cards (Bento Style) */
-.sc2 { display: flex; flex-direction: column; gap: 16px; }
-.sc2 .ic { 
-  width: 48px; height: 48px; border-radius: 14px; 
-  display: flex; align-items: center; justify-content: center; 
-  flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-.sc2 .ic svg { width: 24px; height: 24px; stroke-width: 2.5; }
-.sc2 b { display: block; font-size: 28px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; margin-bottom: 4px; }
-.sc2 .mu { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        /* Tables */
+        .table-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); margin-top: 24px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 13px; font-weight: 600; }
+        td { padding: 16px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 500; }
+        .user-cell { display: flex; align-items: center; gap: 12px; }
+        .user-cell img { width: 32px; height: 32px; border-radius: 50%; }
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge.success { background: #dcfce7; color: #166534; }
+        .badge.warning { background: #fef3c7; color: #92400e; }
+        .badge.info { background: #dbeafe; color: #1e40af; }
+        .badge.danger { background: #fee2e2; color: #991b1b; }
+        .action-icons { display: flex; gap: 10px; color: var(--text-muted); font-size: 18px; }
+        .action-icons i { cursor: pointer; }
+        .action-icons i:hover { color: var(--primary); }
 
-/* Widget Titles */
-.card > b { font-size: 16px; font-weight: 700; margin-bottom: 20px; display: block; letter-spacing: -0.3px; }
+        /* Sidebar Activity */
+        .activity-list { display: flex; flex-direction: column; gap: 16px; }
+        .activity-item { display: flex; gap: 12px; align-items: center; }
+        .activity-item .icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .activity-item .details h4 { font-size: 14px; margin-bottom: 2px; }
+        .activity-item .details p { font-size: 12px; color: var(--text-muted); }
 
-/* Lists & Tables */
-.li { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 14px; font-weight: 500; }
-.li:last-child { border: 0; padding-bottom: 0; }
-.li b { font-weight: 700; }
+        /* Loading Skeleton */
+        .skeleton { background: #e5e7eb; border-radius: 4px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
 
-.sc { overflow-x: auto; }
-.sc table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.sc th { text-align: left; padding: 12px 8px; border-bottom: 1px solid rgba(0,0,0,0.05); color: var(--text-muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-.sc td { padding: 14px 8px; border-bottom: 1px solid rgba(0,0,0,0.03); font-weight: 500; }
-.sc tr:last-child td { border: 0; }
-
-/* Skeleton Loader (Modern Shimmer) */
-.skeleton { 
-  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite linear;
-  border-radius: 8px; 
-}
-.sk-title { width: 40%; height: 16px; margin-bottom: 16px; }
-.sk-val { width: 70%; height: 32px; margin-bottom: 10px; border-radius: 12px; }
-.sk-text { width: 50%; height: 14px; }
-@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-/* Quick Actions (Pills) */
-.qa { 
-  display: inline-flex; align-items: center; padding: 8px 16px; 
-  background: #ffffff; border: 1px solid rgba(0,0,0,0.06); 
-  border-radius: 99px; color: var(--text-main); text-decoration: none; 
-  font-size: 13px; font-weight: 600; transition: all 0.2s; 
-  box-shadow: 0 2px 6px rgba(0,0,0,0.02); margin: 4px;
-}
-.qa:hover { 
-  background: var(--primary); border-color: var(--primary); color: white; 
-  transform: translateY(-2px); box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3); 
-}
-
-/* Donut Chart (Modern) */
-.donut { width: 110px; height: 110px; border-radius: 50%; display: grid; place-items: center; flex: none; box-shadow: inset 0 2px 8px rgba(0,0,0,0.05); }
-.donut > div { width: 80px; height: 80px; border-radius: 50%; background: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-.donut b { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
-.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 10px; }
-
-/* Error Box */
-.err-box { background: #fef2f2; color: #b91c1c; padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: 500; border: 1px solid #fecaca; display: flex; align-items: center; gap: 8px; }
-</style>
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .bottom-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
-<main id="content">
-<div class="ph">
-  <div><h2>Dashboard</h2><p class="mu" id="up">Overview of your marketplace</p></div>
-  <div class="act">
-    <select id="rg" aria-label="Kipindi">
-      <option value="7">Siku 7</option>
-      <option value="30" selected>Siku 30</option>
-      <option value="90">Siku 90</option>
-    </select>
-    <button id="rf" aria-label="Onyesha upya">↻</button>
-    <button id="cu">Customize</button>
-  </div>
-</div>
-<div id="cz" class="card" hidden style="margin-bottom: 20px;"></div>
-<div class="dg" id="dg"></div>
-</main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="js/config.js"></script>
-<script src="js/layout.js"></script>
-<script>
-/* ===== 1. SETUP ===== */
-const TB={users:'profiles',vendors:'vendors',products:'products',orders:'orders',tx:'transactions',wd:'withdrawals',disputes:'disputes',tickets:'support_tickets',audit:'admin_audit_logs'};
-const esc=ZUNE.esc,money=n=>Number(n||0).toLocaleString('en-US'),day=d=>String(d||'').slice(0,10);
-let days=30,cache={};const since=()=>new Date(Date.now()-days*864e5).toISOString();
-const sb=()=>{if(!ZUNE.sb)throw new Error('Supabase haijapakiwa. Angalia js/config.js');return ZUNE.sb};
-const cnt=async(t,fn)=>{let q=sb().from(TB[t]).select('*',{count:'exact',head:true});if(fn)q=fn(q);const r=await q;if(r.error)throw new Error(TB[t]+': '+r.error.message);return r.count||0};
-const rows=async(t,cols,fn,n=5)=>{let q=sb().from(TB[t]).select(cols);if(fn)q=fn(q);const r=await q.limit(n);if(r.error)throw new Error(TB[t]+': '+r.error.message);return r.data||[]};
-const txs=()=>cache.tx??=rows('tx','reference,type,amount,currency,status,created_at',q=>q.order('created_at',{ascending:false}),1000);
-const sum=a=>a.reduce((s,x)=>s+(+x.amount||0),0);
-const tbl=(h,r)=>`<div class="sc"><table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${r||`<tr><td colspan="${h.length}">Hakuna data.</td></tr>`}</tbody></table></div>`;
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="brand">
+            <i class="ph ph-storefront"></i> ZUNE PREMIUM
+        </div>
+        <div class="admin-profile">
+            <img src="https://ui-avatars.com/api/?name=Admin+Mkuu&background=10b981&color=fff" alt="Admin">
+            <div class="info">
+                <h4>Admin Mkuu</h4>
+                <p>Online</p>
+            </div>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="#" class="active"><i class="ph ph-house"></i> Dashboard</a></li>
+            <li><a href="#"><i class="ph ph-users"></i> User Management <i class="ph ph-caret-down arrow"></i></a></li>
+            <li><a href="#"><i class="ph ph-storefront"></i> Seller Management <i class="ph ph-caret-down arrow"></i></a></li>
+            <li><a href="#"><i class="ph ph-package"></i> Products <i class="ph ph-caret-down arrow"></i></a></li>
+            <li><a href="#"><i class="ph ph-shopping-cart"></i> Orders <i class="ph ph-caret-down arrow"></i></a></li>
+            <li><a href="#"><i class="ph ph-credit-card"></i> Payments <i class="ph ph-caret-down arrow"></i></a></li>
+            <li><a href="#"><i class="ph ph-squares-four"></i> Categories <i class="ph ph-caret-down arrow"></i></a></li>
+            <li><a href="#"><i class="ph ph-chart-bar"></i> Reports <i class="ph ph-caret-down arrow"></i></a></li>
+            <li><a href="#"><i class="ph ph-star"></i> Reviews & Ratings <i class="ph ph-caret-down arrow"></i></a></li>
+            <li><a href="#"><i class="ph ph-headset"></i> Support Center</a></li>
+            <li><a href="#"><i class="ph ph-megaphone"></i> Marketing</a></li>
+            <li><a href="#"><i class="ph ph-gear"></i> System Settings</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <i class="ph ph-crown" style="color: #fbbf24; font-size: 20px;"></i><br>
+            ZUNE PREMIUM ADMIN <br> v2.0.0
+        </div>
+    </aside>
 
-/* Modern SVG Icons (Heroicons Style) */
-const icons = {
-  users: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>`,
-  sellers: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z"/></svg>`,
-  products: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>`,
-  orders: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/></svg>`,
-  sales: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
-  comm: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185zM9.75 9h.008v.008H9.75V9zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 4.5h.008v.008h-.008V13.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>`,
-  pend: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
-  disp: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.031.352 5.988 5.988 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 01-2.031.352 5.989 5.989 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971z"/></svg>`
-};
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="search-box">
+                <i class="ph ph-magnifying-glass"></i>
+                <input type="text" placeholder="Search anything...">
+            </div>
+            <div class="topbar-actions">
+                <button class="icon-btn"><i class="ph ph-bell"></i><span class="badge-dot"></span></button>
+                <button class="icon-btn"><i class="ph ph-arrows-out"></i></button>
+            </div>
+        </header>
 
-const stat=(id,iconName,col,label,fn)=>({
-  id,title:label,cls:'',stat:1,run:async()=>{
-    const v=await fn();
-    // Gradient kwa ajili ya icon
-    const bgStyle = `background: linear-gradient(135deg, ${col}20, ${col}40); color: ${col};`;
-    return `<div class="sc2">
-      <span class="ic" style="${bgStyle}">${icons[iconName]}</span>
-      <div><b>${typeof v=='number'?money(v):v}</b><span class="mu">${label}</span></div>
-    </div>`
-  }
-});
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+            <div>
+                <h1>Karibu tena, <span>Admin Mkuu!</span></h1>
+                <p>Dhibiti mfumo wa ZUNE Premium kwa ufanisi na usalama.</p>
+            </div>
+            <i class="ph ph-shield-check icon-box"></i>
+        </div>
 
-const PG=f=>'pages/'+f;
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="icon" style="background: #dcfce7; color: #166534;"><i class="ph ph-users"></i></div>
+                <h3 id="stat-users">--</h3>
+                <p>Watumiaji Wote</p>
+                <div class="trend"><i class="ph ph-trend-up"></i> +12% mwezi huu</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon" style="background: #dbeafe; color: #1e40af;"><i class="ph ph-storefront"></i></div>
+                <h3 id="stat-sellers">--</h3>
+                <p>Wauzaji</p>
+                <div class="trend"><i class="ph ph-trend-up"></i> +8% mwezi huu</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon" style="background: #ffedd5; color: #9a3412;"><i class="ph ph-shopping-cart"></i></div>
+                <h3 id="stat-orders">--</h3>
+                <p>Maagizo</p>
+                <div class="trend"><i class="ph ph-trend-up"></i> +15% mwezi huu</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon" style="background: #f3e8ff; color: #6b21a8;"><i class="ph ph-wallet"></i></div>
+                <h3 id="stat-revenue">--</h3>
+                <p>Malipo Yote (TZS)</p>
+                <div class="trend"><i class="ph ph-trend-up"></i> +20% mwezi huu</div>
+            </div>
+        </div>
 
-/* ===== 2. WIDGETS ===== */
-const W=[
-stat('users','users','#3b82f6','Total Users',()=>cnt('users')),
-stat('sellers','sellers','#10b981','Verified Sellers',()=>cnt('vendors',q=>q.eq('verification_status','verified'))),
-stat('products','products','#f59e0b','Products',()=>cnt('products')),
-stat('orders','orders','#8b5cf6','Orders (kipindi)',()=>cnt('orders',q=>q.gte('created_at',since()))),
-stat('sales','sales','#10b981','Sales TZS (kipindi)',async()=>sum((await txs()).filter(x=>x.type=='credit'&&x.status=='completed'&&x.created_at>=since()))),
-stat('comm','comm','#f59e0b','Commission (kipindi)',async()=>sum((await txs()).filter(x=>x.type=='commission'&&x.created_at>=since()))),
-stat('pend','pend','#6366f1','Pending Approvals',async()=>(await Promise.all([cnt('vendors',q=>q.eq('verification_status','pending')),cnt('products',q=>q.eq('status','pending')),cnt('wd',q=>q.eq('status','pending'))])).reduce((a,b)=>a+b,0)),
-stat('disp','disp','#ef4444','Open Disputes',()=>cnt('disputes',q=>q.eq('status','open'))),
+        <!-- Chart & Activity Row -->
+        <div class="bottom-grid">
+            <!-- Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Mchoro wa Mauzo (12 Miezi)</h3>
+                    <select style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); outline: none;">
+                        <option>Mwaka Huu</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <!-- SVG Chart ya Kuiga (Mockup) -->
+                    <svg viewBox="0 0 500 200" class="chart-svg" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/>
+                                <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M0,180 C50,150 100,160 150,120 C200,80 250,100 300,60 C350,40 400,50 450,20 L500,10 L500,200 L0,200 Z" fill="url(#chartGrad)"/>
+                        <path d="M0,180 C50,150 100,160 150,120 C200,80 250,100 300,60 C350,40 400,50 450,20 L500,10" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round"/>
+                        <!-- Dots za chart -->
+                        <circle cx="150" cy="120" r="5" fill="#fff" stroke="#10b981" stroke-width="3"/>
+                        <circle cx="300" cy="60" r="5" fill="#fff" stroke="#10b981" stroke-width="3"/>
+                        <circle cx="450" cy="20" r="5" fill="#fff" stroke="#10b981" stroke-width="3"/>
+                    </svg>
+                </div>
+            </div>
 
-{id:'chart',title:'Revenue Overview',cls:'w2',run:async()=>{
-  const m={};(await txs()).filter(x=>x.type=='credit'&&x.status=='completed'&&x.created_at>=since()).forEach(x=>m[day(x.created_at)]=(m[day(x.created_at)]||0)+(+x.amount||0));
-  const k=Object.keys(m).sort();
-  if(k.length<2)return '<p class="mu">Data haitoshi kuchora grafu kwa kipindi hiki.</p>';
-  const mx=Math.max(...k.map(d=>m[d])),p=k.map((d,i)=>`${10+i*280/(k.length-1)},${110-m[d]/mx*95}`).join(' ');
-  return `
-  <svg viewBox="0 0 300 120" width="100%" role="img" aria-label="Revenue" style="margin-top:10px">
-    <defs>
-      <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.4"/>
-        <stop offset="100%" stop-color="var(--primary)" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-    <polygon points="10,115 ${p} 290,115" fill="url(#grad)"/>
-    <polyline points="${p}" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-  <div class="row mu" style="margin-top:15px; display:flex; justify-content:space-between; font-size:12px; font-weight:600"><span>${k[0]}</span><span>${k[k.length-1]}</span></div>`
-}},
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Shughuli za Hivi Karibuni</h3>
+                    <a href="#" style="color: var(--primary); text-decoration: none; font-size: 13px; font-weight: 600;">Ona Zote &rarr;</a>
+                </div>
+                <div class="activity-list" id="activity-list">
+                    <div class="skeleton" style="height: 50px; width: 100%; margin-bottom: 10px;"></div>
+                    <div class="skeleton" style="height: 50px; width: 100%; margin-bottom: 10px;"></div>
+                    <div class="skeleton" style="height: 50px; width: 100%;"></div>
+                </div>
+            </div>
+        </div>
 
-{id:'pipe',title:'Order Pipeline',cls:'w2',run:async()=>{
-  const S=[['pending','#f59e0b'],['processing','#3b82f6'],['shipped','#8b5cf6'],['delivered','#10b981'],['cancelled','#ef4444']],c=await Promise.all(S.map(s=>cnt('orders',q=>q.eq('status',s[0])))),t=c.reduce((a,b)=>a+b,0)||1,p=Math.round(c[3]/t*100);
-  return `<div style="display:flex; align-items:center; gap:24px; margin-top:10px; flex-wrap:wrap">
-    <div style="flex:1; min-width:150px">${S.map((s,i)=>`<div style="margin-bottom:12px;font-size:13px;font-weight:600; display:flex; align-items:center; justify-content:space-between"><span><span class="dot" style="background:${s[1]}"></span>${s[0]}</span> <span>${money(c[i])}</span></div>`).join('')}</div>
-    <div class="donut" style="background:conic-gradient(#10b981 0 ${p}%, #e5e7eb ${p}% 100%)"><div><b>${p}%</b><span class="mu" style="font-size:10px; font-weight:700">DELIVERED</span></div></div>
-  </div>`
-}},
+        <!-- Tables Row (User & Orders) -->
+        <div class="table-card">
+            <div class="card-header">
+                <h3>Usimamizi wa Watumiaji</h3>
+                <button style="background: var(--sidebar-bg); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;"><i class="ph ph-download-simple"></i> Export Users</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Picha</th>
+                        <th>Jina</th>
+                        <th>Email / TIN</th>
+                        <th>Aina</th>
+                        <th>Hali</th>
+                        <th>Vitendo</th>
+                    </tr>
+                </thead>
+                <tbody id="user-table-body">
+                    <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Inapakia data...</td></tr>
+                </tbody>
+            </table>
+        </div>
 
-{id:'wallet',title:'Wallet Summary',cls:'w2',run:async()=>{
-  const a=(await txs()).filter(x=>x.status=='completed'),g=t=>sum(a.filter(x=>x.type==t)),cr=g('credit'),de=g('debit'),po=g('payout'),pe=(await txs()).filter(x=>x.status=='pending').length,L=(l,v)=>`<div class="li"><span class="mu">${l}</span><b>${money(v)}</b></div>`;
-  return L('Jumla ya credits',cr)+L('Jumla ya debits',de)+L('Malipo kwa wauzaji',po)+L('Kamisheni',g('commission'))+L('Salio la mfumo',cr-de-po)+L('Miamala inayosubiri',pe)
-}},
+    </main>
 
-{id:'alerts',title:'Urgent Alerts',cls:'w2',run:async()=>{
-  const A=[['Wauzaji wanasubiri uthibitisho',cnt('vendors',q=>q.eq('verification_status','pending')),'verification.html'],['Migogoro iliyo wazi',cnt('disputes',q=>q.eq('status','open')),'disputes.html'],['Tiketi za support wazi',cnt('tickets',q=>q.eq('status','open')),'support-tickets.html'],['Withdrawals zinasubiri',cnt('wd',q=>q.eq('status','pending')),'wallet.html'],['Bidhaa zinasubiri idhini',cnt('products',q=>q.eq('status','pending')),'products.html']],v=await Promise.allSettled(A.map(a=>a[1]));
-  return A.map((a,i)=>`<div class="li"><a href="${PG(a[2])}" style="color:inherit;text-decoration:none; display:flex; align-items:center; gap:8px">⚠ ${a[0]}</a><b style="background:${v[i].value>0?'#fee2e2':'transparent'};color:${v[i].value>0?'#dc2626':'inherit'};padding:${v[i].value>0?'4px 10px':'0'};border-radius:8px; font-size:12px">${v[i].status=='fulfilled'?money(v[i].value):'—'}</b></div>`).join('')
-}},
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+    <script src="js/config.js"></script> <!-- Hakikisha hii ina SUPABASE_URL na KEY zako -->
+    
+    <script>
+        // ==========================================
+        // 1. DATA FETCHING LOGIC (Supabase)
+        // ==========================================
+        const sb = window.ZUNE.sb; 
 
-{id:'orders',title:'Recent Orders',cls:'w2',run:async()=>tbl(['Order','Hali','Kiasi','Tarehe'],(await rows('orders','id,status,total_amount,created_at',q=>q.order('created_at',{ascending:false}))).map(o=>`<tr><td><b>#${esc(String(o.id).slice(0,8))}</b></td><td>${ZUNE.pill(o.status)}</td><td>${money(o.total_amount)}</td><td class="mu" style="font-size:12px">${day(o.created_at)}</td></tr>`).join(''))},
+        async function loadDashboardData() {
+            try {
+                // 1. Pata Hesabu za Watumiaji (Users)
+                const { count: usersCount } = await sb.from('profiles').select('*', { count: 'exact', head: true });
+                document.getElementById('stat-users').innerText = new Intl.NumberFormat().format(usersCount || 0);
 
-{id:'txs',title:'Recent Transactions',cls:'w2',run:async()=>tbl(['Ref','Aina','Kiasi','Hali'],(await txs()).slice(0,5).map(t=>`<tr><td>${esc(t.reference)}</td><td style="text-transform:capitalize">${esc(t.type)}</td><td><b>${money(t.amount)}</b> ${esc(t.currency||'')}</td><td>${ZUNE.pill(t.status)}</td></tr>`).join(''))},
+                // 2. Pata Hesabu za Wauzaji (Vendors)
+                const { count: sellersCount } = await sb.from('vendors').select('*', { count: 'exact', head: true });
+                document.getElementById('stat-sellers').innerText = new Intl.NumberFormat().format(sellersCount || 0);
 
-{id:'activity',title:'Recent Admin Activity',cls:'w2',run:async()=>(await rows('audit','action,created_at',q=>q.order('created_at',{ascending:false}))).map(a=>`<div class="li"><span>${esc(a.action)}</span><span class="mu" style="font-size:12px">${day(a.created_at)}</span></div>`).join('')||'<p class="mu">Bado hakuna vitendo.</p>'},
+                // 3. Pata Hesabu za Maagizo (Orders)
+                const { count: ordersCount } = await sb.from('orders').select('*', { count: 'exact', head: true });
+                document.getElementById('stat-orders').innerText = new Intl.NumberFormat().format(ordersCount || 0);
 
-{id:'quick',title:'Quick Actions',cls:'w2',run:async()=>[['Users','users'],['Wauzaji','sellers'],['Verification','verification'],['Products','products'],['Orders','orders'],['Payments','payments'],['Wallet','wallet'],['Coupons','coupons'],['Announcements','announcements'],['Support','support-tickets'],['Disputes','disputes'],['Reports','reports']].map(a=>`<a class="qa" href="${PG(a[1])}.html">${a[0]}</a>`).join('')},
+                // 4. Pata Jumla ya Malipo (Transactions)
+                const { data: transactions } = await sb.from('transactions').select('amount').eq('status', 'completed');
+                const totalRevenue = transactions?.reduce((sum, tx) => sum + Number(tx.amount), 0) || 0;
+                document.getElementById('stat-revenue').innerText = 'TZS ' + new Intl.NumberFormat().format(totalRevenue);
 
-{id:'health',title:'System Checklist',cls:'w2',run:async()=>{
-  const ck=async(n,fn)=>{try{await fn();return `<div class="li"><span class="mu">${n}</span><span class="pill ok" style="background:#dcfce7;color:#166534;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700">SAWA</span></div>`}catch(e){return `<div class="li"><span class="mu">${n}</span><span class="pill bad" style="background:#fee2e2;color:#991b1b;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700">TATIZO</span></div>`}};
-  return (await Promise.all([ck('Database (Supabase)',()=>cnt('users')),ck('Session ya admin',async()=>{if(!(await sb().auth.getSession()).data.session)throw 0}),ck('Miamala inasomeka',()=>txs())])).join('')
-}}
-];
+                // 5. Jaza Jedwali la Watumiaji (Recent Users)
+                const { data: recentUsers } = await sb.from('profiles').select('*').limit(5).order('created_at', { ascending: false });
+                const tbody = document.getElementById('user-table-body');
+                
+                if (recentUsers && recentUsers.length > 0) {
+                    tbody.innerHTML = recentUsers.map((user, index) => {
+                        const avatar = user.avatar_url || `https://ui-avatars.com/api/?name=${user.full_name || 'User'}&background=random`;
+                        const role = user.role || 'Customer';
+                        const roleBadge = role === 'seller' ? 'info' : 'success';
+                        
+                        return `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td><img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;"></td>
+                            <td><b>${user.full_name || 'Haijulikani'}</b></td>
+                            <td>${user.email || 'Hakuna email'}</td>
+                            <td><span class="badge ${roleBadge}">${role}</span></td>
+                            <td><span class="badge success">Active</span></td>
+                            <td class="action-icons">
+                                <i class="ph ph-eye"></i>
+                                <i class="ph ph-pencil-simple"></i>
+                                <i class="ph ph-trash" style="color: #ef4444;"></i>
+                            </td>
+                        </tr>`;
+                    }).join('');
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center;">Hakuna watumiaji waliopatikana.</td></tr>`;
+                }
 
-/* ===== 3. ENGINE ===== */
-const HK='zune_dash_hidden';let hidden=[];try{hidden=JSON.parse(localStorage.getItem(HK)||'[]')}catch(e){}
+               const actList = document.getElementById('activity-list');
+                actList.innerHTML = `
+                    <div class="activity-item">
+                        <div class="icon" style="background: #ffedd5; color: #9a3412;"><i class="ph ph-shopping-cart"></i></div>
+                        <div class="details">
+                            <h4>Agizo jipya #ZUN-7845</h4>
+                            <p>Mteja kutoka Dar es Salaam · 2 min ago</p>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="icon" style="background: #dbeafe; color: #1e40af;"><i class="ph ph-user-plus"></i></div>
+                        <div class="details">
+                            <h4>Mtumiaji mpya amejiunga</h4>
+                            <p>Asha Mhando · 5 min ago</p>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="icon" style="background: #f3e8ff; color: #6b21a8;"><i class="ph ph-storefront"></i></div>
+                        <div class="details">
+                            <h4>Seller mpya amethibitishwa</h4>
+                            <p>Juma Store · 8 min ago</p>
+                        </div>
+                    </div>
+                `;
 
-// Skeleton Loader Function (Modern Shimmer)
-const skeletonHTML = () => `
-  <div style="width:100%">
-    <div class="skeleton sk-title"></div>
-    <div class="skeleton sk-val"></div>
-    <div class="skeleton sk-text"></div>
-  </div>
-`;
+            } catch (error) {
+                console.error("Kuna tatizo kwenye kupata data:", error.message);
+                // Kama Supabase haijapakiwa, onyesha '0'
+                document.getElementById('stat-users').innerText = '0';
+                document.getElementById('stat-sellers').innerText = '0';
+                document.getElementById('stat-orders').innerText = '0';
+                document.getElementById('stat-revenue').innerText = 'TZS 0';
+                document.getElementById('user-table-body').innerHTML = `<tr><td colspan="7" style="text-align: center; color: red;">Tatizo la Mtandao: ${error.message}</td></tr>`;
+            }
+        }
 
-const mount=async(w,el)=>{
-  el.innerHTML=skeletonHTML();
-  try{
-    const h=await w.run();
-    el.innerHTML=(w.stat?'':`<b>${w.title}</b>`)+h;
-  }catch(e){
-    el.innerHTML=`<b>${w.title}</b><div class="err-box">⚠ ${esc(e.message)}</div>`;
-  }
-};
-
-async function render(){
-  cache={};
-  const g=document.getElementById('dg');
-  g.innerHTML='';
-  
-  const btn = document.getElementById('rf');
-  if(btn) btn.style.transform = 'rotate(180deg)'; // Simple spin feedback
-  
-  await ZUNE.ready;
-  const jobs=W.filter(w=>!hidden.includes(w.id)).map(w=>{
-    const el=document.createElement('div');
-    el.className='card '+w.cls;
-    g.appendChild(el);
-    return mount(w,el);
-  });
-  
-  await Promise.all(jobs);
-  document.getElementById('up').textContent='Imesasishwa '+new Date().toLocaleTimeString('sw-TZ');
-  if(btn) setTimeout(()=> btn.style.transform = 'rotate(0deg)', 300);
-}
-
-document.getElementById('rg').onchange=e=>{days=+e.target.value;render()};
-document.getElementById('rf').onclick=render;
-document.getElementById('cu').onclick=()=>{
-  const z=document.getElementById('cz');z.hidden=!z.hidden;
-  z.innerHTML='<b style="display:block;margin-bottom:16px;font-size:16px;">Chagua vipengele vya kuonyesha</b><div style="display:flex;flex-wrap:wrap;gap:12px">'+W.map(w=>`<label style="display:inline-flex;gap:8px;align-items:center;background:#f3f4f6;padding:8px 16px;border-radius:12px;border:1px solid rgba(0,0,0,0.05);cursor:pointer;font-size:13px;font-weight:600"><input type="checkbox" style="width:16px;height:16px;accent-color:var(--primary)" data-id="${w.id}" ${hidden.includes(w.id)?'':'checked'}>${w.title}</label>`).join('')+'</div>';
-  z.querySelectorAll('input').forEach(i=>i.onchange=()=>{
-    hidden=W.map(w=>w.id).filter(id=>!z.querySelector(`[data-id="${id}"]`).checked);
-    try{localStorage.setItem(HK,JSON.stringify(hidden))}catch(e){}
-    render();
-  });
-};
-
-render();
-</script>
+        // Anzisha ukurasa
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.ZUNE || !window.ZUNE.sb) {
+                document.getElementById('user-table-body').innerHTML = `<tr><td colspan="7" style="text-align: center; color: red;">Supabase haijapakiwa. Angalia js/config.js</td></tr>`;
+            } else {
+                loadDashboardData();
+            }
+        });
+    </script>
 </body>
 </html>
