@@ -1,4 +1,3 @@
-window.SUPABASE_URL =
   "https://rpkogiieegqgxqbzwxwo.supabase.co";
 
 window.SUPABASE_ANON_KEY =
