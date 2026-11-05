@@ -1,0 +1,8 @@
+<!DOCTYPE html><html lang="sw"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Dashboard · ZUNE Admin</title><link rel="stylesheet" href="css/admin.css"></head><body>
+<main id="content"><div class="ph"><h2>Dashboard</h2><p class="mu">Overview of your marketplace</p></div><div id="st"></div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script><script src="js/config.js"></script><script src="js/layout.js"></script>
+<script>
+(async()=>{const N=async t=>(await ZUNE.sb.from(t).select('*',{count:'exact',head:true})).count||0;await ZUNE.ready;const s={users:await N('profiles'),sellers:0,products:await N('products'),orders:await N('orders'),sales:0,pending:0};
+const c=(i,col,v,l)=>`<div class="card sc2"><span class="ic" style="background:${col}22;color:${col}">${i}</span><div><b>${v}</b><span class="mu">${l}</span></div></div>`,f=n=>Number(n).toLocaleString('en-US');
+document.getElementById('st').innerHTML=`<div class="g4">${c('👥','#2563eb',f(s.users),'Total Users')}${c('🏪','#16a34a',f(s.sellers),'Verified Sellers')}${c('📦','#f97316',f(s.products),'Products')}${c('🛒','#9333ea',f(s.orders),'Orders')}</div><div class="g3">${c('💵','#16a34a',f(s.sales)+' TZS','Total Sales')}${c('⏱','#6366f1',f(s.pending),'Pending Approvals')}</div>`})();
+</script></body></html>
