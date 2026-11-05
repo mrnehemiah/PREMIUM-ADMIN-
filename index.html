@@ -1,396 +1,2414 @@
+
 <!DOCTYPE html>
 <html lang="sw">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZUNE Admin Dashboard</title>
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <style>
-        :root {
-            --sidebar-bg: #0a3d22;
-            --sidebar-hover: #0f5c33;
-            --primary: #10b981;
-            --bg-body: #f4f7f6;
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-            --card-bg: #ffffff;
-            --border: #e5e7eb;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#071c18">
+<title>ZUNE PREMIUM ADMIN</title>
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background-color: var(--bg-body); display: flex; min-height: 100vh; color: var(--text-main); }
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-        /* ================= SIDEBAR ================= */
-        .sidebar {
-            width: 260px;
-            background-color: var(--sidebar-bg);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-            z-index: 100;
-        }
-        .brand { padding: 24px; display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 800; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .brand i { font-size: 28px; color: var(--primary); }
-        .admin-profile { padding: 20px 24px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .admin-profile img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); }
-        .admin-profile .info h4 { font-size: 14px; margin-bottom: 2px; }
-        .admin-profile .info p { font-size: 12px; color: var(--primary); display: flex; align-items: center; gap: 4px; }
-        .admin-profile .info p::before { content: ''; width: 6px; height: 6px; background: var(--primary); border-radius: 50%; }
+<link rel="stylesheet" href="css/admin.css">
 
-        .nav-menu { list-style: none; padding: 20px 12px; flex: 1; }
-        .nav-menu li { margin-bottom: 4px; }
-        .nav-menu a {
-            display: flex; align-items: center; gap: 12px; padding: 12px 16px;
-            color: #a7c4b5; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 500;
-            transition: all 0.2s;
-        }
-        .nav-menu a:hover, .nav-menu a.active { background-color: var(--sidebar-hover); color: white; }
-        .nav-menu a i { font-size: 20px; }
-        .nav-menu a .arrow { margin-left: auto; font-size: 12px; }
-        .sidebar-footer { padding: 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; color: #a7c4b5; }
+<style>
+/* ==================================================
+   ZUNE PREMIUM ADMIN — ENTERPRISE DESIGN SYSTEM
+================================================== */
 
-        /* ================= MAIN CONTENT ================= */
-        .main-content { margin-left: 260px; flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
-        
-        /* Topbar */
-        .topbar { display: flex; justify-content: space-between; align-items: center; background: white; padding: 16px 24px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-        .search-box { display: flex; align-items: center; background: var(--bg-body); padding: 10px 16px; border-radius: 8px; width: 400px; gap: 10px; }
-        .search-box input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; }
-        .topbar-actions { display: flex; align-items: center; gap: 16px; }
-        .icon-btn { background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; position: relative; }
-        .badge-dot { position: absolute; top: 0; right: 0; width: 8px; height: 8px; background: red; border-radius: 50%; border: 2px solid white; }
+:root {
+  --z-dark: #071c18;
+  --z-dark-2: #0d2922;
+  --z-green: #087f5b;
+  --z-green-light: #e5f5ee;
+  --z-gold: #d6ad60;
+  --z-bg: #f5f7f6;
+  --z-white: #ffffff;
+  --z-text: #17251f;
+  --z-muted: #84918b;
+  --z-border: #e9eeeb;
+  --z-red: #dc4848;
+  --z-orange: #e99a36;
+  --z-blue: #4285d4;
+  --z-purple: #8665cf;
 
-        /* Welcome Banner */
-        .welcome-banner {
-            background: linear-gradient(135deg, #0f9d58, var(--sidebar-bg));
-            border-radius: 16px; padding: 32px; color: white;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 10px 20px rgba(10, 61, 34, 0.15);
-        }
-        .welcome-banner h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
-        .welcome-banner h1 span { color: #fbbf24; }
-        .welcome-banner p { font-size: 15px; opacity: 0.9; }
-        .welcome-banner .icon-box { font-size: 80px; opacity: 0.2; }
+  --font: 'Plus Jakarta Sans', sans-serif;
+  --sidebar-width: 258px;
+  --radius: 17px;
+  --shadow: 0 5px 24px rgba(15, 45, 33, .045);
+}
 
-        /* Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        .stat-card { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 12px; }
-        .stat-card .icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 8px; }
-        .stat-card h3 { font-size: 24px; font-weight: 800; }
-        .stat-card p { color: var(--text-muted); font-size: 14px; }
-        .stat-card .trend { font-size: 13px; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 4px; margin-top: 8px; }
+* {
+  box-sizing: border-box;
+}
 
-        /* Charts & Bottom Grid */
-        .bottom-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
-        .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .card-header h3 { font-size: 18px; font-weight: 700; }
+html {
+  scroll-behavior: smooth;
+}
 
-        /* Chart Placeholder */
-        .chart-container { width: 100%; height: 250px; background: #f9fafb; border-radius: 8px; position: relative; overflow: hidden; display: flex; align-items: flex-end; }
-        .chart-svg { width: 100%; height: 100%; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font);
+  background: var(--z-bg);
+  color: var(--z-text);
+  font-size: 14px;
+}
 
-        /* Tables */
-        .table-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); margin-top: 24px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 13px; font-weight: 600; }
-        td { padding: 16px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 500; }
-        .user-cell { display: flex; align-items: center; gap: 12px; }
-        .user-cell img { width: 32px; height: 32px; border-radius: 50%; }
-        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-        .badge.success { background: #dcfce7; color: #166534; }
-        .badge.warning { background: #fef3c7; color: #92400e; }
-        .badge.info { background: #dbeafe; color: #1e40af; }
-        .badge.danger { background: #fee2e2; color: #991b1b; }
-        .action-icons { display: flex; gap: 10px; color: var(--text-muted); font-size: 18px; }
-        .action-icons i { cursor: pointer; }
-        .action-icons i:hover { color: var(--primary); }
+button,
+input,
+select {
+  font: inherit;
+}
 
-        /* Sidebar Activity */
-        .activity-list { display: flex; flex-direction: column; gap: 16px; }
-        .activity-item { display: flex; gap: 12px; align-items: center; }
-        .activity-item .icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-        .activity-item .details h4 { font-size: 14px; margin-bottom: 2px; }
-        .activity-item .details p { font-size: 12px; color: var(--text-muted); }
+button {
+  cursor: pointer;
+}
 
-        /* Loading Skeleton */
-        .skeleton { background: #e5e7eb; border-radius: 4px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+a {
+  color: inherit;
+  text-decoration: none;
+}
 
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .bottom-grid { grid-template-columns: 1fr; }
-        }
-        @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); }
-            .main-content { margin-left: 0; }
-            .stats-grid { grid-template-columns: 1fr; }
-        }
-    </style>
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(8,127,91,.25);
+  outline-offset: 3px;
+}
+
+/* APP LAYOUT */
+
+.zune-app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--z-dark);
+  color: white;
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: 25px 17px;
+  transition: transform .3s ease, width .3s ease;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #34554a transparent;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 3px 10px 28px;
+  border-bottom: 1px solid rgba(255,255,255,.09);
+  margin-bottom: 25px;
+}
+
+.brand-logo {
+  width: 43px;
+  height: 43px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-size: 21px;
+  font-weight: 800;
+  background: linear-gradient(135deg,#0b9c6d,#075a42);
+  box-shadow: 0 5px 18px rgba(8,127,91,.3);
+}
+
+.brand-name {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -.7px;
+}
+
+.brand-name span {
+  color: var(--z-gold);
+  display: block;
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  margin-top: 2px;
+}
+
+.nav-label {
+  color: #799087;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.7px;
+  padding: 0 12px;
+  margin: 19px 0 10px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 12px 13px;
+  border-radius: 11px;
+  color: #b5c6be;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  transition: .2s;
+}
+
+.nav-link .nav-icon {
+  width: 21px;
+  text-align: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+
+.nav-link:hover {
+  color: white;
+  background: rgba(255,255,255,.07);
+}
+
+.nav-link.active {
+  background: linear-gradient(110deg,#087f5b,#096b4e);
+  color: white;
+  box-shadow: 0 5px 15px rgba(8,127,91,.2);
+}
+
+.nav-link .nav-count {
+  margin-left: auto;
+  font-size: 10px;
+  background: #d94b4b;
+  color: white;
+  padding: 3px 7px;
+  border-radius: 20px;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.admin-mini {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 10px;
+  border-top: 1px solid rgba(255,255,255,.1);
+}
+
+.admin-avatar {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #d6ad60;
+  color: #071c18;
+  font-weight: 800;
+}
+
+.admin-info strong {
+  display: block;
+  font-size: 11px;
+}
+
+.admin-info small {
+  color: #91a59a;
+  font-size: 10px;
+}
+
+/* MAIN CONTENT */
+
+.main-area {
+  margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+  min-width: 0;
+  transition: .3s;
+}
+
+.topbar {
+  height: 79px;
+  background: rgba(255,255,255,.94);
+  border-bottom: 1px solid var(--z-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  gap: 15px;
+  backdrop-filter: blur(15px);
+}
+
+.top-left,
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.menu-toggle {
+  width: 39px;
+  height: 39px;
+  border: 1px solid var(--z-border);
+  background: white;
+  border-radius: 11px;
+  font-size: 19px;
+  display: none;
+}
+
+.top-search {
+  width: 240px;
+  height: 39px;
+  border: 1px solid var(--z-border);
+  border-radius: 10px;
+  padding: 0 12px;
+  background: #fafcfb;
+  font-size: 11px;
+  outline: none;
+}
+
+.top-search:focus {
+  border-color: var(--z-green);
+}
+
+.icon-btn {
+  width: 39px;
+  height: 39px;
+  background: white;
+  border: 1px solid var(--z-border);
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  position: relative;
+}
+
+.notification-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e34c4c;
+  border: 1px solid white;
+}
+
+/* PAGE */
+
+.page-content {
+  padding: 28px 30px 45px;
+  max-width: 1700px;
+  margin: auto;
+}
+
+.page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 25px;
+}
+
+.page-heading h1 {
+  margin: 0 0 7px;
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.page-heading p {
+  margin: 0;
+  color: var(--z-muted);
+  font-size: 12px;
+}
+
+.heading-actions {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.control {
+  height: 39px;
+  padding: 0 13px;
+  border-radius: 10px;
+  border: 1px solid var(--z-border);
+  background: white;
+  color: var(--z-text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.control.primary {
+  background: var(--z-green);
+  color: white;
+  border-color: var(--z-green);
+}
+
+.control:hover {
+  filter: brightness(.96);
+}
+
+/* BENTO GRID */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 16px;
+}
+
+.card {
+  background: white;
+  border: 1px solid var(--z-border);
+  border-radius: var(--radius);
+  padding: 21px;
+  box-shadow: var(--shadow);
+  min-width: 0;
+  transition: transform .2s,box-shadow .2s;
+}
+
+.card:hover {
+  box-shadow: 0 9px 30px rgba(15,45,33,.075);
+}
+
+.w2 {
+  grid-column: span 2;
+}
+
+.w4 {
+  grid-column: 1 / -1;
+}
+
+/* STAT CARDS */
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-height: 155px;
+}
+
+.stat-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-icon {
+  width: 43px;
+  height: 43px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+}
+
+.stat-trend {
+  font-size: 10px;
+  color: var(--z-green);
+  background: var(--z-green-light);
+  padding: 5px 8px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+
+.stat-value {
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-bottom: 5px;
+  overflow-wrap: anywhere;
+}
+
+.stat-label {
+  color: var(--z-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+}
+
+/* WIDGETS */
+
+.widget-title {
+  font-size: 13px;
+  font-weight: 800;
+  margin: 0 0 19px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.widget-title small {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--z-muted);
+}
+
+.mu {
+  color: var(--z-muted);
+}
+
+.li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f3f1;
+  font-size: 11px;
+}
+
+.li:last-child {
+  border-bottom: 0;
+}
+
+.li b {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* TABLES */
+
+.sc {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.sc table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 420px;
+  font-size: 11px;
+}
+
+.sc th {
+  text-align: left;
+  color: var(--z-muted);
+  font-size: 9px;
+  letter-spacing: .7px;
+  padding: 11px 9px;
+  border-bottom: 1px solid var(--z-border);
+  text-transform: uppercase;
+}
+
+.sc td {
+  padding: 13px 9px;
+  border-bottom: 1px solid #f0f3f1;
+}
+
+.sc tr:last-child td {
+  border-bottom: 0;
+}
+
+/* DONUT */
+
+.donut {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.donut > div {
+  width: 82px;
+  height: 82px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.donut b {
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+/* QUICK ACTIONS */
+
+.qa {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 13px;
+  background: #f7faf8;
+  border: 1px solid var(--z-border);
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 700;
+  margin: 4px;
+  transition: .2s;
+}
+
+.qa:hover {
+  background: var(--z-green);
+  color: white;
+  border-color: var(--z-green);
+}
+
+/* CUSTOMIZE */
+
+.customize-box {
+  background: white;
+  border: 1px solid var(--z-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow);
+}
+
+.customize-box label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: #f7faf8;
+  border: 1px solid var(--z-border);
+  border-radius: 9px;
+  font-size: 11px;
+  margin: 4px;
+}
+
+.customize-box input {
+  accent-color: var(--z-green);
+}
+
+/* LOADING */
+
+.skeleton {
+  background: linear-gradient(90deg,#edf1ee 25%,#f8faf9 50%,#edf1ee 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 8px;
+}
+
+.sk-title {
+  width: 45%;
+  height: 13px;
+  margin-bottom: 20px;
+}
+
+.sk-val {
+  width: 70%;
+  height: 28px;
+  margin-bottom: 12px;
+}
+
+.sk-text {
+  width: 55%;
+  height: 11px;
+}
+
+@keyframes shimmer {
+  to { background-position: -200% 0; }
+}
+
+/* STATUS */
+
+.err-box {
+  padding: 12px;
+  color: #a72b2b;
+  background: #fff0f0;
+  border: 1px solid #f5d4d4;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.pill {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+/* MOBILE */
+
+.mobile-overlay {
+  display: none;
+}
+
+@media(max-width:1100px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+}
+
+@media(max-width:760px) {
+  :root {
+    --sidebar-width: 258px;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .mobile-overlay.show {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.42);
+    z-index: 90;
+  }
+
+  .main-area {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .menu-toggle {
+    display: grid;
+    place-items: center;
+  }
+
+  .topbar {
+    height: 65px;
+    padding: 0 15px;
+  }
+
+  .top-search {
+    width: 135px;
+  }
+
+  .page-content {
+    padding: 22px 14px 35px;
+  }
+
+  .page-heading h1 {
+    font-size: 21px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 10px;
+  }
+
+  .card {
+    padding: 14px;
+    border-radius: 13px;
+  }
+
+  .w2 {
+    grid-column: span 2;
+  }
+
+  .stat-card {
+    min-height: 135px;
+    gap: 12px;
+  }
+
+  .stat-value {
+    font-size: 21px;
+  }
+
+  .stat-icon {
+    width: 37px;
+    height: 37px;
+  }
+}
+
+@media(max-width:390px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .w2,
+  .w4 {
+    grid-column: span 1;
+  }
+
+  .top-search {
+    width: 105px;
+  }
+
+  .top-right {
+    gap: 7px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
 </head>
+
 <body>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="brand">
-            <i class="ph ph-storefront"></i> ZUNE PREMIUM
+<div class="zune-app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+
+  <div class="brand">
+    <div class="brand-logo">Z</div>
+    <div class="brand-name">
+      ZUNE
+      <span>PREMIUM ADMIN</span>
+    </div>
+  </div>
+
+  <div class="nav-label">MAIN MENU</div>
+
+  <a href="index.html" class="nav-link active">
+    <span class="nav-icon">▦</span> Dashboard
+  </a>
+
+  <a href="pages/users.html" class="nav-link">
+    <span class="nav-icon">♙</span> Users
+  </a>
+
+  <a href="pages/sellers.html" class="nav-link">
+    <span class="nav-icon">♧</span> Sellers
+  </a>
+
+  <a href="pages/verification.html" class="nav-link">
+    <span class="nav-icon">✓</span> Verification
+  </a>
+
+  <a href="pages/products.html" class="nav-link">
+    <span class="nav-icon">▣</span> Products
+  </a>
+
+  <a href="pages/orders.html" class="nav-link">
+    <span class="nav-icon">🛒</span> Orders
+  </a>
+
+  <a href="pages/payments.html" class="nav-link">
+    <span class="nav-icon">◈</span> Payments
+  </a>
+
+  <a href="pages/wallet.html" class="nav-link">
+    <span class="nav-icon">▤</span> Wallet
+  </a>
+
+  <a href="pages/disputes.html" class="nav-link">
+    <span class="nav-icon">⚖</span> Disputes
+  </a>
+
+  <a href="pages/support-tickets.html" class="nav-link">
+    <span class="nav-icon">✉</span> Support
+  </a>
+
+  <div class="nav-label">MANAGEMENT</div>
+
+  <a href="pages/coupons.html" class="nav-link">
+    <span class="nav-icon">％</span> Coupons
+  </a>
+
+  <a href="pages/announcements.html" class="nav-link">
+    <span class="nav-icon">◉</span> Announcements
+  </a>
+
+  <a href="pages/reports.html" class="nav-link">
+    <span class="nav-icon">▥</span> Reports
+  </a>
+
+  <a href="pages/admin-activity.html" class="nav-link">
+    <span class="nav-icon">◷</span> Admin Activity
+  </a>
+
+  <div class="nav-label">SYSTEM</div>
+
+  <a href="pages/settings.html" class="nav-link">
+    <span class="nav-icon">⚙</span> Settings
+  </a>
+
+  <div class="sidebar-bottom">
+    <div class="admin-mini">
+      <div class="admin-avatar">A</div>
+      <div class="admin-info">
+        <strong>Admin Mkuu</strong>
+        <small>System Administrator</small>
+      </div>
+    </div>
+  </div>
+
+</aside>
+
+<div class="mobile-overlay" id="mobileOverlay"></div>
+
+<!-- MAIN -->
+<div class="main-area">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+
+    <div class="top-left">
+      <button class="menu-toggle" id="menuToggle" aria-label="Fungua menyu">☰</button>
+      <input class="top-search" type="search" placeholder="Tafuta kwenye mfumo...">
+    </div>
+
+    <div class="top-right">
+      <button class="icon-btn" id="rf" title="Refresh" aria-label="Refresh">↻</button>
+      <button class="icon-btn" aria-label="Notifications">
+        ♧
+        <span class="notification-dot"></span>
+      </button>
+    </div>
+
+  </header>
+
+  <!-- PAGE CONTENT -->
+  <main class="page-content" id="content">
+
+    <div class="page-heading">
+      <div>
+        <h1>Dashboard</h1>
+        <p id="up">Karibu, Admin Mkuu. Huu ni muhtasari wa ZUNE Marketplace.</p>
+      </div>
+
+      <div class="heading-actions">
+        <select id="rg" class="control" aria-label="Kipindi cha takwimu">
+          <option value="7">Siku 7</option>
+          <option value="30" selected>Siku 30</option>
+          <option value="90">Siku 90</option>
+        </select>
+
+        <button id="cu" class="control primary">⚙ Customize</button>
+      </div>
+    </div>
+
+    <div id="cz" class="customize-box" hidden></div>
+
+    <section class="dashboard-grid" id="dg">
+      <!-- Dashboard widgets zitawekwa hapa na JavaScript -->
+    </section>
+
+  </main>
+
+</div>
+</div>
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+
+<!-- ZUNE CONFIGURATION -->
+<script src="js/config.js"></script>
+<script src="js/layout.js"></script>
+
+<script>
+
+// =====================================================
+// ZUNE PREMIUM ADMIN
+// PART 2/3 — SUPABASE + WIDGETS + ANALYTICS
+// =====================================================
+
+/* =========================================
+   1. DATABASE CONFIGURATION
+========================================= */
+
+const TB = {
+  users: 'profiles',
+  vendors: 'vendors',
+  products: 'products',
+  orders: 'orders',
+  tx: 'transactions',
+  wd: 'withdrawals',
+  disputes: 'disputes',
+  tickets: 'support_tickets',
+  audit: 'admin_audit_logs'
+};
+
+const esc = ZUNE.esc;
+
+const money = n =>
+  Number(n || 0).toLocaleString('en-US');
+
+const day = d =>
+  String(d || '').slice(0, 10);
+
+let days = 30;
+let cache = {};
+
+const since = () =>
+  new Date(Date.now() - days * 864e5).toISOString();
+
+const sb = () => {
+  if (!ZUNE.sb) {
+    throw new Error(
+      'Supabase haijapakiwa. Angalia js/config.js'
+    );
+  }
+  return ZUNE.sb;
+};
+
+/* =========================================
+   2. DATABASE HELPERS
+========================================= */
+
+const cnt = async (table, filter) => {
+  let q = sb()
+    .from(TB[table])
+    .select('*', {
+      count: 'exact',
+      head: true
+    });
+
+  if (filter) q = filter(q);
+
+  const { count, error } = await q;
+
+  if (error) {
+    throw new Error(
+      TB[table] + ': ' + error.message
+    );
+  }
+
+  return count || 0;
+};
+
+const rows = async (
+  table,
+  columns,
+  filter,
+  limit = 5
+) => {
+  let q = sb()
+    .from(TB[table])
+    .select(columns);
+
+  if (filter) q = filter(q);
+
+  const { data, error } = await q.limit(limit);
+
+  if (error) {
+    throw new Error(
+      TB[table] + ': ' + error.message
+    );
+  }
+
+  return data || [];
+};
+
+const sum = arr =>
+  arr.reduce(
+    (total, item) =>
+      total + (Number(item.amount) || 0),
+    0
+  );
+
+const txs = () =>
+  cache.tx ??= rows(
+    'tx',
+    'reference,type,amount,currency,status,created_at',
+    q => q.order('created_at', {
+      ascending: false
+    }),
+    1000
+  );
+
+const tbl = (headers, body) => `
+  <div class="sc">
+    <table>
+      <thead>
+        <tr>
+          ${headers.map(h => `<th>${h}</th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>
+        ${body || `
+          <tr>
+            <td colspan="${headers.length}">
+              Hakuna data iliyopatikana.
+            </td>
+          </tr>
+        `}
+      </tbody>
+    </table>
+  </div>
+`;
+
+const PG = file => 'pages/' + file;
+
+/* =========================================
+   3. PREMIUM ICONS
+========================================= */
+
+const icons = {
+  users: '♙',
+  sellers: '♧',
+  products: '▣',
+  orders: '🛒',
+  sales: '◈',
+  comm: '％',
+  pend: '◷',
+  disp: '⚖'
+};
+
+const statColors = {
+  users: '#4285d4',
+  sellers: '#087f5b',
+  products: '#e99a36',
+  orders: '#8665cf',
+  sales: '#087f5b',
+  comm: '#d6ad60',
+  pend: '#4285d4',
+  disp: '#dc4848'
+};
+
+/* =========================================
+   4. STAT CARD GENERATOR
+========================================= */
+
+const stat = (
+  id,
+  iconName,
+  label,
+  fn
+) => ({
+  id,
+  title: label,
+  cls: '',
+  stat: true,
+
+  run: async () => {
+    const value = await fn();
+
+    const color = statColors[id];
+
+    return `
+      <div class="stat-card">
+
+        <div class="stat-top">
+
+          <span class="stat-icon"
+            style="
+              background:${color}18;
+              color:${color};
+            ">
+            ${icons[iconName]}
+          </span>
+
+          <span class="stat-trend">
+            LIVE DATA
+          </span>
+
         </div>
-        <div class="admin-profile">
-            <img src="https://ui-avatars.com/api/?name=Admin+Mkuu&background=10b981&color=fff" alt="Admin">
-            <div class="info">
-                <h4>Admin Mkuu</h4>
-                <p>Online</p>
-            </div>
-        </div>
-        <ul class="nav-menu">
-            <li><a href="#" class="active"><i class="ph ph-house"></i> Dashboard</a></li>
-            <li><a href="#"><i class="ph ph-users"></i> User Management <i class="ph ph-caret-down arrow"></i></a></li>
-            <li><a href="#"><i class="ph ph-storefront"></i> Seller Management <i class="ph ph-caret-down arrow"></i></a></li>
-            <li><a href="#"><i class="ph ph-package"></i> Products <i class="ph ph-caret-down arrow"></i></a></li>
-            <li><a href="#"><i class="ph ph-shopping-cart"></i> Orders <i class="ph ph-caret-down arrow"></i></a></li>
-            <li><a href="#"><i class="ph ph-credit-card"></i> Payments <i class="ph ph-caret-down arrow"></i></a></li>
-            <li><a href="#"><i class="ph ph-squares-four"></i> Categories <i class="ph ph-caret-down arrow"></i></a></li>
-            <li><a href="#"><i class="ph ph-chart-bar"></i> Reports <i class="ph ph-caret-down arrow"></i></a></li>
-            <li><a href="#"><i class="ph ph-star"></i> Reviews & Ratings <i class="ph ph-caret-down arrow"></i></a></li>
-            <li><a href="#"><i class="ph ph-headset"></i> Support Center</a></li>
-            <li><a href="#"><i class="ph ph-megaphone"></i> Marketing</a></li>
-            <li><a href="#"><i class="ph ph-gear"></i> System Settings</a></li>
-        </ul>
-        <div class="sidebar-footer">
-            <i class="ph ph-crown" style="color: #fbbf24; font-size: 20px;"></i><br>
-            ZUNE PREMIUM ADMIN <br> v2.0.0
-        </div>
-    </aside>
 
-    <!-- MAIN CONTENT -->
-    <main class="main-content">
-        <!-- Topbar -->
-        <header class="topbar">
-            <div class="search-box">
-                <i class="ph ph-magnifying-glass"></i>
-                <input type="text" placeholder="Search anything...">
-            </div>
-            <div class="topbar-actions">
-                <button class="icon-btn"><i class="ph ph-bell"></i><span class="badge-dot"></span></button>
-                <button class="icon-btn"><i class="ph ph-arrows-out"></i></button>
-            </div>
-        </header>
+        <div>
+          <div class="stat-value">
+            ${typeof value === 'number'
+              ? money(value)
+              : esc(String(value))}
+          </div>
 
-        <!-- Welcome Banner -->
-        <div class="welcome-banner">
-            <div>
-                <h1>Karibu tena, <span>Admin Mkuu!</span></h1>
-                <p>Dhibiti mfumo wa ZUNE Premium kwa ufanisi na usalama.</p>
-            </div>
-            <i class="ph ph-shield-check icon-box"></i>
+          <div class="stat-label">
+            ${label}
+          </div>
         </div>
 
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="icon" style="background: #dcfce7; color: #166534;"><i class="ph ph-users"></i></div>
-                <h3 id="stat-users">--</h3>
-                <p>Watumiaji Wote</p>
-                <div class="trend"><i class="ph ph-trend-up"></i> +12% mwezi huu</div>
+      </div>
+    `;
+  }
+});
+
+/* =========================================
+   5. DASHBOARD WIDGETS
+========================================= */
+
+const W = [
+
+/* TOTAL USERS */
+
+stat(
+  'users',
+  'users',
+  'Total Users',
+  () => cnt('users')
+),
+
+/* VERIFIED SELLERS */
+
+stat(
+  'sellers',
+  'sellers',
+  'Verified Sellers',
+  () => cnt(
+    'vendors',
+    q => q.eq(
+      'verification_status',
+      'verified'
+    )
+  )
+),
+
+/* PRODUCTS */
+
+stat(
+  'products',
+  'products',
+  'Total Products',
+  () => cnt('products')
+),
+
+/* ORDERS */
+
+stat(
+  'orders',
+  'orders',
+  'Total Orders',
+  () => cnt(
+    'orders',
+    q => q.gte('created_at', since())
+  )
+),
+
+/* SALES */
+
+stat(
+  'sales',
+  'sales',
+  'Sales TZS',
+  async () => {
+    const data = await txs();
+
+    return sum(
+      data.filter(x =>
+        x.type === 'credit' &&
+        x.status === 'completed' &&
+        x.created_at >= since()
+      )
+    );
+  }
+),
+
+/* COMMISSION */
+
+stat(
+  'comm',
+  'comm',
+  'Commission TZS',
+  async () => {
+    const data = await txs();
+
+    return sum(
+      data.filter(x =>
+        x.type === 'commission' &&
+        x.created_at >= since()
+      )
+    );
+  }
+),
+
+/* PENDING APPROVALS */
+
+stat(
+  'pend',
+  'pend',
+  'Pending Approvals',
+  async () => {
+    const results = await Promise.all([
+      cnt(
+        'vendors',
+        q => q.eq(
+          'verification_status',
+          'pending'
+        )
+      ),
+
+      cnt(
+        'products',
+        q => q.eq('status', 'pending')
+      ),
+
+      cnt(
+        'wd',
+        q => q.eq('status', 'pending')
+      )
+    ]);
+
+    return results.reduce(
+      (a, b) => a + b,
+      0
+    );
+  }
+),
+
+/* DISPUTES */
+
+stat(
+  'disp',
+  'disp',
+  'Open Disputes',
+  () => cnt(
+    'disputes',
+    q => q.eq('status', 'open')
+  )
+),
+
+/* =========================================
+   6. REVENUE ANALYTICS
+========================================= */
+
+{
+  id: 'chart',
+  title: 'Revenue Overview',
+  cls: 'w2',
+
+  run: async () => {
+
+    const data = await txs();
+
+    const grouped = {};
+
+    data
+      .filter(x =>
+        x.type === 'credit' &&
+        x.status === 'completed' &&
+        x.created_at >= since()
+      )
+      .forEach(x => {
+
+        const date = day(x.created_at);
+
+        grouped[date] =
+          (grouped[date] || 0) +
+          Number(x.amount || 0);
+
+      });
+
+    const keys = Object.keys(grouped).sort();
+
+    if (!keys.length) {
+      return `
+        <p class="mu">
+          Hakuna mauzo yaliyorekodiwa
+          katika kipindi hiki.
+        </p>
+      `;
+    }
+
+    const max = Math.max(
+      ...keys.map(k => grouped[k]),
+      1
+    );
+
+    const points = keys.map((k, i) => {
+
+      const x = keys.length === 1
+        ? 150
+        : 10 + i * 280 / (keys.length - 1);
+
+      const y =
+        110 - grouped[k] / max * 95;
+
+      return `${x},${y}`;
+
+    }).join(' ');
+
+    return `
+      <div style="font-size:11px;color:#84918b">
+        Mauzo ya TZS kwa siku
+      </div>
+
+      <svg
+        viewBox="0 0 300 125"
+        width="100%"
+        role="img"
+        aria-label="Revenue chart"
+      >
+
+        <defs>
+          <linearGradient
+            id="zuneRevenueGradient"
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="1"
+          >
+            <stop
+              offset="0%"
+              stop-color="#087f5b"
+              stop-opacity=".3"
+            />
+
+            <stop
+              offset="100%"
+              stop-color="#087f5b"
+              stop-opacity="0"
+            />
+          </linearGradient>
+        </defs>
+
+        <polygon
+          points="10,115 ${points} 290,115"
+          fill="url(#zuneRevenueGradient)"
+        />
+
+        <polyline
+          points="${points}"
+          fill="none"
+          stroke="#087f5b"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+
+      </svg>
+
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        color:#84918b;
+        font-size:10px;
+      ">
+        <span>${keys[0]}</span>
+        <span>${keys[keys.length - 1]}</span>
+      </div>
+    `;
+  }
+},
+
+/* =========================================
+   7. ORDER PIPELINE
+========================================= */
+
+{
+  id: 'pipe',
+  title: 'Order Pipeline',
+  cls: 'w2',
+
+  run: async () => {
+
+    const statuses = [
+      ['pending', '#e99a36'],
+      ['processing', '#4285d4'],
+      ['shipped', '#8665cf'],
+      ['delivered', '#087f5b'],
+      ['cancelled', '#dc4848']
+    ];
+
+    const counts = await Promise.all(
+      statuses.map(s =>
+        cnt(
+          'orders',
+          q => q.eq('status', s[0])
+        )
+      )
+    );
+
+    const total =
+      counts.reduce((a, b) => a + b, 0) || 1;
+
+    const delivered =
+      Math.round(counts[3] / total * 100);
+
+    return `
+      <div style="
+        display:flex;
+        align-items:center;
+        gap:20px;
+        flex-wrap:wrap;
+      ">
+
+        <div style="flex:1;min-width:130px">
+
+          ${statuses.map((s, i) => `
+            <div class="li">
+
+              <span>
+                <span
+                  class="dot"
+                  style="background:${s[1]}"
+                ></span>
+                ${s[0]}
+              </span>
+
+              <b>${money(counts[i])}</b>
+
             </div>
-            <div class="stat-card">
-                <div class="icon" style="background: #dbeafe; color: #1e40af;"><i class="ph ph-storefront"></i></div>
-                <h3 id="stat-sellers">--</h3>
-                <p>Wauzaji</p>
-                <div class="trend"><i class="ph ph-trend-up"></i> +8% mwezi huu</div>
-            </div>
-            <div class="stat-card">
-                <div class="icon" style="background: #ffedd5; color: #9a3412;"><i class="ph ph-shopping-cart"></i></div>
-                <h3 id="stat-orders">--</h3>
-                <p>Maagizo</p>
-                <div class="trend"><i class="ph ph-trend-up"></i> +15% mwezi huu</div>
-            </div>
-            <div class="stat-card">
-                <div class="icon" style="background: #f3e8ff; color: #6b21a8;"><i class="ph ph-wallet"></i></div>
-                <h3 id="stat-revenue">--</h3>
-                <p>Malipo Yote (TZS)</p>
-                <div class="trend"><i class="ph ph-trend-up"></i> +20% mwezi huu</div>
-            </div>
+          `).join('')}
+
         </div>
 
-        <!-- Chart & Activity Row -->
-        <div class="bottom-grid">
-            <!-- Chart -->
-            <div class="card">
-                <div class="card-header">
-                    <h3>Mchoro wa Mauzo (12 Miezi)</h3>
-                    <select style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); outline: none;">
-                        <option>Mwaka Huu</option>
-                    </select>
-                </div>
-                <div class="chart-container">
-                    <!-- SVG Chart ya Kuiga (Mockup) -->
-                    <svg viewBox="0 0 500 200" class="chart-svg" preserveAspectRatio="none">
-                        <defs>
-                            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/>
-                                <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
-                            </linearGradient>
-                        </defs>
-                        <path d="M0,180 C50,150 100,160 150,120 C200,80 250,100 300,60 C350,40 400,50 450,20 L500,10 L500,200 L0,200 Z" fill="url(#chartGrad)"/>
-                        <path d="M0,180 C50,150 100,160 150,120 C200,80 250,100 300,60 C350,40 400,50 450,20 L500,10" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round"/>
-                        <!-- Dots za chart -->
-                        <circle cx="150" cy="120" r="5" fill="#fff" stroke="#10b981" stroke-width="3"/>
-                        <circle cx="300" cy="60" r="5" fill="#fff" stroke="#10b981" stroke-width="3"/>
-                        <circle cx="450" cy="20" r="5" fill="#fff" stroke="#10b981" stroke-width="3"/>
-                    </svg>
-                </div>
-            </div>
-
-            <!-- Recent Activity -->
-            <div class="card">
-                <div class="card-header">
-                    <h3>Shughuli za Hivi Karibuni</h3>
-                    <a href="#" style="color: var(--primary); text-decoration: none; font-size: 13px; font-weight: 600;">Ona Zote &rarr;</a>
-                </div>
-                <div class="activity-list" id="activity-list">
-                    <div class="skeleton" style="height: 50px; width: 100%; margin-bottom: 10px;"></div>
-                    <div class="skeleton" style="height: 50px; width: 100%; margin-bottom: 10px;"></div>
-                    <div class="skeleton" style="height: 50px; width: 100%;"></div>
-                </div>
-            </div>
+        <div
+          class="donut"
+          style="
+            background:
+              conic-gradient(
+                #087f5b 0 ${delivered}%,
+                #e9efeb ${delivered}% 100%
+              );
+          "
+        >
+          <div>
+            <b>${delivered}%</b>
+            <span style="
+              font-size:8px;
+              color:#84918b;
+              font-weight:800;
+            ">
+              DELIVERED
+            </span>
+          </div>
         </div>
 
-        <!-- Tables Row (User & Orders) -->
-        <div class="table-card">
-            <div class="card-header">
-                <h3>Usimamizi wa Watumiaji</h3>
-                <button style="background: var(--sidebar-bg); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;"><i class="ph ph-download-simple"></i> Export Users</button>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Picha</th>
-                        <th>Jina</th>
-                        <th>Email / TIN</th>
-                        <th>Aina</th>
-                        <th>Hali</th>
-                        <th>Vitendo</th>
-                    </tr>
-                </thead>
-                <tbody id="user-table-body">
-                    <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Inapakia data...</td></tr>
-                </tbody>
-            </table>
+      </div>
+    `;
+  }
+},
+
+/* =========================================
+   8. WALLET SUMMARY
+========================================= */
+
+{
+  id: 'wallet',
+  title: 'Wallet Summary',
+  cls: 'w2',
+
+  run: async () => {
+
+    const data = await txs();
+
+    const completed = data.filter(
+      x => x.status === 'completed'
+    );
+
+    const total = type =>
+      sum(
+        completed.filter(x => x.type === type)
+      );
+
+    const pending = data.filter(
+      x => x.status === 'pending'
+    ).length;
+
+    const item = (label, value) => `
+      <div class="li">
+        <span class="mu">${label}</span>
+        <b>${money(value)}</b>
+      </div>
+    `;
+
+    return `
+      ${item('Jumla ya Credits', total('credit'))}
+      ${item('Jumla ya Debits', total('debit'))}
+      ${item('Seller Payouts', total('payout'))}
+      ${item('ZUNE Commission', total('commission'))}
+      ${item(
+        'Salio la Mfumo',
+        total('credit') -
+        total('debit') -
+        total('payout')
+      )}
+      ${item('Pending Transactions', pending)}
+    `;
+  }
+},
+
+/* =========================================
+   9. URGENT ALERTS
+========================================= */
+
+{
+  id: 'alerts',
+  title: 'Urgent Alerts',
+  cls: 'w2',
+
+  run: async () => {
+
+    const alerts = [
+      [
+        'Wauzaji wanasubiri uthibitisho',
+        () => cnt(
+          'vendors',
+          q => q.eq(
+            'verification_status',
+            'pending'
+          )
+        ),
+        'verification.html'
+      ],
+
+      [
+        'Migogoro iliyo wazi',
+        () => cnt(
+          'disputes',
+          q => q.eq('status', 'open')
+        ),
+        'disputes.html'
+      ],
+
+      [
+        'Tiketi za support',
+        () => cnt(
+          'tickets',
+          q => q.eq('status', 'open')
+        ),
+        'support-tickets.html'
+      ],
+
+      [
+        'Withdrawals zinasubiri',
+        () => cnt(
+          'wd',
+          q => q.eq('status', 'pending')
+        ),
+        'wallet.html'
+      ],
+
+      [
+        'Bidhaa zinasubiri idhini',
+        () => cnt(
+          'products',
+          q => q.eq('status', 'pending')
+        ),
+        'products.html'
+      ]
+    ];
+
+    const results = await Promise.allSettled(
+      alerts.map(a => a[1]())
+    );
+
+    return alerts.map((a, i) => {
+
+      const result = results[i];
+
+      const value =
+        result.status === 'fulfilled'
+          ? result.value
+          : '—';
+
+      return `
+        <div class="li">
+
+          <a
+            href="${PG(a[2])}"
+            style="
+              display:flex;
+              gap:7px;
+              align-items:center;
+            "
+          >
+            <span>⚠</span>
+            ${a[0]}
+          </a>
+
+          <b style="
+            color:${
+              Number(value) > 0
+                ? '#dc4848'
+                : '#84918b'
+            };
+          ">
+            ${money(value)}
+          </b>
+
         </div>
+      `;
+    }).join('');
+  }
+},
 
-    </main>
+/* =========================================
+   10. RECENT ORDERS
+========================================= */
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-    <script src="js/config.js"></script> <!-- Hakikisha hii ina SUPABASE_URL na KEY zako -->
-    
-    <script>
-        // ==========================================
-        // 1. DATA FETCHING LOGIC (Supabase)
-        // ==========================================
-        const sb = window.ZUNE.sb; 
+{
+  id: 'orders',
+  title: 'Recent Orders',
+  cls: 'w2',
 
-        async function loadDashboardData() {
-            try {
-                // 1. Pata Hesabu za Watumiaji (Users)
-                const { count: usersCount } = await sb.from('profiles').select('*', { count: 'exact', head: true });
-                document.getElementById('stat-users').innerText = new Intl.NumberFormat().format(usersCount || 0);
+  run: async () => {
 
-                // 2. Pata Hesabu za Wauzaji (Vendors)
-                const { count: sellersCount } = await sb.from('vendors').select('*', { count: 'exact', head: true });
-                document.getElementById('stat-sellers').innerText = new Intl.NumberFormat().format(sellersCount || 0);
+    const data = await rows(
+      'orders',
+      'id,status,total_amount,created_at',
+      q => q.order(
+        'created_at',
+        { ascending: false }
+      ),
+      5
+    );
 
-                // 3. Pata Hesabu za Maagizo (Orders)
-                const { count: ordersCount } = await sb.from('orders').select('*', { count: 'exact', head: true });
-                document.getElementById('stat-orders').innerText = new Intl.NumberFormat().format(ordersCount || 0);
+    return tbl(
+      ['Order ID', 'Status', 'Amount', 'Date'],
 
-                // 4. Pata Jumla ya Malipo (Transactions)
-                const { data: transactions } = await sb.from('transactions').select('amount').eq('status', 'completed');
-                const totalRevenue = transactions?.reduce((sum, tx) => sum + Number(tx.amount), 0) || 0;
-                document.getElementById('stat-revenue').innerText = 'TZS ' + new Intl.NumberFormat().format(totalRevenue);
+      data.map(o => `
+        <tr>
 
-                // 5. Jaza Jedwali la Watumiaji (Recent Users)
-                const { data: recentUsers } = await sb.from('profiles').select('*').limit(5).order('created_at', { ascending: false });
-                const tbody = document.getElementById('user-table-body');
-                
-                if (recentUsers && recentUsers.length > 0) {
-                    tbody.innerHTML = recentUsers.map((user, index) => {
-                        const avatar = user.avatar_url || `https://ui-avatars.com/api/?name=${user.full_name || 'User'}&background=random`;
-                        const role = user.role || 'Customer';
-                        const roleBadge = role === 'seller' ? 'info' : 'success';
-                        
-                        return `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td><img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;"></td>
-                            <td><b>${user.full_name || 'Haijulikani'}</b></td>
-                            <td>${user.email || 'Hakuna email'}</td>
-                            <td><span class="badge ${roleBadge}">${role}</span></td>
-                            <td><span class="badge success">Active</span></td>
-                            <td class="action-icons">
-                                <i class="ph ph-eye"></i>
-                                <i class="ph ph-pencil-simple"></i>
-                                <i class="ph ph-trash" style="color: #ef4444;"></i>
-                            </td>
-                        </tr>`;
-                    }).join('');
-                } else {
-                    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center;">Hakuna watumiaji waliopatikana.</td></tr>`;
-                }
+          <td>
+            <b>#${esc(String(o.id).slice(0, 8))}</b>
+          </td>
 
-               const actList = document.getElementById('activity-list');
-                actList.innerHTML = `
-                    <div class="activity-item">
-                        <div class="icon" style="background: #ffedd5; color: #9a3412;"><i class="ph ph-shopping-cart"></i></div>
-                        <div class="details">
-                            <h4>Agizo jipya #ZUN-7845</h4>
-                            <p>Mteja kutoka Dar es Salaam · 2 min ago</p>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="icon" style="background: #dbeafe; color: #1e40af;"><i class="ph ph-user-plus"></i></div>
-                        <div class="details">
-                            <h4>Mtumiaji mpya amejiunga</h4>
-                            <p>Asha Mhando · 5 min ago</p>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="icon" style="background: #f3e8ff; color: #6b21a8;"><i class="ph ph-storefront"></i></div>
-                        <div class="details">
-                            <h4>Seller mpya amethibitishwa</h4>
-                            <p>Juma Store · 8 min ago</p>
-                        </div>
-                    </div>
-                `;
+          <td>${ZUNE.pill(o.status)}</td>
 
-            } catch (error) {
-                console.error("Kuna tatizo kwenye kupata data:", error.message);
-                // Kama Supabase haijapakiwa, onyesha '0'
-                document.getElementById('stat-users').innerText = '0';
-                document.getElementById('stat-sellers').innerText = '0';
-                document.getElementById('stat-orders').innerText = '0';
-                document.getElementById('stat-revenue').innerText = 'TZS 0';
-                document.getElementById('user-table-body').innerHTML = `<tr><td colspan="7" style="text-align: center; color: red;">Tatizo la Mtandao: ${error.message}</td></tr>`;
-            }
-        }
+          <td>
+            <b>${money(o.total_amount)}</b>
+          </td>
 
-        // Anzisha ukurasa
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!window.ZUNE || !window.ZUNE.sb) {
-                document.getElementById('user-table-body').innerHTML = `<tr><td colspan="7" style="text-align: center; color: red;">Supabase haijapakiwa. Angalia js/config.js</td></tr>`;
-            } else {
-                loadDashboardData();
-            }
-        });
-    </script>
-</body>
-</html>
+          <td class="mu">${day(o.created_at)}</td>
+
+        </tr>
+      `).join('')
+    );
+  }
+},
+
+/* =========================================
+   11. RECENT TRANSACTIONS
+========================================= */
+
+{
+  id: 'txs',
+  title: 'Recent Transactions',
+  cls: 'w2',
+
+  run: async () => {
+
+    const data = (await txs()).slice(0, 5);
+
+    return tbl(
+      ['Reference', 'Type', 'Amount', 'Status'],
+
+      data.map(t => `
+        <tr>
+
+          <td>${esc(t.reference || '—')}</td>
+
+          <td>
+            ${esc(t.type || '—')}
+          </td>
+
+          <td>
+            <b>${money(t.amount)}</b>
+            ${esc(t.currency || 'TZS')}
+          </td>
+
+          <td>${ZUNE.pill(t.status)}</td>
+
+        </tr>
+      `).join('')
+    );
+  }
+},
+
+/* =========================================
+   12. ADMIN ACTIVITY
+========================================= */
+
+{
+  id: 'activity',
+  title: 'Recent Admin Activity',
+  cls: 'w2',
+
+  run: async () => {
+
+    const data = await rows(
+      'audit',
+      'action,created_at',
+      q => q.order(
+        'created_at',
+        { ascending: false }
+      ),
+      8
+    );
+
+    if (!data.length) {
+      return `
+        <p class="mu">
+          Bado hakuna vitendo vilivyorekodiwa.
+        </p>
+      `;
+    }
+
+    return data.map(a => `
+      <div class="li">
+
+        <span>
+          ${esc(a.action || 'Admin action')}
+        </span>
+
+        <span class="mu">
+          ${day(a.created_at)}
+        </span>
+
+      </div>
+    `).join('');
+  }
+},
+
+/* =========================================
+   13. QUICK ACTIONS
+========================================= */
+
+{
+  id: 'quick',
+  title: 'Quick Actions',
+  cls: 'w2',
+
+  run: async () => {
+
+    const actions = [
+      ['Users', 'users'],
+      ['Sellers', 'sellers'],
+      ['Verification', 'verification'],
+      ['Products', 'products'],
+      ['Orders', 'orders'],
+      ['Payments', 'payments'],
+      ['Wallet', 'wallet'],
+      ['Coupons', 'coupons'],
+      ['Announcements', 'announcements'],
+      ['Support', 'support-tickets'],
+      ['Disputes', 'disputes'],
+      ['Reports', 'reports']
+    ];
+
+    return actions.map(a => `
+      <a
+        class="qa"
+        href="${PG(a[1])}.html"
+      >
+        ${a[0]}
+      </a>
+    `).join('');
+  }
+},
+
+/* =========================================
+   14. SYSTEM CHECKLIST
+========================================= */
+
+{
+  id: 'health',
+  title: 'System Checklist',
+  cls: 'w2',
+
+  run: async () => {
+
+    const check = async (label, fn) => {
+
+      try {
+
+        await fn();
+
+        return `
+          <div class="li">
+
+            <span>${label}</span>
+
+            <span class="pill"
+              style="
+                background:#e5f5ee;
+                color:#087f5b;
+              "
+            >
+              SAWA
+            </span>
+
+          </div>
+        `;
+
+      } catch (error) {
+
+        return `
+          <div class="li">
+
+            <span>${label}</span>
+
+            <span class="pill"
+              style="
+                background:#fff0f0;
+                color:#dc4848;
+              "
+            >
+              TATIZO
+            </span>
+
+          </div>
+        `;
+      }
+    };
+
+    const sessionCheck = async () => {
+
+      const { data, error } =
+        await sb().auth.getSession();
+
+      if (error || !data.session) {
+        throw new Error('Hakuna session');
+      }
+    };
+
+    return (
+      await Promise.all([
+
+        check(
+          'Database (Supabase)',
+          () => cnt('users')
+        ),
+
+        check(
+          'Admin Session',
+          sessionCheck
+        ),
+
+        check(
+          'Transactions Database',
+          () => txs()
+        )
+
+      ])
+    ).join('');
+  }
+}
+
+];
+
+// MWISHO WA PART 2
+// PART 3 ITAENDELEA NA ENGINE NA EVENTS.
+
+// =====================================================
+// ZUNE PREMIUM ADMIN
+// PART 3/3 — ENGINE + EVENTS + ACTIVATION
+// =====================================================
+
+/* =========================================
+   1. DASHBOARD CONFIGURATION
+========================================= */
+
+const HK = 'zune_premium_dash_hidden';
+
+let hidden = [];
+
+try {
+  hidden = JSON.parse(
+    localStorage.getItem(HK) || '[]'
+  );
+
+  if (!Array.isArray(hidden)) hidden = [];
+
+} catch (error) {
+  hidden = [];
+}
+
+/* =========================================
+   2. SKELETON LOADER
+========================================= */
+
+const skeletonHTML = () => `
+  <div style="width:100%">
+    <div class="skeleton sk-title"></div>
+    <div class="skeleton sk-val"></div>
+    <div class="skeleton sk-text"></div>
+  </div>
+`;
+
+/* =========================================
+   3. WIDGET MOUNT ENGINE
+========================================= */
+
+const mount = async (widget, element) => {
+
+  element.innerHTML = skeletonHTML();
+
+  try {
+
+    const html = await widget.run();
+
+    element.innerHTML = widget.stat
+      ? html
+      : `
+        <h3 class="widget-title">
+          ${widget.title}
+        </h3>
+        ${html}
+      `;
+
+  } catch (error) {
+
+    console.error(
+      'ZUNE Widget Error:',
+      widget.id,
+      error
+    );
+
+    element.innerHTML = `
+      <h3 class="widget-title">
+        ${widget.title}
+      </h3>
+
+      <div class="err-box">
+        ⚠ ${esc(error.message || 'Hitilafu imetokea')}
+      </div>
+    `;
+  }
+};
+
+/* =========================================
+   4. MAIN DASHBOARD RENDER
+========================================= */
+
+let rendering = false;
+
+async function render() {
+
+  if (rendering) return;
+
+  rendering = true;
+
+  const grid = document.getElementById('dg');
+  const refresh = document.getElementById('rf');
+  const update = document.getElementById('up');
+
+  if (!grid) {
+    rendering = false;
+    return;
+  }
+
+  grid.innerHTML = '';
+
+  if (refresh) {
+    refresh.style.transition = 'transform .5s';
+    refresh.style.transform = 'rotate(360deg)';
+  }
+
+  try {
+
+    await ZUNE.ready;
+
+    const visibleWidgets = W.filter(
+      widget => !hidden.includes(widget.id)
+    );
+
+    const jobs = visibleWidgets.map(widget => {
+
+      const element = document.createElement('article');
+
+      element.className =
+        'card ' + (widget.stat ? 'stat-card' : widget.cls);
+
+      element.dataset.widget = widget.id;
+
+      grid.appendChild(element);
+
+      return mount(widget, element);
+    });
+
+    await Promise.all(jobs);
+
+    if (update) {
+
+      update.textContent =
+        'Imesasishwa ' +
+        new Date().toLocaleTimeString('sw-TZ');
+
+    }
+
+  } catch (error) {
+
+    console.error('ZUNE Dashboard:', error);
+
+    grid.innerHTML = `
+      <div class="card w4">
+        <div class="err-box">
+          ⚠ ${esc(error.message)}
+        </div>
+      </div>
+    `;
+
+  } finally {
+
+    rendering = false;
+
+    if (refresh) {
+      setTimeout(() => {
+        refresh.style.transform = 'rotate(0deg)';
+      }, 100);
+    }
+  }
+}
+
+/* =========================================
+   5. CUSTOMIZE DASHBOARD
+========================================= */
+
+const customizeButton =
+  document.getElementById('cu');
+
+const customizeBox =
+  document.getElementById('cz');
+
+if (customizeButton && customizeBox) {
+
+  customizeButton.onclick = () => {
+
+    customizeBox.hidden = !customizeBox.hidden;
+
+    if (customizeBox.hidden) return;
+
+    customizeBox.innerHTML = `
+      <h3 style="
+        margin:0 0 7px;
+        font-size:15px;
+      ">
+        Customize Dashboard
+      </h3>
+
+      <p class="mu" style="
+        font-size:11px;
+        margin-bottom:15px;
+      ">
+        Chagua widgets unazotaka kuonyesha.
+      </p>
+
+      <div>
+        ${W.map(widget => `
+          <label>
+            <input
+              type="checkbox"
+              data-id="${widget.id}"
+              ${hidden.includes(widget.id) ? '' : 'checked'}
+            >
+            ${widget.title}
+          </label>
+        `).join('')}
+      </div>
+
+      <div style="margin-top:15px">
+        <button
+          type="button"
+          class="control primary"
+          id="saveDashboard"
+        >
+          Hifadhi Mabadiliko
+        </button>
+
+        <button
+          type="button"
+          class="control"
+          id="resetDashboard"
+        >
+          Rejesha Vyote
+        </button>
+      </div>
+    `;
+
+    const saveButton =
+      customizeBox.querySelector('#saveDashboard');
+
+    const resetButton =
+      customizeBox.querySelector('#resetDashboard');
+
+    saveButton.onclick = () => {
+
+      hidden = W
+        .filter(widget => {
+          const checkbox =
+            customizeBox.querySelector(
+              `[data-id="${widget.id}"]`
+            );
+
+          return checkbox && !checkbox.checked;
+        })
+        .map(widget => widget.id);
+
+      try {
+        localStorage.setItem(
+          HK,
+          JSON.stringify(hidden)
+        );
+      } catch (error) {
+        console.warn(
+          'Dashboard preferences hazijahifadhiwa',
+          error
+        );
+      }
+
+      customizeBox.hidden = true;
+
+      render();
+    };
+
+    resetButton.onclick = () => {
+
+      hidden = [];
+
+      try {
+        localStorage.removeItem(HK);
+      } catch (error) {
+        console.warn(error);
+      }
+
+      customizeBox.hidden = true;
+
+      render();
+    };
+  };
+}
+
+/* =========================================
+   6. DATE RANGE CONTROL
+========================================= */
+
+const range = document.getElementById('rg');
+
+if (range) {
+
+  range.onchange = event => {
+
+    const selected = Number(event.target.value);
+
+    if (![7, 30, 90].includes(selected)) {
+      return;
+    }
+
+    days = selected;
+
+    render();
+  };
+}
+
+/* =========================================
+   7. REFRESH CONTROL
+========================================= */
+
+const refreshButton =
+  document.getElementById('rf');
+
+if (refreshButton) {
+
+  refreshButton.onclick = () => {
+
+    cache = {};
+
+    render();
+  };
+}
+
+/* =========================================
+   8. MOBILE SIDEBAR
+========================================= */
+
+const sidebar =
+  document.getElementById('sidebar');
+
+const menuToggle =
+  document.getElementById('menuToggle');
+
+const mobileOverlay =
+  document.getElementById('mobileOverlay');
+
+function openSidebar() {
+
+  sidebar?.classList.add('open');
+
+  mobileOverlay?.classList.add('show');
+
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSidebar() {
+
+  sidebar?.classList.remove('open');
+
+  mobileOverlay?.classList.remove('show');
+
+  document.body.style.overflow = '';
+}
+
+if (menuToggle) {
+
+  menuToggle.onclick = () => {
+
+    if (sidebar.classList.contains('open')) {
+      closeSidebar();
+    } else {
+      openSidebar();
+    }
+  };
+}
+
+if (mobileOverlay) {
+  mobileOverlay.onclick = closeSidebar;
+}
+
+/* Funga sidebar baada ya kuchagua ukurasa */
+
+sidebar?.querySelectorAll('.nav-link').forEach(link => {
+
+  link.addEventListener('click', closeSidebar);
+
+});
+
+/* =========================================
+   9. SIDEBAR ACTIVE LINK
+========================================= */
+
+const currentPage = location.pathname
+  .split('/')
+  .pop();
+
+sidebar?.querySelectorAll('.nav-link').forEach(link => {
+
+  const linkPage = link.getAttribute('href')
+    ?.split('/')
+    .pop();
+
+  if (linkPage === currentPage) {
+
+    sidebar.querySelectorAll('.nav-link')
+      .forEach(item => item.classList.remove('active'));
+
+    link.classList.add('active');
+  }
+
+});
+
+/* =========================================
+   10. KEYBOARD SUPPORT
+========================================= */
+
+document.addEventListener('keydown', event => {
+
+  if (event.key === 'Escape') {
+    closeSidebar();
+  }
+
+});
+
+/* =========================================
+   11. SEARCH INTERFACE
+========================================= */
+
+const searchInput =
+  document.querySelector('.top-search');
+
+if (searchInput) {
+
+  searchInput.addEventListener('keydown', event => {
+
+    if (event.key !== 'Enter') return;
+
+    const query = searchInput.value
+      .trim()
+      .toLowerCase();
+
+    if (!query) return;
+
+    const links = [
+      ...document.querySelectorAll('.nav-link')
+    ];
+
+    const found = links.find(link =>
+      link.textContent.toLowerCase().includes(query)
+    );
+
+    if (found) {
+      location.href = found.href;
+    }
+
+  });
+}
+
+/* =========================================
+   12. ADMIN SESSION CHECK
+========================================= */
+
+async function verifyAdminSession() {
+
+  await ZUNE.ready;
+
+  const { data, error } =
+    await sb().auth.getSession();
+
+  if (error || !data.session) {
+
+    throw new Error(
+      'Session imeisha. Tafadhali ingia tena.'
+    );
+  }
+
+  return data.session;
+}
+
+/* =========================================
+   13. INITIALIZE DASHBOARD
+========================================= */
+
+async function initializeZuneAdmin() {
+
+  try {
+
+    await verifyAdminSession();
+
+    await render();
+
+    console.log(
+      'ZUNE PREMIUM ADMIN: Dashboard initialized.'
+    );
+
+  } catch (error) {
+
+    console.error(
+      'ZUNE ADMIN INITIALIZATION:',
+      error
+    );
+
+    const grid = document.getElementById('dg');
+
+    if (grid) {
+
+      grid.innerHTML = `
+        <div class="card w4">
+
+          <h3 class="widget-title">
+            ZUNE Admin Authentication
+          </h3>
+
+          <div class="err-box">
+            ⚠ ${esc(error.message)}
+          </div>
+
+        </div>
+      `;
+    }
+  }
+}
+
+/* =========================================
+   14. START SYSTEM
+========================================= */
+
+initializeZuneAdmin();
+
+// =====================================================
+// END OF ZUNE PREMIUM ADMIN — PART 3/3
+// =====================================================
