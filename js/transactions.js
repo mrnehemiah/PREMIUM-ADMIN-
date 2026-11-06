@@ -1,0 +1,1 @@
+(() => {'use strict';document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('paymentsTableBody');if(b)b.innerHTML='<tr><td colspan="6" class="empty-state">Jedwali la payments halijaunganishwa. Taja table halisi ya malipo ili kulinganisha bila kubuni schema.</td></tr>';});})();
