@@ -3,14 +3,14 @@
    Usitumie service_role key ndani ya browser.
 */
 window.ZUNE_CONFIG = window.ZUNE_CONFIG || {
-  SUPABASE_URL: "WEKA_SUPABASE_URL_HAPA",
-  SUPABASE_ANON_KEY: "WEKA_SUPABASE_PUBLISHABLE_KEY_HAPA",
+  SUPABASE_URL: "https://rpkogiieegqgxqbzwxwo.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_2TEqZv-NBM9n5knU46ngqA_wqO3V1uf",
   AUTH_REQUIRED: true,
   ADMIN_ROLE: "admin",
   COMMISSION_RATE: 0.03
 };
-if (window.supabase && window.ZUNE_CONFIG.SUPABASE_URL !== "WEKA_SUPABASE_URL_HAPA" &&
-    window.ZUNE_CONFIG.SUPABASE_ANON_KEY !== "WEKA_SUPABASE_PUBLISHABLE_KEY_HAPA") {
+if (window.supabase && window.ZUNE_CONFIG.SUPABASE_URL !== "https://rpkogiieegqgxqbzwxwo.supabase.co" &&
+    window.ZUNE_CONFIG.SUPABASE_ANON_KEY !== "sb_publishable_2TEqZv-NBM9n5knU46ngqA_wqO3V1uf") {
   window.zuneSupabase = window.supabase.createClient(
     window.ZUNE_CONFIG.SUPABASE_URL,
     window.ZUNE_CONFIG.SUPABASE_ANON_KEY
