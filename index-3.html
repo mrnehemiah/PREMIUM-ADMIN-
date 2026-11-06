@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071c18">
+  <meta name="description" content="ZUNE Premium Admin Control Center">
+  <title>ZUNE PREMIUM ADMIN</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/admin.css">
+  <style>
+    .page-section{display:none}.page-section.active{display:block}
+    .section-intro{display:flex;justify-content:space-between;align-items:center;gap:14px;margin:0 0 18px}
+    .section-intro h2{font:800 22px Manrope;margin:0 0 5px}.section-intro p{margin:0;color:var(--muted);font-size:11px}
+    .table-toolbar{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-bottom:14px}
+    .table-search,.table-toolbar select,.field-input{border:1px solid var(--line);border-radius:9px;background:#091f19;color:var(--text);padding:10px 12px;font-size:11px;outline:none}
+    .table-search{min-width:210px}.table-wrap{width:100%;overflow-x:auto}
+    table{width:100%;border-collapse:collapse;white-space:nowrap;text-align:left}
+    th{font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:#8fa69a;padding:12px 11px;border-bottom:1px solid var(--line)}
+    td{font-size:11px;color:#d8e1da;padding:13px 11px;border-bottom:1px solid #ffffff0a}
+    .empty-state{text-align:center;color:var(--muted);padding:28px}
+    .primary-btn,.secondary-btn,.warning-btn,.danger-btn{border:1px solid transparent;border-radius:9px;padding:10px 14px;font-size:10px;font-weight:800}
+    .primary-btn{background:linear-gradient(135deg,#e9d18f,#bd9147);color:#14251d}
+    .secondary-btn{background:#d9b66c13;border-color:var(--line);color:var(--gold-2)}
+    .warning-btn{background:#eaa35c18;border-color:#eaa35c55;color:#f0bd7c}
+    .danger-btn{background:#e36e7018;border-color:#e36e7055;color:#f08d8e}
+    .badge-pill{display:inline-flex;padding:4px 8px;border-radius:30px;font-size:9px;font-weight:800;background:#d9b66c18;color:var(--gold-2)}
+    .badge-pill.success{background:#36b98218;color:#70d6a8}.badge-pill.danger{background:#e36e7018;color:#f08d8e}
+    .badge-pill.warning{background:#eaa35c18;color:#f0bd7c}
+    .action-row{display:flex;gap:6px;flex-wrap:wrap}.action-row button{padding:7px 9px;font-size:9px}
+    .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .form-field{display:grid;gap:6px}.form-field label{font-size:10px;color:var(--gold-2)}
+    .form-field input,.form-field select,.form-field textarea{width:100%;border:1px solid var(--line);border-radius:9px;background:#081e18;color:var(--text);padding:11px;font-size:11px}
+    .form-field textarea{min-height:85px}.full-width{grid-column:1/-1}
+    .notice-box{padding:13px;border:1px solid var(--line);border-radius:12px;background:#ffffff05;color:var(--muted);font-size:11px;line-height:1.7}
+    .danger-zone{border:1px solid #e36e7040;background:#e36e7009;border-radius:13px;padding:15px}
+    .modal-backdrop{display:none;position:fixed;inset:0;background:#000b;z-index:100;align-items:center;justify-content:center;padding:18px}
+    .modal-backdrop.show{display:flex}.modal-card{width:min(100%,480px);padding:22px;border:1px solid var(--line);border-radius:18px;background:#102c24;box-shadow:0 25px 80px #0008}
+    .modal-heading{display:flex;justify-content:space-between;align-items:center}.modal-heading h3{font:700 16px Manrope}
+    .modal-card p{font-size:11px;color:var(--muted);line-height:1.6}.field-label{display:block;margin:15px 0 7px;font-size:10px;color:var(--gold-2)}
+    .modal-card textarea,.modal-card input{width:100%;border:1px solid var(--line);border-radius:10px;background:#081e18;color:var(--text);padding:12px;font-size:11px}
+    .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
+    .seller-profile-hero{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+    .seller-hero-info{flex:1;min-width:180px}.seller-hero-info h2{font:800 18px Manrope;margin:0 0 4px}
+    .seller-hero-info p{font-size:11px;color:var(--muted);margin:0 0 8px}
+    .seller-tabs{display:flex;gap:5px;overflow-x:auto;margin:16px 0;padding:5px 0;border-bottom:1px solid var(--line)}
+    .seller-tabs button{flex:none;border:0;border-radius:8px;padding:9px 12px;background:transparent;color:var(--muted);font-size:10px}
+    .seller-tabs button.active{background:#d9b66c18;color:var(--gold-2)}
+    .seller-tab-content{display:none}.seller-tab-content.active{display:block}
+    .detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:15px}
+    .detail-grid>div{padding:12px;background:#ffffff05;border:1px solid #ffffff0c;border-radius:10px}
+    .detail-grid small{display:block;color:var(--muted);font-size:9px;margin-bottom:5px}.detail-grid strong{font-size:11px;overflow-wrap:anywhere}
+    .audit-checklist{display:grid;grid-template-columns:repeat(2,1fr);gap:0 20px}
+    .audit-checklist label{display:flex;align-items:flex-start;gap:10px;padding:13px 4px;border-bottom:1px solid #ffffff0b;color:#c6d3ca;font-size:11px;line-height:1.5}
+    .audit-checklist input{accent-color:#d9b66c;margin:2px 0 0}
+    .progress-track{height:7px;border-radius:20px;background:#ffffff12;overflow:hidden}.progress-track span{display:block;height:100%;width:0;background:linear-gradient(90deg,#b88c43,#f0d99c)}
+    @media(max-width:760px){.section-intro{align-items:flex-start}.form-grid,.audit-checklist,.detail-grid{grid-template-columns:1fr}.table-toolbar{justify-content:stretch}.table-search{min-width:0;flex:1;width:100%}}
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="adminSidebar">
+    <a class="brand" href="#dashboard" aria-label="ZUNE Admin Home">
+      <span class="brand-mark">Z</span><span class="brand-copy"><strong>ZUNE</strong><small>PREMIUM ADMIN</small></span>
+    </a>
+    <div class="admin-profile">
+      <div class="avatar avatar-gold">AM</div>
+      <div class="admin-profile-copy"><strong id="adminDisplayName">Admin Mkuu</strong><small><span class="status-dot"></span> Mamlaka kuu</small></div>
+      <span class="crown" title="Admin Mkuu">♛</span>
+    </div>
+    <nav class="side-nav" aria-label="Main navigation">
+      <p class="nav-caption">MSINGI</p>
+      <a class="nav-link active" href="#dashboard" data-page="dashboard"><span class="nav-icon">⌂</span> Dashboard</a>
+      <a class="nav-link" href="#users" data-page="users"><span class="nav-icon">♙</span> Watumiaji</a>
+      <a class="nav-link" href="#sellers" data-page="sellers"><span class="nav-icon">▣</span> Sellers</a>
+      <a class="nav-link" href="#seller-applications" data-page="seller-applications"><span class="nav-icon">✚</span> Maombi ya Seller</a>
+      <a class="nav-link" href="#badge-requests" data-page="badge-requests"><span class="nav-icon">✦</span> Verified Badge Requests</a>
+      <a class="nav-link" href="#badge-management" data-page="badge-management"><span class="nav-icon">✓</span> Badge Management</a>
+      <a class="nav-link" href="#verification" data-page="verification"><span class="nav-icon">▤</span> Nyaraka za Verification</a>
+      <a class="nav-link" href="#products" data-page="products"><span class="nav-icon">◇</span> Bidhaa</a>
+      <a class="nav-link" href="#categories" data-page="categories"><span class="nav-icon">▦</span> Categories</a>
+      <p class="nav-caption">BIASHARA</p>
+      <a class="nav-link" href="#orders" data-page="orders"><span class="nav-icon">▤</span> Orders</a>
+      <a class="nav-link" href="#delivery-pricing" data-page="delivery-pricing"><span class="nav-icon">⇢</span> Delivery & Pricing</a>
+      <a class="nav-link" href="#coupons" data-page="coupons"><span class="nav-icon">％</span> Coupons & Promotions</a>
+      <a class="nav-link" href="#announcements" data-page="announcements"><span class="nav-icon">◉</span> Matangazo</a>
+      <a class="nav-link" href="#payments" data-page="payments"><span class="nav-icon">▧</span> Payments</a>
+      <a class="nav-link" href="#wallet" data-page="wallet"><span class="nav-icon">◈</span> Wallet & Commission</a>
+      <a class="nav-link" href="#disputes" data-page="disputes"><span class="nav-icon">⚖</span> Disputes</a>
+      <a class="nav-link" href="#support-tickets" data-page="support-tickets"><span class="nav-icon">✉</span> Support Tickets</a>
+      <p class="nav-caption">USIMAMIZI NA USALAMA</p>
+      <a class="nav-link" href="#reports" data-page="reports"><span class="nav-icon">▥</span> Reports & Analytics</a>
+      <a class="nav-link" href="#audit-logs" data-page="audit-logs"><span class="nav-icon">◷</span> Admin Audit Center</a>
+      <a class="nav-link" href="#monthly-audit" data-page="monthly-audit"><span class="nav-icon">▣</span> Ukaguzi wa Mwezi</a>
+      <a class="nav-link" href="#security" data-page="security"><span class="nav-icon">⬡</span> Security Center</a>
+      <a class="nav-link" href="#system-health" data-page="system-health"><span class="nav-icon">⌁</span> System Health</a>
+      <a class="nav-link" href="#database" data-page="database"><span class="nav-icon">▦</span> Database Monitoring</a>
+      <a class="nav-link" href="#backup" data-page="backup"><span class="nav-icon">▣</span> Backup & Recovery</a>
+      <a class="nav-link" href="#notifications" data-page="notifications"><span class="nav-icon">♧</span> Notifications</a>
+      <a class="nav-link" href="#settings" data-page="settings"><span class="nav-icon">⚙</span> Settings</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="system-status"><span class="status-dot"></span><span><strong>System status</strong><small id="systemStatusText">Inasubiri ukaguzi</small></span></div>
+      <button class="sidebar-logout" id="adminLogoutBtn" type="button">↪ <span>Toka kwenye mfumo</span></button>
+    </div>
+  </aside>
+
+  <main class="main-area">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn menu-toggle" id="menuToggle" type="button" aria-label="Fungua menyu">☰</button>
+        <div><p class="eyebrow">ZUNE CONTROL CENTER</p><h1 id="pageTitle">Dashboard</h1></div>
+      </div>
+      <div class="topbar-actions">
+        <label class="global-search"><span>⌕</span><input id="globalSearch" type="search" placeholder="Tafuta user, seller, order..."></label>
+        <button class="icon-btn notification-btn" id="adminNotificationBtn" type="button" aria-label="Notifications">♧<i></i></button>
+        <div class="top-admin"><div class="avatar avatar-small" id="adminAvatar">AM</div><span><strong id="topAdminName">Admin Mkuu</strong><small>Super administrator</small></span></div>
+      </div>
+    </header>
+
+    <section class="content-area">
+      <div id="globalMessage" class="global-message" hidden></div>
+      <div class="welcome-row">
+        <div><p class="eyebrow">KARIBU TENA</p><h2>Habari, <span id="welcomeAdminName">Admin Mkuu</span></h2><p class="muted">Dhibiti shughuli zote za ZUNE Marketplace kutoka sehemu moja.</p></div>
+        <div class="welcome-meta"><span class="live-pill"><i></i> LIVE CONTROL</span><span id="currentDate">—</span></div>
+      </div>
+
+      <section class="page-section active" id="dashboardPage" data-section="dashboard">
+        <div class="metrics-grid">
+          <article class="metric-card"><div class="metric-top"><span>Watumiaji wote</span><b class="metric-icon">♙</b></div><strong id="totalUsers">—</strong><small>Accounts zilizosajiliwa</small></article>
+          <article class="metric-card"><div class="metric-top"><span>Sellers</span><b class="metric-icon">▣</b></div><strong id="totalSellers">—</strong><small>Wauzaji kwenye mfumo</small></article>
+          <article class="metric-card"><div class="metric-top"><span>Orders zote</span><b class="metric-icon">▤</b></div><strong id="totalOrders">—</strong><small>Maagizo ya wateja</small></article>
+          <article class="metric-card"><div class="metric-top"><span>Mapato ya mauzo</span><b class="metric-icon">◈</b></div><strong id="totalRevenue">TZS —</strong><small>Jumla ya mauzo</small></article>
+          <article class="metric-card"><div class="metric-top"><span>Commission ya ZUNE</span><b class="metric-icon">％</b></div><strong id="totalCommission">TZS —</strong><small>Commission ya 3%</small></article>
+          <article class="metric-card"><div class="metric-top"><span>Maombi yanayosubiri</span><b class="metric-icon">◷</b></div><strong id="pendingApplications">—</strong><small>Yanahitaji hatua</small></article>
+        </div>
+        <div class="dashboard-grid">
+          <article class="panel"><div class="panel-heading"><div><p class="eyebrow">MUHTASARI</p><h3>Ufuatiliaji wa mfumo</h3></div><span class="subtle-tag">Takwimu halisi</span></div>
+            <div class="overview-list">
+              <div><span>Orders zinazosubiri</span><strong id="pendingOrders">—</strong></div><div><span>Disputes zilizo wazi</span><strong id="openDisputes">—</strong></div><div><span>Malalamiko mapya</span><strong id="openComplaints">—</strong></div><div><span>Support tickets</span><strong id="openTickets">—</strong></div><div><span>Bidhaa zilizopo</span><strong id="totalProducts">—</strong></div>
+            </div>
+          </article>
+          <article class="panel"><div class="panel-heading"><div><p class="eyebrow">USALAMA</p><h3>Hali ya mfumo</h3></div><span class="secure-mark">✓</span></div>
+            <div class="security-summary"><div class="security-orb">Z</div><strong>Admin Mkuu</strong><p class="muted">Mamlaka kuu ya usimamizi wa ZUNE.</p><div class="security-line"><span>Audit logging</span><b>Inahitajika</b></div><div class="security-line"><span>RLS protection</span><b>Thibitisha</b></div></div>
+          </article>
+        </div>
+        <article class="panel"><div class="panel-heading"><div><p class="eyebrow">UFIKIAJI WA HARAKA</p><h3>Vitendo vya haraka</h3></div></div>
+          <div class="quick-actions">
+            <a href="#seller-applications" data-page="seller-applications"><span>✚</span><b>Maombi ya Seller</b><small>Hakiki maombi mapya</small></a>
+            <a href="#badge-requests" data-page="badge-requests"><span>✦</span><b>Badge Requests</b><small>Maombi ya verified badge</small></a>
+            <a href="#disputes" data-page="disputes"><span>⚖</span><b>Disputes</b><small>Shughulikia migogoro</small></a>
+            <a href="#monthly-audit" data-page="monthly-audit"><span>▣</span><b>Ukaguzi wa mwezi</b><small>Anza checklist</small></a>
+          </div>
+        </article>
+        <article class="panel"><div class="panel-heading"><div><p class="eyebrow">MATUKIO YA KARIBUNI</p><h3>Admin activity</h3></div><a href="#audit-logs" data-page="audit-logs" class="text-link">Tazama yote →</a></div>
+          <div class="table-wrap"><table><thead><tr><th>Tukio</th><th>Aliyetenda</th><th>Muda</th><th>Maelezo</th></tr></thead><tbody id="recentAdminActivityBody"><tr><td colspan="4" class="empty-state">Hakuna taarifa zilizopakiwa.</td></tr></tbody></table></div>
+        </article>
+      </section>
+
+      <section class="page-section" id="usersPage" data-section="users">
+        <div class="section-intro"><div><h2>Usimamizi wa Watumiaji</h2><p>Majina, mawasiliano, role, hali na historia ya akaunti zote.</p></div><button class="secondary-btn" id="exportUsersBtn" type="button">Export Users</button></div>
+        <div class="panel"><div class="table-toolbar"><input class="table-search" id="usersSearch" placeholder="Tafuta jina, simu, email au ID..."><select id="usersRoleFilter"><option value="">Roles zote</option><option value="buyer">Buyer</option><option value="vendor">Seller</option><option value="admin">Admin</option></select><select id="usersStatusFilter"><option value="">Hali zote</option><option value="active">Active</option><option value="suspended">Suspended</option><option value="blocked">Blocked</option></select></div>
+          <div class="table-wrap"><table><thead><tr><th>Mtumiaji</th><th>Email</th><th>Simu</th><th>Role</th><th>Verification</th><th>Hali</th><th>Alijiunga</th><th>Vitendo</th></tr></thead><tbody id="usersTableBody"><tr><td colspan="8" class="empty-state">Inasubiri data kutoka Supabase...</td></tr></tbody></table></div>
+        </div>
+        <div class="notice-box">Delete User itahitaji uthibitisho wa Admin Mkuu na sababu. Tunapendekeza soft delete ili kuhifadhi uhusiano wa orders, wallet na miamala; permanent deletion ifanyike tu kupitia utaratibu salama wa backend.</div>
+      </section>
+
+      <section class="page-section" id="sellersPage" data-section="sellers">
+        <div class="section-intro"><div><h2>Seller Management</h2><p>Orodha kamili ya wauzaji na usimamizi wa maduka.</p></div><div class="action-row"><button class="primary-btn" id="addSellerBtn" type="button">＋ Add Seller</button><button class="secondary-btn" id="refreshSellersBtn" type="button">↻ Refresh</button></div></div>
+        <div class="panel"><div class="table-toolbar"><input class="table-search" id="sellersSearch" placeholder="Tafuta seller, duka, simu au ID..."><select id="sellerStatusFilter"><option value="">Hali zote</option><option value="active">Active</option><option value="suspended">Suspended</option><option value="blocked">Blocked</option></select><select id="sellerVerificationFilter"><option value="">Badge zote</option><option value="verified">Verified</option><option value="unverified">Not verified</option></select></div>
+          <div class="table-wrap"><table><thead><tr><th>Seller / Duka</th><th>Mawasiliano</th><th>Verification</th><th>Mauzo</th><th>Hali</th><th>Vitendo</th></tr></thead><tbody id="sellersTableBody"><tr><td colspan="6" class="empty-state">Inasubiri data kutoka Supabase...</td></tr></tbody></table></div>
+        </div>
+        <div class="notice-box">Remove Seller Role humrudisha mtumiaji kwenye role ya Buyer bila kufuta akaunti. Delete Seller Account ni hatua tofauti, inahitaji sababu, uthibitisho na kuhifadhi rekodi za kifedha.</div>
+      </section>
+
+      <section class="page-section" id="seller-applicationsPage" data-section="seller-applications">
+        <div class="section-intro"><div><h2>Maombi ya Seller</h2><p>Kagua maombi ya watumiaji wanaotaka kuwa wauzaji.</p></div></div>
+        <div class="panel"><div class="table-wrap"><table><thead><tr><th>Mwombaji</th><th>Duka</th><th>Tarehe</th><th>Nyaraka</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody id="sellerApplicationsBody"><tr><td colspan="6" class="empty-state">Inasubiri data...</td></tr></tbody></table></div></div>
+      </section>
+
+      <section class="page-section" id="badge-requestsPage" data-section="badge-requests">
+        <div class="section-intro"><div><h2>Verified Badge Requests</h2><p>Maombi ya wateja na wauzaji wanaotaka kupata Verified Badge.</p></div></div>
+        <div class="metrics-grid compact-metrics">
+          <article class="metric-card"><span>Pending Requests</span><strong id="badgePendingCount">—</strong></article><article class="metric-card"><span>Under Review</span><strong id="badgeReviewCount">—</strong></article><article class="metric-card"><span>Approved</span><strong id="badgeApprovedCount">—</strong></article><article class="metric-card"><span>Rejected</span><strong id="badgeRejectedCount">—</strong></article>
+        </div>
+        <div class="panel"><div class="table-toolbar"><input class="table-search" id="badgeRequestsSearch" placeholder="Tafuta jina, email au User ID..."><select id="badgeRequestStatus"><option value="">Maombi yote</option><option value="pending">Pending</option><option value="under_review">Under Review</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></div>
+          <div class="table-wrap"><table><thead><tr><th>Mwombaji</th><th>User ID</th><th>Aina</th><th>Sababu</th><th>Nyaraka</th><th>Tarehe</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody id="badgeRequestsBody"><tr><td colspan="8" class="empty-state">Inasubiri badge requests...</td></tr></tbody></table></div>
+        </div>
+      </section>
+
+      <section class="page-section" id="badge-managementPage" data-section="badge-management">
+        <div class="section-intro"><div><h2>Verified Badge Management</h2><p>Orodha ya wenye badge, kutoa badge na kuondoa badge.</p></div></div>
+        <div class="panel"><div class="panel-heading"><h3>Watumiaji wenye Verified Badge</h3><span class="badge-pill success">Active badges</span></div>
+          <div class="table-toolbar"><input class="table-search" id="verifiedUsersSearch" placeholder="Tafuta mwenye badge kwa jina au ID..."><select id="verifiedUserType"><option value="">Aina zote</option><option value="buyer">Buyer</option><option value="vendor">Seller</option></select></div>
+          <div class="table-wrap"><table><thead><tr><th>Mtumiaji / Duka</th><th>User ID</th><th>Role</th><th>Tarehe ya kuthibitishwa</th><th>Aliyeidhinisha</th><th>Kitendo</th></tr></thead><tbody id="verifiedUsersBody"><tr><td colspan="6" class="empty-state">Inasubiri verified users...</td></tr></tbody></table></div>
+        </div>
+        <div class="danger-zone"><h3>Ondoa Verified Badge</h3><p class="muted">Chagua mtumiaji mwenye badge, andika sababu na thibitisha. Kuondoa badge hakufuti akaunti yake.</p>
+          <div class="form-grid"><div class="form-field"><label for="removeBadgeUserId">User ID</label><input id="removeBadgeUserId" placeholder="Ingiza User ID"></div><div class="form-field"><label for="removeBadgeReason">Sababu ya kuondoa badge</label><input id="removeBadgeReason" placeholder="Sababu inahitajika"></div></div>
+          <button class="danger-btn" id="removeBadgeBtn" type="button" style="margin-top:12px">Remove Verified Badge</button>
+        </div>
+      </section>
+
+      <section class="page-section" id="verificationPage" data-section="verification">
+        <div class="section-intro"><div><h2>Verification Documents</h2><p>Ukaguzi wa utambulisho, nyaraka za biashara na taarifa za uthibitisho.</p></div></div>
+        <div class="panel"><div class="table-wrap"><table><thead><tr><th>Mtumiaji</th><th>Aina ya nyaraka</th><th>Reference</th><th>Tarehe</th><th>Hali</th><th>Ukaguzi</th></tr></thead><tbody id="verificationTableBody"><tr><td colspan="6" class="empty-state">Inasubiri verification documents...</td></tr></tbody></table></div></div>
+      </section>
+
+      <section class="page-section" id="productsPage" data-section="products">
+        <div class="section-intro"><div><h2>Bidhaa</h2><p>Dhibiti bidhaa, bei, stock na bidhaa zinazoripotiwa.</p></div></div>
+        <div class="panel"><div class="table-toolbar"><input class="table-search" id="productsSearch" placeholder="Tafuta bidhaa..."><select id="productStatusFilter"><option value="">Hali zote</option><option value="active">Active</option><option value="pending">Pending</option><option value="rejected">Rejected</option></select></div><div class="table-wrap"><table><thead><tr><th>Bidhaa</th><th>Seller</th><th>Bei</th><th>Stock</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody id="productsTableBody"><tr><td colspan="6" class="empty-state">Inasubiri data...</td></tr></tbody></table></div></div>
+      </section>
+
+      <section class="page-section" id="categoriesPage" data-section="categories"><div class="section-intro"><div><h2>Categories</h2><p>Simamia makundi na mpangilio wa bidhaa.</p></div><button class="primary-btn" id="addCategoryBtn" type="button">＋ Add Category</button></div><div class="panel"><div class="table-wrap"><table><thead><tr><th>Category</th><th>Slug</th><th>Bidhaa</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody id="categoriesTableBody"><tr><td colspan="5" class="empty-state">Inasubiri categories...</td></tr></tbody></table></div></div></section>
+
+      <section class="page-section" id="ordersPage" data-section="orders"><div class="section-intro"><div><h2>Orders Management</h2><p>Fuatilia maagizo, malipo, usafirishaji na ukamilishaji.</p></div></div><div class="panel"><div class="table-toolbar"><input class="table-search" id="ordersSearch" placeholder="Tafuta order..."><select id="orderStatusFilter"><option value="">Status zote</option><option value="pending">Pending</option><option value="paid">Paid</option><option value="shipped">Shipped</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option></select></div><div class="table-wrap"><table><thead><tr><th>Order</th><th>Mteja</th><th>Seller</th><th>Kiasi</th><th>Status</th><th>Tarehe</th><th>Kitendo</th></tr></thead><tbody id="ordersTableBody"><tr><td colspan="7" class="empty-state">Inasubiri orders...</td></tr></tbody></table></div></div></section>
+
+      <section class="page-section" id="delivery-pricingPage" data-section="delivery-pricing"><div class="section-intro"><div><h2>Delivery & Pricing</h2><p>Simamia maeneo, gharama na masharti ya delivery.</p></div></div><div class="panel"><div class="table-wrap"><table><thead><tr><th>Eneo</th><th>Aina ya delivery</th><th>Bei</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody id="deliveryPricingBody"><tr><td colspan="5" class="empty-state">Inasubiri delivery pricing...</td></tr></tbody></table></div></div></section>
+
+      <section class="page-section" id="couponsPage" data-section="coupons"><div class="section-intro"><div><h2>Coupons & Promotions</h2><p>Tengeneza na simamia punguzo na kampeni.</p></div></div><div class="panel"><div class="table-wrap"><table><thead><tr><th>Code</th><th>Punguzo</th><th>Muda</th><th>Matumizi</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody id="couponsTableBody"><tr><td colspan="6" class="empty-state">Inasubiri coupons...</td></tr></tbody></table></div></div></section>
+
+      <section class="page-section" id="announcementsPage" data-section="announcements"><div class="section-intro"><div><h2>Matangazo</h2><p>Tuma taarifa rasmi kwa watumiaji na wauzaji.</p></div></div><div class="panel"><div class="table-wrap"><table><thead><tr><th>Kichwa</th><th>Walengwa</th><th>Tarehe</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody id="announcementsTableBody"><tr><td colspan="5" class="empty-state">Inasubiri matangazo...</td></tr></tbody></table></div></div></section>
+
+      <section class="page-section" id="paymentsPage" data-section="payments"><div class="section-intro"><div><h2>Payments</h2><p>Fuatilia miamala na uthibitisho wa malipo.</p></div></div><div class="panel"><div class="table-wrap"><table><thead><tr><th>Reference</th><th>Mteja</th><th>Kiasi</th><th>Njia</th><th>Status</th><th>Tarehe</th></tr></thead><tbody id="paymentsTableBody"><tr><td colspan="6" class="empty-state">Inasubiri payments...</td></tr></tbody></table></div></div></section>
+
+      <section class="page-section" id="walletPage" data-section="wallet"><div class="section-intro"><div><h2>Wallet & Transactions</h2><p>Salio, miamala, withdrawals na ledger.</p></div></div><div class="metrics-grid compact-metrics"><article class="metric-card"><span>Wallet balances</span><strong id="walletTotalBalance">TZS —</strong></article><article class="metric-card"><span>Withdrawals pending</span><strong id="pendingWithdrawals">—</strong></article><article class="metric-card"><span>Transactions</span><strong id="walletTransactionCount">—</strong></article></div><div class="panel"><div class="table-wrap"><table><thead><tr><th>Reference</th><th>Mtumiaji</th><th>Aina</th><th>Kiasi</th><th>Status</th><th>Tarehe</th></tr></thead><tbody id="walletTransactionsBody"><tr><td colspan="6" class="empty-state">Inasubiri wallet transactions...</td></tr></tbody></table></div></div></section>
+
+      <section class="page-section" id="disputesPage" data-section="disputes"><div class="section-intro"><div><h2>Disputes & Complaints</h2><p>Chunguza migogoro na rekodi ushahidi pamoja na maamuzi.</p></div></div><div class="panel"><div class="table-wrap"><table><thead><tr><th>Case</th><th>Order</th><th>Mlalamikaji</th><th>Aina</th><th>Status</th><th>Tarehe</th><th>Kitendo</th></tr></thead><tbody id="disputesTableBody"><tr><td colspan="7" class="empty-state">Inasubiri disputes...</td></tr></tbody></table></div></div></section>
+
+      <section class="page-section" id="support-ticketsPage" data-section="support-tickets"><div class="section-intro"><div><h2>Support Tickets</h2><p>Simamia maswali na maombi ya msaada.</p></div></div><div class="panel"><div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Mtumiaji</th><th>Mada</th><th>Kipaumbele</th><th>Status</th><th>Kitendo</th></tr></thead><tbody id="supportTicketsBody"><tr><td colspan="6" class="empty-state">Inasubiri support tickets...</td></tr></tbody></table></div></div></section>
+
+      <section class="page-section" id="reportsPage" data-section="reports"><div class="section-intro"><div><h2>Reports & Analytics</h2><p>Ripoti za mauzo, commission, sellers na matumizi ya mfumo.</p></div><button class="secondary-btn" id="exportReportsBtn" type="button">Export Reports</button></div><div class="reports-grid"><article class="panel"><h3>Mauzo</h3><strong id="reportSales">TZS —</strong><p class="muted">Jumla ya mauzo yaliyorekodiwa.</p></article><article class="panel"><h3>Commission (3%)</h3><strong id="reportCommission">TZS —</strong><p class="muted">Mapato ya commission ya ZUNE.</p></article><article class="panel"><h3>Orders</h3><strong id="reportOrders">—</strong><p class="muted">Idadi ya maagizo.</p></article></div><div class="panel"><div class="panel-heading"><h3>Ripoti za kina</h3></div><div id="reportsContent" class="report-content">Ripoti zitaonekana baada ya data kuunganishwa.</div></div></section>
+
+      <section class="page-section" id="audit-logsPage" data-section="audit-logs"><div class="section-intro"><div><h2>Admin Audit & Activity Center</h2><p>Kila kitendo cha Admin Mkuu: actor, action, target, before/after, sababu, muda na matokeo.</p></div><button class="secondary-btn" id="exportAuditBtn" type="button">Export Logs</button></div><div class="panel"><div class="table-toolbar"><input class="table-search" id="auditSearch" placeholder="Tafuta admin, action, target au ID..."><select id="auditFilter"><option value="">Vitendo vyote</option><option value="user">User Actions</option><option value="seller">Seller Actions</option><option value="badge">Badge Actions</option><option value="finance">Finance Actions</option><option value="security">Security Actions</option><option value="system">System Changes</option></select></div><div class="table-wrap"><table><thead><tr><th>Kitendo</th><th>Admin</th><th>Target</th><th>Sababu</th><th>Before / After</th><th>Muda</th><th>Matokeo</th></tr></thead><tbody id="adminAuditLogsBody"><tr><td colspan="7" class="empty-state">Inasubiri audit logs...</td></tr></tbody></table></div></div><div class="notice-box">Audit records zinapaswa kuandikwa server-side/database trigger, ziwe append-only, na zisiweze kuhaririwa au kufutwa kupitia browser.</div></section>
+
+      <section class="page-section" id="monthly-auditPage" data-section="monthly-audit"><div class="section-intro"><div><h2>Ukaguzi wa Kila Mwezi</h2><p>Checklist ya ukaguzi wa usalama, fedha, sellers na ubora wa data.</p></div><span class="subtle-tag" id="auditMonthLabel">Ukaguzi wa mwezi</span></div><div class="panel"><div class="audit-progress"><div style="display:flex;justify-content:space-between"><strong>Monthly audit checklist</strong><small id="auditProgressText">0% imekamilika</small></div><div class="progress-track"><span id="auditProgressBar"></span></div></div><div class="audit-checklist" id="monthlyAuditChecklist">
+        <label><input type="checkbox" data-audit-item="users"> Kagua akaunti mpya, zilizofutwa, zilizozuiwa na zisizotumika</label><label><input type="checkbox" data-audit-item="sellers"> Kagua seller verification na nyaraka</label><label><input type="checkbox" data-audit-item="badges"> Kagua maombi, approvals na removals za badge</label><label><input type="checkbox" data-audit-item="products"> Kagua bidhaa, bei na bidhaa zilizoripotiwa</label><label><input type="checkbox" data-audit-item="orders"> Linganisha orders, delivery na cancellations</label><label><input type="checkbox" data-audit-item="payments"> Linganisha payment references na provider records</label><label><input type="checkbox" data-audit-item="wallet"> Linganisha wallet ledger na balances</label><label><input type="checkbox" data-audit-item="commission"> Hakiki commission ya 3% na hesabu zake</label><label><input type="checkbox" data-audit-item="disputes"> Kagua disputes, refunds na ushahidi</label><label><input type="checkbox" data-audit-item="security"> Kagua RLS, admin roles na access policies</label><label><input type="checkbox" data-audit-item="logs"> Kagua audit logs na vitendo vyenye hatari</label><label><input type="checkbox" data-audit-item="backup"> Hakiki backup, restore plan na data retention</label><label><input type="checkbox" data-audit-item="performance"> Kagua performance, errors na uptime</label></div><div class="audit-footer"><textarea id="monthlyAuditNotes" placeholder="Andika maelezo, kasoro zilizobainika na hatua za kurekebisha..."></textarea><button class="primary-btn" id="saveMonthlyAuditBtn" type="button">Hifadhi ukaguzi</button></div></div></section>
+
+      <section class="page-section" id="securityPage" data-section="security"><div class="section-intro"><div><h2>Security Center</h2><p>Udhibiti wa access, sessions, policies na matukio ya usalama.</p></div></div><div class="security-cards"><article class="panel"><span class="metric-icon">⬡</span><h3>Access control</h3><p>Admin Mkuu ndiye mwenye mamlaka kuu. Hakikisha role checks na server-side authorization.</p></article><article class="panel"><span class="metric-icon">▤</span><h3>Database protection</h3><p>RLS iwe imewashwa kwenye tables zote zenye taarifa binafsi au za kifedha.</p></article><article class="panel"><span class="metric-icon">◷</span><h3>Session monitoring</h3><p>Fuatilia sessions, login attempts na mabadiliko ya ruhusa.</p></article></div><div class="panel"><div class="table-wrap"><table><thead><tr><th>Tukio</th><th>Chanzo</th><th>Risk</th><th>Muda</th><th>Hali</th></tr></thead><tbody id="securityEventsBody"><tr><td colspan="5" class="empty-state">Inasubiri security events...</td></tr></tbody></table></div></div></section>
+
+      <section class="page-section" id="system-healthPage" data-section="system-health"><div class="section-intro"><div><h2>System Health</h2><p>Ufuatiliaji wa huduma muhimu za marketplace.</p></div></div><div class="security-cards"><article class="panel"><h3>Supabase</h3><p id="supabaseHealth">Inasubiri connection check...</p></article><article class="panel"><h3>Authentication</h3><p id="authHealth">Inasubiri status...</p></article><article class="panel"><h3>Marketplace Services</h3><p id="serviceHealth">Inasubiri status...</p></article></div></section>
+
+      <section class="page-section" id="databasePage" data-section="database"><div class="section-intro"><div><h2>Database Monitoring</h2><p>Ufuatiliaji wa database, data integrity na errors.</p></div></div><div class="panel"><div class="notice-box">Database metrics na health checks zitaonyeshwa hapa baada ya kuunganishwa na monitoring endpoint salama. Usionyeshe service_role key kwenye browser.</div><div class="table-wrap"><table><thead><tr><th>Check</th><th>Result</th><th>Last checked</th><th>Status</th></tr></thead><tbody id="databaseHealthBody"><tr><td colspan="4" class="empty-state">Inasubiri database checks...</td></tr></tbody></table></div></div></section>
+
+      <section class="page-section" id="backupPage" data-section="backup"><div class="section-intro"><div><h2>Backup & Recovery</h2><p>Mpango wa backup, restore testing na data retention.</p></div></div><div class="panel"><div class="notice-box">Backup halisi inapaswa kuendeshwa server-side kupitia Supabase/database backup. HTML hii haitengenezi backup ya database yenyewe.</div><div class="table-wrap"><table><thead><tr><th>Backup</th><th>Type</th><th>Created</th><th>Result</th><th>Action</th></tr></thead><tbody id="backupHistoryBody"><tr><td colspan="5" class="empty-state">Inasubiri backup history...</td></tr></tbody></table></div></div></section>
+
+      <section class="page-section" id="notificationsPage" data-section="notifications"><div class="section-intro"><div><h2>Notifications</h2><p>Angalia na simamia taarifa za mfumo.</p></div></div><div class="panel"><div class="table-wrap"><table><thead><tr><th>Taarifa</th><th>Walengwa</th><th>Aina</th><th>Tarehe</th><th>Status</th></tr></thead><tbody id="notificationsTableBody"><tr><td colspan="5" class="empty-state">Inasubiri notifications...</td></tr></tbody></table></div></div></section>
+
+      <section class="page-section" id="settingsPage" data-section="settings"><div class="section-intro"><div><h2>System Settings</h2><p>Mipangilio ya jumla ya marketplace na sera za uendeshaji.</p></div></div><div class="settings-grid"><article class="panel"><h3>Marketplace</h3><p class="muted">Jina, mawasiliano, currency na mipangilio ya msingi.</p></article><article class="panel"><h3>Delivery pricing</h3><p class="muted">Maeneo na gharama za usafirishaji.</p></article><article class="panel"><h3>Account security</h3><p class="muted">Usalama wa akaunti ya msimamizi.</p></article><article class="panel"><h3>Seller Commission</h3><p class="muted">Commission ya sasa ya ZUNE: 3%.</p></article></div></section>
+
+      <section class="page-section" id="sellerDetailsPage" data-section="seller-details">
+        <div class="section-intro"><div><button class="back-link" id="backToSellersBtn" type="button">← Rudi kwa Sellers</button><h2>Maelezo ya Seller</h2><p>Wasifu kamili, biashara, fedha na historia ya seller.</p></div><span class="subtle-tag" id="sellerDetailsStatus">Seller profile</span></div>
+        <div class="seller-profile-hero panel"><div class="avatar avatar-large" id="sellerDetailsAvatar">S</div><div class="seller-hero-info"><h2 id="sellerDetailsName">Seller Name</h2><p id="sellerDetailsStore">Store information</p><span id="sellerDetailsVerification" class="verification-pill">Haijathibitishwa</span></div><div class="seller-actions"><button class="secondary-btn" id="verifySellerBtn" type="button">Thibitisha</button><button class="warning-btn" id="suspendSellerBtn" type="button">Simamisha</button><button class="danger-btn" id="blockSellerBtn" type="button">Zuia</button><button class="danger-btn" id="deleteSellerBtn" type="button">Delete Seller</button></div></div>
+        <div class="seller-tabs" role="tablist"><button class="active" data-seller-tab="overview">Muhtasari</button><button data-seller-tab="store">Duka</button><button data-seller-tab="products">Bidhaa</button><button data-seller-tab="orders">Orders</button><button data-seller-tab="wallet">Wallet</button><button data-seller-tab="verification">Nyaraka</button><button data-seller-tab="disputes">Disputes</button><button data-seller-tab="activity">Historia</button><button data-seller-tab="security">Usalama</button></div>
+        <div class="seller-tab-content active" id="sellerOverviewTab"><div class="detail-grid"><div><small>Jina kamili</small><strong id="detailFullName">—</strong></div><div><small>Jina la duka</small><strong id="detailBusinessName">—</strong></div><div><small>Email</small><strong id="detailEmail">—</strong></div><div><small>Namba ya simu</small><strong id="detailPhone">—</strong></div><div><small>TIN</small><strong id="detailTin">—</strong></div><div><small>Mkoa</small><strong id="detailRegion">—</strong></div><div><small>Wilaya</small><strong id="detailDistrict">—</strong></div><div><small>Tarehe ya kujiunga</small><strong id="detailJoined">—</strong></div><div><small>Role</small><strong id="detailRole">—</strong></div><div><small>Verification Status</small><strong id="detailVerifyStatus">—</strong></div></div></div>
+        <div class="seller-tab-content" id="sellerStoreTab"><div class="panel"><h3>Taarifa za duka</h3><div id="sellerStoreContent"></div></div></div>
+        <div class="seller-tab-content" id="sellerProductsTab"><div class="panel"><h3>Bidhaa za Seller</h3><div id="sellerProductsContent"></div></div></div>
+        <div class="seller-tab-content" id="sellerOrdersTab"><div class="panel"><h3>Orders za Seller</h3><div id="sellerOrdersContent"></div></div></div>
+        <div class="seller-tab-content" id="sellerWalletTab"><div class="panel"><h3>Wallet na miamala</h3><div id="sellerWalletContent"></div></div></div>
+        <div class="seller-tab-content" id="sellerVerificationTab"><div class="panel"><h3>Nyaraka za verification</h3><div id="sellerVerificationContent"></div></div></div>
+        <div class="seller-tab-content" id="sellerDisputesTab"><div class="panel"><h3>Disputes na malalamiko</h3><div id="sellerDisputesContent"></div></div></div>
+        <div class="seller-tab-content" id="sellerActivityTab"><div class="panel"><h3>Historia ya shughuli</h3><div id="sellerActivityContent"></div></div></div>
+        <div class="seller-tab-content" id="sellerSecurityTab"><div class="panel"><h3>Hali ya usalama</h3><div id="sellerSecurityContent"></div></div></div>
+      </section>
+
+      <footer class="app-footer"><span>© <span id="footerYear"></span> ZUNE Marketplace</span><span>Premium Admin Control Center · Admin Mkuu</span></footer>
+    </section>
+  </main>
+</div>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+<div class="toast-region" id="adminToastRegion" aria-live="polite"></div>
+<div class="modal-backdrop" id="adminModal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+    <div class="modal-heading"><h3 id="adminModalTitle">Thibitisha kitendo</h3><button class="icon-btn" id="closeAdminModal" type="button" aria-label="Funga">×</button></div>
+    <p id="adminModalMessage">Una uhakika?</p>
+    <label class="field-label" for="adminActionReason">Sababu ya kitendo (inahitajika)</label>
+    <textarea id="adminActionReason" placeholder="Eleza sababu ya kitendo hiki..." required></textarea>
+    <label class="field-label" for="adminActionConfirmText">Andika DELETE kuthibitisha ufutaji</label>
+    <input id="adminActionConfirmText" placeholder="DELETE" autocomplete="off">
+    <div class="modal-actions"><button class="secondary-btn" id="cancelAdminAction" type="button">Ghairi</button><button class="danger-btn" id="confirmAdminAction" type="button">Thibitisha</button></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/security.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/delivery-pricing.js"></script>
+<script src="js/disputes.js"></script>
+<script src="admin.js"></script>
+<script>
+(() => {
+  "use strict";
+  const titles = {
+    dashboard:"Dashboard",users:"Watumiaji",sellers:"Seller Management",
+    "seller-applications":"Maombi ya Seller","badge-requests":"Verified Badge Requests",
+    "badge-management":"Verified Badge Management",verification:"Verification Documents",
+    products:"Bidhaa",categories:"Categories",orders:"Orders",
+    "delivery-pricing":"Delivery & Pricing",coupons:"Coupons & Promotions",
+    announcements:"Matangazo",payments:"Payments",wallet:"Wallet & Commission",
+    disputes:"Disputes & Complaints","support-tickets":"Support Tickets",
+    reports:"Reports & Analytics","audit-logs":"Admin Audit Center",
+    "monthly-audit":"Ukaguzi wa Mwezi",security:"Security Center",
+    "system-health":"System Health",database:"Database Monitoring",backup:"Backup & Recovery",
+    notifications:"Notifications",settings:"System Settings","seller-details":"Seller Details"
+  };
+  const navLinks = [...document.querySelectorAll("[data-page]")];
+  const sections = [...document.querySelectorAll("[data-section]")];
+  function showPage(page) {
+    if (!titles[page]) page = "dashboard";
+    sections.forEach(section => section.classList.toggle("active", section.dataset.section === page));
+    navLinks.forEach(link => link.classList.toggle("active", link.dataset.page === page));
+    const title = document.getElementById("pageTitle");
+    if (title) title.textContent = titles[page];
+    document.title = `ZUNE PREMIUM ADMIN | ${titles[page]}`;
+    document.getElementById("adminSidebar")?.classList.remove("open");
+    document.getElementById("sidebarBackdrop")?.classList.remove("show");
+  }
+  navLinks.forEach(link => link.addEventListener("click", event => {
+    event.preventDefault();
+    const page = link.dataset.page;
+    if (page) { history.replaceState(null, "", `#${page}`); showPage(page); }
+  }));
+  window.addEventListener("hashchange", () => showPage(location.hash.slice(1)));
+  showPage(location.hash.slice(1) || "dashboard");
+
+  const menu = document.getElementById("menuToggle");
+  const sidebar = document.getElementById("adminSidebar");
+  const backdrop = document.getElementById("sidebarBackdrop");
+  const toggleMenu = () => {
+    const open = sidebar.classList.toggle("open");
+    backdrop.classList.toggle("show", open);
+  };
+  menu?.addEventListener("click", toggleMenu);
+  backdrop?.addEventListener("click", toggleMenu);
+
+  document.querySelectorAll("[data-seller-tab]").forEach(button => button.addEventListener("click", () => {
+    const tab = button.dataset.sellerTab;
+    document.querySelectorAll("[data-seller-tab]").forEach(b => b.classList.toggle("active", b === button));
+    document.querySelectorAll(".seller-tab-content").forEach(panel => panel.classList.toggle("active", panel.id === `seller${tab[0].toUpperCase()}${tab.slice(1)}Tab`));
+    document.dispatchEvent(new CustomEvent("zune:seller-detail-tab", {detail:{tab}}));
+  }));
+
+  const date = document.getElementById("currentDate");
+  if (date) date.textContent = new Intl.DateTimeFormat("sw-TZ", {dateStyle:"full"}).format(new Date());
+  const year = document.getElementById("footerYear");
+  if (year) year.textContent = new Date().getFullYear();
+
+  const checks = [...document.querySelectorAll("[data-audit-item]")];
+  const updateAuditProgress = () => {
+    const done = checks.filter(c => c.checked).length;
+    const percent = checks.length ? Math.round(done / checks.length * 100) : 0;
+    const label = document.getElementById("auditProgressText");
+    const bar = document.getElementById("auditProgressBar");
+    if (label) label.textContent = `${percent}% imekamilika (${done}/${checks.length})`;
+    if (bar) bar.style.width = `${percent}%`;
+  };
+  checks.forEach(c => c.addEventListener("change", updateAuditProgress));
+  updateAuditProgress();
+
+  const modal = document.getElementById("adminModal");
+  const closeModal = () => { modal?.classList.remove("show"); modal?.setAttribute("aria-hidden","true"); };
+  document.getElementById("closeAdminModal")?.addEventListener("click", closeModal);
+  document.getElementById("cancelAdminAction")?.addEventListener("click", closeModal);
+  modal?.addEventListener("click", event => { if (event.target === modal) closeModal(); });
+
+  document.getElementById("refreshDashboard")?.addEventListener("click", () => document.dispatchEvent(new Event("zune:admin-refresh")));
+  document.getElementById("refreshSellersBtn")?.addEventListener("click", () => document.dispatchEvent(new Event("zune:admin-refresh-sellers")));
+  document.getElementById("backToSellersBtn")?.addEventListener("click", () => { history.replaceState(null,"","#sellers"); showPage("sellers"); });
+
+  // Local table filters are safe UI helpers; data loading and mutations remain in admin.js/server.
+  const filterPairs = [
+    ["usersSearch","usersTableBody"],["sellersSearch","sellersTableBody"],
+    ["productsSearch","productsTableBody"],["ordersSearch","ordersTableBody"],
+    ["auditSearch","adminAuditLogsBody"],["badgeRequestsSearch","badgeRequestsBody"],
+    ["verifiedUsersSearch","verifiedUsersBody"]
+  ];
+  filterPairs.forEach(([inputId, bodyId]) => {
+    const input = document.getElementById(inputId), body = document.getElementById(bodyId);
+    if (!input || !body) return;
+    input.addEventListener("input", () => {
+      const q = input.value.toLowerCase().trim();
+      body.querySelectorAll("tr").forEach(row => row.style.display = row.textContent.toLowerCase().includes(q) ? "" : "none");
+    });
+  });
+
+  // Export currently visible table rows as CSV.
+  function exportTable(bodyId, filename) {
+    const body = document.getElementById(bodyId);
+    if (!body) return;
+    const table = body.closest("table");
+    const rows = [...table.querySelectorAll("tr")].map(row =>
+      [...row.querySelectorAll("th,td")].map(cell => '"' + cell.innerText.replace(/"/g,'""') + '"').join(",")
+    );
+    const blob = new Blob(["\uFEFF" + rows.join("\n")], {type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = filename + ".csv"; a.click();
+    URL.revokeObjectURL(url);
+  }
+  document.getElementById("exportUsersBtn")?.addEventListener("click", () => exportTable("usersTableBody","zune-users"));
+  document.getElementById("exportAuditBtn")?.addEventListener("click", () => exportTable("adminAuditLogsBody","zune-admin-audit"));
+  document.getElementById("exportReportsBtn")?.addEventListener("click", () => document.dispatchEvent(new Event("zune:admin-export-reports")));
+
+  // Expose only UI navigation helper for the existing admin logic.
+  window.zuneAdminShowPage = showPage;
+})();
+</script>
+</body>
+</html>
