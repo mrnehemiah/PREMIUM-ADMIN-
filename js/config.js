@@ -1,49 +1,20 @@
-
-/* =========================================
-   ZUNE SUPABASE CONFIGURATION
-========================================= */
-
-(function () {
-
-  window.SUPABASE_URL =
-    "https://rpkogiieegqgxqbzwxwo.supabase.co";
-
-  window.SUPABASE_ANON_KEY =
-    "sb_publishable_2TEqZv-NBM9n5knU46ngqA_wqO3V1uf";
-
-  /* CHECK SUPABASE LIBRARY */
-
-  if (
-    !window.supabase ||
-    !window.supabase.createClient
-  ) {
-    console.error(
-      "Supabase library haijapakiwa."
-    );
-
-    return;
-  }
-
-  /* CREATE CLIENT */
-
-  window.zuneSupabase =
-    window.supabase.createClient(
-      window.SUPABASE_URL,
-      window.SUPABASE_ANON_KEY
-    );
-
-  /* CONNECT TO ZUNE */
-
-  window.ZUNE = window.ZUNE || {};
-
-  window.ZUNE.sb = window.zuneSupabase;
-
-  window.ZUNE.ready = Promise.resolve(
-    window.zuneSupabase
+/* ZUNE ADMIN CONFIG
+   Weka URL na publishable/anon key ya Supabase hapa.
+   Usitumie service_role key ndani ya browser.
+*/
+window.ZUNE_CONFIG = window.ZUNE_CONFIG || {
+  SUPABASE_URL: "WEKA_SUPABASE_URL_HAPA",
+  SUPABASE_ANON_KEY: "WEKA_SUPABASE_PUBLISHABLE_KEY_HAPA",
+  AUTH_REQUIRED: true,
+  ADMIN_ROLE: "admin",
+  COMMISSION_RATE: 0.03
+};
+if (window.supabase && window.ZUNE_CONFIG.SUPABASE_URL !== "WEKA_SUPABASE_URL_HAPA" &&
+    window.ZUNE_CONFIG.SUPABASE_ANON_KEY !== "WEKA_SUPABASE_PUBLISHABLE_KEY_HAPA") {
+  window.zuneSupabase = window.supabase.createClient(
+    window.ZUNE_CONFIG.SUPABASE_URL,
+    window.ZUNE_CONFIG.SUPABASE_ANON_KEY
   );
-
-  console.log(
-    "ZUNE SUPABASE CONNECTED SUCCESSFULLY"
-  );
-
-})();
+} else {
+  console.warn("ZUNE: Jaza Supabase URL na publishable key ndani ya js/config.js.");
+}
