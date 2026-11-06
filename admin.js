@@ -15,10 +15,8 @@
   const pending={
    'badge-requests':'Schema ya verified badge requests haijawekwa kwenye package kwa sababu jina la jedwali na columns halijathibitishwa.',
    'badge-management':'Verified badge status ya profiles.is_verified inasomwa. Mabadiliko ya badge yatahitaji RPC salama ya backend.',
-   verification:'Schema ya verification documents haijathibitishwa; sehemu hii iko tayari kwa mapping.',
    categories:'Schema ya categories haijathibitishwa; hakuna INSERT/DELETE ya kubahatisha.',
-   'delivery-pricing':'Schema ya delivery pricing haijathibitishwa.',coupons:'Schema ya coupons/promotions haijathibitishwa.',announcements:'Schema ya announcements haijathibitishwa.',payments:'Schema ya payments haijathibitishwa.',
-   'support-tickets':'Schema ya support tickets haijathibitishwa.',security:'Sehemu ya usalama inaonyesha access model. Matukio maalum yatahitaji security-events table.',
+   security:'Sehemu ya usalama inaonyesha access model. Matukio maalum yatahitaji security-events table.',
    'system-health':'Health check ya Supabase inategemea session na queries za dashboard.',database:'Database monitoring: tumia Supabase Dashboard kwa metrics za ndani; browser key haiwezi kusoma database internals.',backup:'Backup na recovery husimamiwa kupitia Supabase Dashboard/CLI, si frontend browser.',settings:'Mipangilio inayobadilisha sera itawezeshwa baada ya kuthibitisha settings table na RPC.'
   };
   Object.entries(pending).forEach(([id,msg])=>c().notice(id,msg));
