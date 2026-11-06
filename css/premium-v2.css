@@ -1,0 +1,36 @@
+/* ZUNE PREMIUM ADMIN 2.0 — Emerald / Gold / Advanced motion */
+:root{--bg:#07130f;--bg-soft:#0b1d16;--panel:#10271d;--panel-2:#163629;--line:rgba(206,177,105,.17);--gold:#d9b65e;--gold-2:#f1d88f;--green:#45d39a;--shadow:0 22px 65px rgba(0,0,0,.28)}
+body{background:radial-gradient(ellipse at 78% -18%,#24543d 0,transparent 36%),radial-gradient(ellipse at 4% 30%,#102b20 0,transparent 32%),var(--bg);}
+.sidebar{width:270px;background:rgba(5,20,14,.96);backdrop-filter:blur(22px);border-right:1px solid rgba(217,182,94,.18);transition:width .34s cubic-bezier(.2,.8,.2,1),transform .3s ease;}
+.main-area{margin-left:270px;transition:margin-left .34s cubic-bezier(.2,.8,.2,1)}
+body.zune-sidebar-collapsed .sidebar{width:82px;padding-left:12px;padding-right:12px}
+body.zune-sidebar-collapsed .main-area{margin-left:82px}
+body.zune-sidebar-collapsed .brand{justify-content:center;padding-left:0;padding-right:0}
+body.zune-sidebar-collapsed .brand-copy,body.zune-sidebar-collapsed .admin-profile-copy,body.zune-sidebar-collapsed .crown,body.zune-sidebar-collapsed .nav-caption,body.zune-sidebar-collapsed .nav-link:not(.active)::after,body.zune-sidebar-collapsed .sidebar-bottom .system-status span:last-child,body.zune-sidebar-collapsed .sidebar-logout span,body.zune-sidebar-collapsed .nav-link .nav-label{display:none}
+body.zune-sidebar-collapsed .admin-profile{justify-content:center;padding:16px 0}
+body.zune-sidebar-collapsed .nav-link{justify-content:center;padding:12px 8px;position:relative;font-size:0}
+body.zune-sidebar-collapsed .nav-icon{font-size:18px;width:auto}
+body.zune-sidebar-collapsed .nav-link:hover::after{content:attr(aria-label);position:absolute;left:66px;top:50%;transform:translateY(-50%);white-space:nowrap;background:#17392a;color:#f2e7c7;border:1px solid var(--line);padding:8px 11px;border-radius:9px;font-size:11px;z-index:150;box-shadow:var(--shadow)}
+.sidebar-collapse-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;margin:8px 0 12px;padding:10px;border:1px solid var(--line);border-radius:11px;background:#d9b65e0c;color:var(--gold-2);font-size:11px;font-weight:800;transition:.25s}
+.sidebar-collapse-btn:hover{background:#d9b65e20;transform:translateY(-1px)}
+.topbar{background:rgba(7,19,15,.82);backdrop-filter:blur(22px);border-bottom-color:rgba(217,182,94,.14)}
+.metric-card,.panel{background:linear-gradient(145deg,rgba(20,51,37,.96),rgba(10,31,22,.96));border-color:rgba(217,182,94,.13);box-shadow:0 14px 42px rgba(0,0,0,.18);transition:transform .32s cubic-bezier(.2,.8,.2,1),border-color .32s,box-shadow .32s;animation:premiumRise .65s both}
+.metric-card:hover,.panel:hover{transform:translateY(-3px);border-color:#d9b65e55;box-shadow:0 20px 55px rgba(0,0,0,.27),0 0 28px #45d39a0a}
+.metrics-grid>.metric-card:nth-child(2){animation-delay:.06s}.metrics-grid>.metric-card:nth-child(3){animation-delay:.12s}.metrics-grid>.metric-card:nth-child(4){animation-delay:.18s}.metrics-grid>.metric-card:nth-child(5){animation-delay:.24s}.metrics-grid>.metric-card:nth-child(6){animation-delay:.30s}
+@keyframes premiumRise{from{opacity:0;transform:translateY(15px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes goldPulse{0%,100%{box-shadow:0 0 0 0 #d9b65e00}50%{box-shadow:0 0 0 5px #d9b65e13}}
+.nav-link{border:1px solid transparent;transition:background .24s,border-color .24s,transform .24s,color .24s}.nav-link:hover{transform:translateX(3px);background:#45d39a0d;border-color:#45d39a20;color:#dff8e9}.nav-link.active{background:linear-gradient(100deg,#45d39a20,#d9b65e0b);box-shadow:inset 3px 0 var(--green);color:#eafff1}
+.nav-icon{display:inline-grid;place-items:center;width:22px;height:22px;color:var(--gold-2)}
+.icon-btn,.primary-btn,.secondary-btn,.warning-btn,.danger-btn{transition:transform .22s cubic-bezier(.2,.8,.2,1),filter .22s,box-shadow .22s}.icon-btn:hover,.primary-btn:hover,.secondary-btn:hover,.warning-btn:hover,.danger-btn:hover{transform:translateY(-2px);filter:brightness(1.12);box-shadow:0 8px 24px #0003}.icon-btn:active,.primary-btn:active,.secondary-btn:active{transform:scale(.96)}
+.primary-btn{background:linear-gradient(135deg,#e7d28f,#b9954d);box-shadow:0 7px 22px #d9b65e20}.metric-icon{background:#45d39a13;color:#7de6b4;border:1px solid #45d39a20}
+.page-section.active{animation:pageEnter .36s ease both}@keyframes pageEnter{from{opacity:0;transform:translateY(9px);filter:blur(2px)}to{opacity:1;transform:none;filter:blur(0)}}
+tbody tr{transition:background .2s,transform .2s}tbody tr:hover{background:#45d39a0b;transform:translateX(2px)}
+.badge-pill{transition:filter .2s,transform .2s}.badge-pill:hover{filter:brightness(1.2);transform:scale(1.04)}
+.notification-count{animation:goldPulse 2s infinite}.notification-btn i{animation:goldPulse 2s infinite}
+.admin-toast{backdrop-filter:blur(18px);animation:toastIn .3s cubic-bezier(.2,.8,.2,1)}
+.modal-card{animation:modalEnter .28s cubic-bezier(.2,.8,.2,1)}@keyframes modalEnter{from{opacity:0;transform:translateY(15px) scale(.96)}to{opacity:1;transform:none}}
+.skeleton{background:linear-gradient(90deg,#ffffff08 25%,#ffffff16 37%,#ffffff08 63%);background-size:400% 100%;animation:skeletonMove 1.4s ease infinite;border-radius:8px}@keyframes skeletonMove{0%{background-position:100% 50%}100%{background-position:0 50%}}
+.premium-icon{display:inline-grid;place-items:center;vertical-align:middle}.premium-icon svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.8}
+@media(max-width:1100px){.sidebar{width:250px}.main-area{margin-left:250px}body.zune-sidebar-collapsed .sidebar{width:78px}body.zune-sidebar-collapsed .main-area{margin-left:78px}}
+@media(max-width:760px){.sidebar{width:min(290px,86vw)}.main-area,body.zune-sidebar-collapsed .main-area{margin-left:0!important}body.zune-sidebar-collapsed .sidebar{width:min(290px,86vw);padding:23px 16px 15px}body.zune-sidebar-collapsed .brand-copy,body.zune-sidebar-collapsed .admin-profile-copy,body.zune-sidebar-collapsed .crown,body.zune-sidebar-collapsed .nav-caption,body.zune-sidebar-collapsed .nav-link .nav-label,body.zune-sidebar-collapsed .sidebar-bottom .system-status span:last-child,body.zune-sidebar-collapsed .sidebar-logout span{display:initial}body.zune-sidebar-collapsed .nav-link{justify-content:flex-start;font-size:12px;padding:10px 11px}body.zune-sidebar-collapsed .admin-profile{justify-content:flex-start;padding:17px 7px 15px}body.zune-sidebar-collapsed .brand{justify-content:flex-start;padding:0 8px 23px}.sidebar-collapse-btn{display:none}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
