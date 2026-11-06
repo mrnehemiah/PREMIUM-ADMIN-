@@ -21,7 +21,7 @@
   function notice(section,message){const el=document.querySelector(`[data-section="${section}"]`);if(!el)return;let n=el.querySelector('.schema-note');if(!n){n=document.createElement('div');n.className='notice-box schema-note';el.appendChild(n);}n.textContent=message;}
   async function audit(action,targetType,targetId,reason,details={}){
     const user=window.ZUNE_CURRENT_USER;if(!db()||!user)return;
-    const payload={actor_id:user.id,action,target_type:targetType||null,target_id:targetId||null,reason,details};
+    const payload={actor_id:user.id,action,target_type:targetType||null,target_id:targetId==null?null:String(targetId),reason:String(reason||'Sababu haijaainishwa'),details};
     const {error:e}=await db().from(cfg.TABLES.activityLogs||'admin_activity_logs').insert(payload);
     if(e)console.warn('Audit log haikuandikwa:',e.message);
   }

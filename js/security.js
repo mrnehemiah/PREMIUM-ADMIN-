@@ -12,13 +12,13 @@
       return null;
     }
     const { data: profile, error: profileError } = await db().from('profiles')
-      .select('id,full_name,email,role,status').eq('id', session.user.id).maybeSingle();
+      .select('id,full_name,email,role,account_status').eq('id', session.user.id).maybeSingle();
     if (profileError) throw profileError;
     if (!profile || String(profile.role || '').toLowerCase() !== String(cfg.ADMIN_ROLE || 'admin')) {
       await db().auth.signOut();
       throw new Error('Akaunti hii haina mamlaka ya Admin Mkuu.');
     }
-    if (/suspended|blocked|disabled/i.test(String(profile.status || ''))) {
+    if (/suspended|blocked|disabled/i.test(String(profile.account_status || ''))) {
       await db().auth.signOut();
       throw new Error('Akaunti ya msimamizi imesimamishwa.');
     }
