@@ -1,7 +1,118 @@
-<!DOCTYPE html><html lang="sw"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Users & Profiles · ZUNE Admin</title><link rel="stylesheet" href="../css/admin.css"></head><body>
-<main id="content"><div class="ph"><h2>Users & Profiles</h2><p class="mu">Manage users, sellers and admins</p></div><div id="t"></div></main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script><script src="../js/config.js"></script><script src="../js/layout.js"></script>
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Users & Profiles · ZUNE Admin</title>
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<main id="content">
+  <div class="ph">
+    <h2>Users &amp; Profiles</h2>
+    <p class="mu">Manage users, sellers and admins</p>
+  </div>
+
+  <!-- Vichujio -->
+  <div class="filters" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
+    <input id="q" type="search" placeholder="Tafuta jina, email, zune_id…"
+           style="flex:1;min-width:200px;padding:.5rem .75rem;border:1px solid #ddd;border-radius:8px">
+
+    <select id="fRole" style="padding:.5rem .75rem;border:1px solid #ddd;border-radius:8px">
+      <option value="">Role zote</option>
+      <option value="buyer">Buyer</option>
+      <option value="vendor">Vendor</option>
+      <option value="admin">Admin</option>
+      <option value="super_admin">Super Admin</option>
+    </select>
+
+    <select id="fStatus" style="padding:.5rem .75rem;border:1px solid #ddd;border-radius:8px">
+      <option value="">Hali zote</option>
+      <option value="active">Active</option>
+      <option value="suspended">Suspended</option>
+      <option value="removed">Removed</option>
+    </select>
+
+    <button id="refresh" style="padding:.5rem .9rem;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer">
+      Sasisha
+    </button>
+  </div>
+
+  <div id="t"></div>
+  <p id="msg" class="mu" style="margin-top:.75rem"></p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/layout.js"></script>
 <script>
-(async()=>{const rows=await ZUNE.load(s=>s.from('profiles').select('id,full_name,email,role,status,created_at').order('created_at',{ascending:false}).limit(200),[]);
-ZUNE.table(document.getElementById('t'),[['full_name','User'],['email','Email'],['role','Role'],['status','Status',r=>ZUNE.pill(r.status)],['created_at','Joined',r=>(r.created_at||'').slice(0,10)]],rows)})();
-</script></body></html>
+(() => {
+  const tEl = document.getElementById('t');
+  const msgEl = document.getElementById('msg');
+  const qEl = document.getElementById('q');
+  const fRole = document.getElementById('fRole');
+  const fStatus = document.getElementById('fStatus');
+  const refreshBtn = document.getElementById('refresh');
+
+  // Safu za jedwali — zinaendana na muundo halisi wa profiles
+  const COLUMNS = [
+    ['full_name', 'User'],
+    ['email', 'Email'],
+    ['zune_id', 'ZUNE ID'],
+    ['role', 'Role'],
+    ['account_status', 'Status', r => ZUNE.pill(r.account_status || 'active')],
+    ['is_verified', 'Verified', r => r.is_verified ? '✅' : '—'],
+    ['created_at', 'Joined', r => (r.created_at || '').slice(0, 10)]
+  ];
+
+  const SELECT = 'id,full_name,email,zune_id,role,account_status,is_verified,vendor_code,created_at';
+
+  async function load() {
+    msgEl.textContent = 'Inapakia…';
+
+    const rows = await ZUNE.load(s => {
+      let query = s.from('profiles')
+        .select(SELECT)
+        .order('created_at', { ascending: false })
+        .limit(200);
+
+      const role = fRole.value;
+      const status = fStatus.value;
+      const q = qEl.value.trim();
+
+      if (role) query = query.eq('role', role);
+      if (status) query = query.eq('account_status', status);
+      if (q) {
+        // Tafuta kwa jina, email au zune_id
+        query = query.or(
+          `full_name.ilike.%${q}%,email.ilike.%${q}%,zune_id.ilike.%${q}%`
+        );
+      }
+
+      return query;
+    }, []);
+
+    if (!rows || rows.length === 0) {
+      msgEl.textContent = 'Hakuna watumiaji wanaolingana na vichujio.';
+    } else {
+      msgEl.textContent = `Watumiaji ${rows.length} wamepatikana.`;
+    }
+
+    ZUNE.table(tEl, COLUMNS, rows);
+  }
+
+  // Vichujio vinafanya kazi papo hapo
+  let debounce;
+  qEl.addEventListener('input', () => {
+    clearTimeout(debounce);
+    debounce = setTimeout(load, 300);
+  });
+  fRole.addEventListener('change', load);
+  fStatus.addEventListener('change', load);
+  refreshBtn.addEventListener('click', load);
+
+  load();
+})();
+</script>
+</body>
+</html>
