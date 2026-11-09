@@ -1,8 +1,7 @@
 {
-  "name": "zune",
-  "version": "1.0.0",
-  "private": false,
   "scripts": {
-    "start": "echo \"Static website\""
+    "dev": "vite",
+    "build": "vite build",
+    "start": "vite preview"
   }
 }
