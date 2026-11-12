@@ -1,0 +1,1 @@
+document.addEventListener("DOMContentLoaded",()=>window.ZuneModule&&window.ZuneModule.init(window.MODULE_META));
